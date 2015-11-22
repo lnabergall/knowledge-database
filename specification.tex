@@ -1,0 +1,421 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}  
+\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
+\usepackage{titlesec}
+\usepackage[backend=bibtex]{biblatex}
+\usepackage{hyperref}
+\usepackage[]{footmisc}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{algpseudocode}
+\usepackage{textcomp}
+\usepackage{color}
+\usepackage[table]{xcolor}
+\titleformat{\section}{\normalsize\scshape\center}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\scshape\center}{\thesubsection}{1em}{}
+\addbibresource{VCRreferences.bib}
+\makeatletter
+\renewcommand\@makefntext[1]{%
+    \parindent 1em%
+    \@thefnmark.~#1}
+\makeatother
+\begin{document}
+\title{\uppercase{\textbf{\normalsize A Knowledge Database}}}
+\author{\small{\textsc{Lukas Nabergall}}}
+\date{\small{\textsc{\today}}}
+\maketitle
+
+\section{Principles}
+
+This knowledge database application is designed with the following principles in mind:
+\begin{enumerate}
+\item[1.] Should contain content which rapidly converges in time towards validated knowledge. 
+\item[2.] Should be relevant and useful to advanced research, development, and academia.
+\item[3.] Should optimize searchability and quick content recognition and absorption.
+\item[4.] Should be based upon open content submission, editing, and validation.
+\end{enumerate}
+
+
+\section{Users}
+
+The knowledge database will be completely open to all for viewing and contributing, but users will have the option to create an account and, for transparency, will be encouraged to provide their full name. Logged in users will be able to create new content, have the option to be denoted as authors of pieces of content that they have created or edited, and will be able to validate new edits on all pieces of content of which they are authors. Users who are not logged into an account, or who have opted to remain anonymous as editors of a piece of content, will not have the ability to submit new pieces of content or validate new edits. 
+
+
+\section{Content}
+
+The knowledge database will be populated, primarily via open user submission, with brief entries explaining or documenting some single idea related to or relevant to advanced research and development fields, including mathematics, physics, chemistry, biology, statistics, computer science, programming, advanced technology and engineering, and other areas. Although the emphasis will likely at first be on content relevant to research and development in areas related to the hard sciences, the scope of the database could expand to include the social sciences, the humanities, the arts, and other disciplines, as well as more elementary content which is typically encountered at the secondary school and undergraduate levels, as appropriate.
+\\
+\\
+All pieces of content will be of a single form containing the following items:
+\begin{itemize}
+\item Name --- the primary name of the idea to be displayed in searches and lists, may contain \LaTeX \textrm{ }and other special formatting; e.g. $abc$ conjecture, the $W$-trick, Equipartition theorem, Finite Field, etc.
+\item Alternative Names [Aliases] (optional) --- alternate names (aliases) of the idea which may also be used for identification and search.
+\item Content Type --- the type of the idea, e.g. idea, theorem, conjecture, lemma, equation, formula, inequality, code, algorithm, visualization, technique, proof, etc.
+\item Text --- the actual explication/description/explanation of the idea, {\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}50 characters minimum\footnote{To be finalized.}, {\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}2000 characters maximum\footnote{To be finalized.}, can contain \LaTeX, \TeX, code, rich text, HTML, and other special formatting\footnote{The input field will be a rich text editor containing buttons which automate much of the formatting process.}; e.g. ``Given double occurrence words $w_{1}, w_{2}$, define the word distance $\delta$ by...".
+\item Images (optional) --- related images, including all common file types (JPEG, PNG, TIFF, BMP, GIF, etc.).
+\item Keywords / Subject Designations --- keywords and subject designations contained in or related to the idea, approximately 2 or 3 required; e.g. for a piece of content on finite fields, could include field, group, field theory, abstract algebra, associativity, operation, etc.
+\item Dependencies (optional) --- references contained in the text to other pieces of content via their names or aliases, can be manually specified via special formatting and automatically generated\footnote{Possibly with user validation.} by matching words in the text  with other pieces of content in the database, will be given hyperlinks on display; e.g. ``Given {\color{blue} double occurrence words} $w_{1}, w_{2}$, define the word distance $\delta$ by...".
+\item Citations (optional) --- Including both implicitly and explicitly (in-text) cited works, input with some standard academic citation format\footnote{To be specified.} (although including less information, e.g. only a url, is acceptable but discouraged), in-text citations are referenced in the text via special formatting\footnote{To be specified.}.
+\end{itemize}
+
+To prevent mass fraudulent content submissions, an authentication scheme (e.g. CAPTCHA\footnote{In the sequel, it is assumed that CAPTCHA will be used for authentication in the knowledge database.}) will be used to verify that a human is indeed making the submission.  
+
+
+
+\subsection{Editing and Validation}
+
+All aspects of all pieces of content will be fully editable by any user of the knowledge database. To combat malicious, inaccurate, or inappropriate content submissions and edits, an essentially democratic validation scheme will be implemented on most aspects of the content. 
+
+\begin{itemize}
+\item Name --- All modifications will be validated using the system specified below\footnote{Which will henceforth be assumed when discussing validation, unless otherwise specified.}.
+\item Aliases --- Validated modifications, open (not validated) additions with CAPTCHA authorization.
+\item Content Type --- Validated modifications. 
+\item Text --- Validation modifications, including insertions and deletions.
+\item Images --- Validated deletions and additions. 
+\item Keywords / Subject Designations --- Validated modifications, open additions with CAPTCHA authorization.
+\item Dependencies --- Validation of automatically (system) and manually (user) specified dependencies. 
+\item Citations --- Validated modifications, open additions with CAPTCHA authorization.
+\end{itemize}
+
+Suppose a user modifies some aspect of a piece of content which requires validation. In order to facilitate rapid growth and large throughput, content submissions will not be validated\footnote{Except via later edits.}. Hence the initial visibility of the user's modification will be dependent on whether their edit is of a part of the content that has been previously edited or not. If they have edited a part of the original submission, then the modification will be immediately visible since the original submission was not validated and hence we cannot assume that the submitted content is accurate and appropriate. If they have edited a part of the piece of content that was part of a previously validated modification, then the modification will not be immediately visible since validated edits are assumed to be relatively accurate and appropriate. 
+
+The validation process will proceed as follows. After a user submits an edit, all authors of the corresponding piece of content will be signalled to the existence of the modification and will have the option of either voting for or against accepting the modification\footnote{Or abstaining from (/ignoring) the vote.}. An author may change their vote at any time prior to the closing of the vote. The edit is accepted and the voting is closed if any of the following conditions are satisfied\footnote{Note that these conditions are evaluated with respect to the time at which they are satisfied, not with respect to the time of the edit. In particular, users who become authors after the validation process begins for some modification may still participate.}:
+\begin{enumerate}
+\item[1.] All authors have voted\footnote{Note that each author can vote at most once.} and a majority of the votes are for acceptance of the edit, or
+\item[2.] if there are $N$ authors, $\max\{3, \lceil N/2 \rceil\}$ authors have voted and at least $3/4$ of the votes are for acceptance of the edit\footnote{Note that these details are not finalized, although currently $N/2$ and $3/4$ are chosen because at least $3/4$ of the remaining $N/2$ authors would have to vote against acceptance of the edit for there to be less than a majority for acceptance. This is in general very unlikely, assuming benevolent authors.}, or
+\item[3.] at 5 days past modification, at least 2 votes have been submitted and at least 2/3 of the votes are for acceptance of the edit, or
+\item[4.] at 10 days past modification, at least 2 votes have been submitted and a majority of the votes are for acceptance of the edit.
+\end{enumerate}
+Otherwise, after 10 days, the edit is rejected and the voting process is closed. Upon acceptance of a logged in user's edit, the user\footnote{If they are not already an author.} is denoted an author of the piece of content and given the ability to participate in the edit validation process of that piece of content. In this way, there is an essentially \textit{viral authorship} system which ensures that those who validate edits have contributed useful, accurate, and appropriate edits in the past and therefore can be assumed to be relatively benevolent and have some knowledge of the content. 
+
+The only other caveat to the editing process is that we will assign a probability of {\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}$1/7$\footnote{To be finalized.} to the possibility that CAPTCHA authorization will be required in order for any given user to submit an edit\footnote{Where we assume that a user is defined by a unique IP address (or some similar metrics).}. This will reduce the likelihood of a malicious user successfully using a series of computers to perform mass fraudulent modification of content in the database, while also minimizing the fixed costs of editing content for benevolent human users.
+
+The above procedure covers all cases except when a user has submitted a piece of content that is entirely inappropriate or unsuitable for inclusion in the knowledge database or a group of authors are maliciously or inappropriately rigging the validation process in order to advance an agenda which runs counter to the principles of the knowledge database. In this case, any user will have the option to report a piece of content or a group of authors to the administrators\footnote{Likely individuals from among the organization which will maintain and develop the knowledge database.} of the database, one or more of whom will investigate and make an appropriate action. 
+
+%Remains only to determine how deleting inappropriate content submissions should be handled
+
+%Also, could use total transparency in submission, editing, and validation, e.g. Quora.
+
+%Solution: "Viral" author privileges + adminstrative reviews/reports, will need (minimal) user accounts for persistance + (ideally) transparency, although anonymous (not logged in) editing is still allowed without gaining "author privileges".
+
+
+
+\section{Application Map}
+
+The following is a list of each of the (functional) pages\footnote{Or areas/features.} in the knowledge database and, for each page, a list of linking pages, that is, the pages that a user can navigate to from that page. Note that these pages are only defined functionally and may not correspond to separate HTML pages or any page-like interface elements. Furthermore, linked pages may not correspond to a unique button (i.e. they may be dependent on previous navigation history). This generates a corresponding ``application graph" or map, although it is too intricate to be effectively visualized. 
+
+\begin{enumerate}
+\item[1.] Home --- 2\textsuperscript{*}, 3, 4, 6, 7, 12
+\item[2.] Search Results --- 3, 4, 5\textsuperscript{*}, 6, 7, 12, 1
+\item[3.] Sign-Up --- 1\textsuperscript{*}, 5
+\item[4.] Login --- 1\textsuperscript{*}, 5
+\item[5.] Content Page --- 8, 6, 4, 3, 2, 1, 7, 9, 11, 12, 13
+\item[6.] Account Page  --- 1, 2, 7, 11
+\item[7.] Content Submission Page --- 1, 5\textsuperscript{*}, 4
+\item[8.] Content Editing Page --- 5\textsuperscript{*}, 1, 2, 3, 4, 6, 9, 12
+\item[9.] Report Content Page --- 5\textsuperscript{*}
+\item[10.] Report Authors Page --- 11\textsuperscript{*}
+\item[11.] Content Authors Page\footnote{Or content validation page.} --- 5\textsuperscript{*}, 6, 1, 2, 9, 10, 12
+\item[12.] Admin Account Page --- 5\textsuperscript{*}, 13, 1, 2
+\item[13.] Admin Action Page --- 5, 12
+\end{enumerate}
+
+An asterisk indicates that this is the primary page to which a user will next navigate. 
+
+
+
+
+\section{Technology Stack}
+
+The following is a basic outline of the main technologies which will likely be used to implement the knowledge database. The emphasis at first will be on using technologies that are simple, proven, minimal, easy to work with, and ideally familiar.
+\begin{align*}
+\textrm{Database --- }& \textrm{PostgreSQL, for general storage of content and metadata.} \\
+\textrm{ORM --- }& \textrm{SQLAlchemy, for interfacing with the database.} \\
+\textrm{Search --- }& \textrm{Elasticsearch, for searching and matching text content.} \\ 
+\textrm{Processing --- }& \textrm{Celery and RabbitMQ, for asynchronous and scheduled task processing.} \\ 
+\textrm{-----------}& \textrm{--------- Custom Python API Layer --------------------} \\ \\
+\textrm{Framework --- }& \textrm{Pyramid, for routing requests and serving webpages.} \\
+\textrm{-----------}& \textrm{--------- REST Framework API Layer --------------------} \\ \\
+\textrm{Front-End --- }& \textrm{Bootstrap / Foundation / etc. (HTML/CSS).} \\
+& \textrm{React / jQuery / etc.} \\
+& \textrm{Various JavaScript libraries (\LaTeX, rich text editing, etc.).}
+\end{align*}
+
+
+
+
+\section{Backend Design}
+
+The server-side backend of the knowledge database application will be composed of 3 layers, themselves containing 6 sublayers, each with varying levels of access to others. The system will essentially have the following architecture (lower on the list roughly implies closer to the client):
+
+\begin{enumerate}
+\item[1.] Database Interface Layer
+\begin{enumerate}
+\item[(a)] Storage API --- SQLAlchemy-based interface to the Postgres database.
+\item[(b)] Search API --- ElasticSearch-based interface to the Postgres database.
+\end{enumerate}
+\item[2.] Main Logic Layer 
+\begin{enumerate}
+\item[(a)] Content API --- Submission, editing, validation, retrieval, etc. Interfaces with Storage API. 
+\item[(b)] User API --- Creation, authentication, sessions, permissions, etc. Interfaces with Storage API.
+\item[(c)] Admin API --- Inherits from User API, creation, authentication, etc. Interfaces with Storage API.
+\end{enumerate}
+\item[3.] RESTful Pyramid API --- Pyramid-based, handles all communication with web clients. Interfaces with Search API, Content API, User API, and Admin API. 
+\end{enumerate}
+
+%USING PYRAMID INSTEAD
+%Might need Redis + Task Queue for sessions, votes, and abuse reports...
+
+\subsection{Storage}
+
+A Postgres database will be the main store of all persistent data in the knowledge database application. The database will contain 11 (non-linking\footnote{There will be some additional linking tables used to implement many-to-many relationships.}) tables: Text, Content\_Piece, Content\_Type, Keyword, Name, Accepted\_Edit, Citation, User, Rejected\_Edit, Vote, and User\_Report.
+
+\renewcommand{\arraystretch}{1.8}
+
+\vspace{.5cm}
+\begin{center}
+\label{Text}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\multicolumn{4}{|c|}{Text} \\ \hline
+Attribute Name & Type & Indexed & Required \\ \hline
+text\_id & Integer & Yes, Primary Key & Yes \\ \hline
+text & Text & No & Yes \\ \hline
+timestamp & Timestamp & No & Yes \\ \hline
+\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
+Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
+One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated edits
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\label{ContentPiece}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\multicolumn{4}{|c|}{Content\_Piece} \\ \hline
+\multicolumn{1}{|c|}{Attribute Name} & \multicolumn{1}{c|}{Type} & \multicolumn{1}{c|}{Indexed} & \multicolumn{1}{c|}{Required} \\ \hline
+piece\_id & Integer & Yes, Primary Key & Yes \\ \hline
+%name & Text & Yes & Yes \\ \hline
+timestamp & Timestamp & No & Yes \\ \hline
+\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
+Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
+One-to-One & Text & \multicolumn{2}{c|}{text\_id} \\ \hline % Text
+One-to-One & Name & \multicolumn{2}{c|}{name\_id} \\ \hline	% Primary name
+One-to-Many & Name & \multicolumn{2}{c|}{name\_id} \\ \hline % Alternative names
+One-to-Many & Keyword & \multicolumn{2}{c|}{keyword\_id} \\ \hline	% Keywords
+One-to-Many & Citation & \multicolumn{2}{c|}{citation\_id} \\ \hline % Citations
+Many-to-One & Content\_Type & \multicolumn{2}{c|}{type\_id} \\ \hline % Content Type
+Many-to-One & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Original author
+Many-to-Many & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Authors
+\end{tabular}
+\end{center}
+
+
+\vspace*{.6cm}
+\begin{center}
+\label{ContentType}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\multicolumn{4}{|c|}{Content\_Type} \\ \hline
+Attribute Name & Type & Indexed & Required \\ \hline
+type\_id & Integer & Yes, Primary Key & Yes \\ \hline
+type & Text & No & Yes \\ \hline
+%\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
+%Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
+\end{tabular}
+\end{center}
+
+
+\vspace*{.6cm}
+\begin{center}
+\label{Keyword}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\multicolumn{4}{|c|}{Keyword} \\ \hline
+Attribute Name & Type & Indexed & Required \\ \hline
+keyword\_id & Integer & Yes, Primary Key & Yes \\ \hline
+keyword & Text & Yes & Yes \\ \hline
+%\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
+%Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
+%One-to-Many & Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\label{Name}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\multicolumn{4}{|c|}{Name} \\ \hline
+Attribute Name & Type & Indexed & Required \\ \hline
+name\_id & Integer & Yes, Primary Key & Yes \\ \hline
+name & Text & No & Yes \\ \hline
+name\_type & Text & No & Yes \\ \hline
+timestamp & Timestamp & No & Yes \\ \hline
+\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
+Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
+One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated edits
+\end{tabular}
+\end{center}
+
+
+\vspace*{.6cm}
+\begin{center}
+\label{AcceptedEdit}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\multicolumn{4}{|c|}{Accepted\_Edit} \\ \hline
+Attribute Name & Type & Indexed & Required \\ \hline
+edit\_id & Integer & Yes, Primary Key & Yes \\ \hline
+edit\_text & Text & No & Yes \\ \hline
+content\_part & Text & No & Yes \\ \hline
+author\_type & Text & No & Yes \\ \hline % "U" for registered users, IP address for anonymous users
+timestamp & Timestamp & No & Yes \\ \hline
+acc\_timestamp & Timestamp & No & Yes \\ \hline
+\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
+Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
+Many-to-One & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Author
+One-to-One & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline	% Previous edit of the same content part
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\label{Citation}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\multicolumn{4}{|c|}{Citation} \\ \hline
+Attribute Name & Type & Indexed & Required \\ \hline
+citation\_id & Integer & Yes, Primary Key & Yes \\ \hline
+citation\_text & Text & No & Yes \\ \hline
+\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
+Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
+One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated edits
+\end{tabular}
+\end{center}
+
+
+\vspace{.6cm}
+\begin{center}
+\label{User}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\multicolumn{4}{|c|}{User} \\ \hline
+Attribute Name & Type & Indexed & Required \\ \hline
+user\_id & Integer & Yes, Primary Key & Yes \\ \hline
+user\_type & Text & No & Yes \\ \hline	% "admin" or "standard"
+user\_name & Text & Yes & Yes \\ \hline
+email & Text & Yes & Yes \\ \hline
+pass\_hash & Text & Yes & Yes \\ \hline
+pass\_hash\_type & Text & No & Yes \\ \hline
+pass\_salt & Text & Yes & Yes \\ \hline
+remember\_id & Text & Yes & No \\ \hline
+remember\_token\_hash & Text & Yes & No \\ \hline
+remember\_hash\_type & Text & No & No \\ \hline
+timestamp & Timestamp & No & Yes \\ \hline
+%\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
+%Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
+%Many-to-One & XX & \multicolumn{2}{c|}{XX} \\ \hline
+\end{tabular}
+\end{center}
+
+
+\vspace*{.3cm}
+\begin{center}
+\label{RejectedEdit}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\multicolumn{4}{|c|}{Rejected\_Edit} \\ \hline
+Attribute Name & Type & Indexed & Required \\ \hline
+edit\_id & Integer & Yes, Primary Key & Yes \\ \hline
+edit\_text & Text & No & Yes \\ \hline
+content\_part & Text & No & Yes \\ \hline
+author\_type & Text & No & Yes \\ \hline % "U" for registered users, IP address for anonymous users
+timestamp & Timestamp & No & Yes \\ \hline
+rej\_timestamp & Timestamp & No & Yes \\ \hline
+\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
+Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
+Many-to-One & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Author
+\end{tabular}
+\end{center}
+
+
+\vspace*{.6cm}
+\begin{center}
+\label{Vote}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\multicolumn{4}{|c|}{Vote} \\ \hline
+Attribute Name & Type & Indexed & Required \\ \hline
+vote\_id & Integer & Yes, Primary Key & Yes \\ \hline
+vote & Text & No & Yes \\ \hline	% "resultofvoteinstandardizedformat | user1id, Y; user2id, N; ..." Note that the result of vote summary must take into account exactly how the vote was closed (i.e. 10 days passed, all authors voted, etc.)
+content\_part & Text & No & Yes \\ \hline % "content" or "authors"
+timestamp & Timestamp & No & Yes \\ \hline
+close\_timestamp & Timestamp & No & Yes \\ \hline	% Close of the vote
+\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
+Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
+One-to-One & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Edit voted on
+One-to-One & Rejected\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Edit voted on
+Many-to-Many & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Author
+\end{tabular}
+\end{center}
+
+
+\vspace*{.6cm}
+\begin{center}
+\label{UserReport}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\multicolumn{4}{|c|}{User\_Report} \\ \hline
+Attribute Name & Type & Indexed & Required \\ \hline
+report\_id & Integer & Yes, Primary Key & Yes \\ \hline
+report\_text & Text & No & Yes \\ \hline
+report\_type & Text & No & Yes \\ \hline % "content" or "authors"
+author\_type & Text & No & Yes \\ \hline % "U" for registered users, IP address for anonymous users
+admin\_report & Text & No & Yes \\ \hline
+timestamp & Timestamp & No & Yes \\ \hline
+res\_timestamp & Timestamp & No & Yes \\ \hline
+\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
+Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
+Many-to-One & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Author
+Many-to-One & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Assigned admin
+\end{tabular}
+\end{center}
+
+
+% Add relationship to all edits on Content table, define a Vote table, review database design
+
+% Consider desired for (validated) knowledge database vs original research portal --- actually, consider mainly how original research, represented only by newly proven theorems/lemmas, calculations, conjectures, etc., should be handled relative to the fact that the database will primarily be composed of already "known" and validated knowledge...namely, if the database allows "original" conjectures, etc., how do we determine whether they are appropriate for inclusion in the database? 
+
+
+
+
+
+\subsection{Search}
+
+
+
+
+
+
+
+
+\subsection{Application Logic}
+
+
+
+
+\subsubsection{Asynchronous and Scheduled Processing}
+
+
+
+
+
+
+\end{document} 
