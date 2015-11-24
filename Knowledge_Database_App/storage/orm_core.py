@@ -46,14 +46,14 @@ class ContentPiece(Base):
     content_id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime)
 
-    # Many-to-One relationships:
+    # Many-to-One relationships
     first_author_id = Column(Integer, ForeignKey("User.user_id"))
     first_author = relationship("User", backref="pieces_created")
 
     type_id = Column(Integer, ForeignKey("Content_Type.type_id"))
     type = relationship("ContentType", backref="pieces")
 
-    # One-to-One relationships:
+    # One-to-One relationships
     name_id = Column(Integer, ForeignKey("Name.name_id"))
     name = relationship("Name", backref=backref("piece", uselist=False))
 
@@ -64,7 +64,7 @@ class ContentPiece(Base):
     authors = relationship("User", secondary=content_authors, backref="pieces")
 
 
-# Many-to-Many relationship between Content_Piece and User:
+# Many-to-Many relationship between Content_Piece and User
 content_authors = Table("content_authors", Base.metadata,
     Column("content_id", Integer, ForeignKey("ContentPiece.content_id")),
     Column("user_id", Integer, ForeignKey("User.user_id")),
@@ -79,7 +79,7 @@ class Name(Base):
     name_type = Column(Text_)
     timestamp = Column(DateTime)
 
-    # Many-to-One relationships:
+    # Many-to-One relationships
     content_id = Column(Integer, ForeignKey("Content_Piece.content_id"))
     piece = relationship("ContentPiece", backref="alternate_names")
 
@@ -114,7 +114,7 @@ class Keyword(Base):
     keyword_id = Column(Integer, primary_key=True)
     keyword = Column(Text_, unique=True, index=True)
 
-    # Many-to-One relationships:
+    # Many-to-One relationships
     content_id = Column(Integer, ForeignKey("Content_Piece.content_id"))
     piece = relationship("ContentPiece", backref="keywords")
 
@@ -128,7 +128,7 @@ class Citation(Base):
     citation_id = Column(Integer, primary_key=True)
     citation_text = Column(Text_)
 
-    # Many-to-One relationships:
+    # Many-to-One relationships
     content_id = Column(Integer, ForeignKey("Content_Piece.content_id"))
     piece = relationship("ContentPiece", backref="citations")
 
@@ -146,12 +146,13 @@ class AcceptedEdit(Base):
 
     edit_id = Column(Integer, primary_key=True)
     edit_text = Column(Text_)
+    edit_rationale = Column(Text_)
     content_part = Column(Text_)
     timestamp = Column(DateTime)
     acc_timestamp = Column(DateTime)
     author_type = Column(Text_)
 
-    # Many-to-One relationships:
+    # Many-to-One relationships
     author_id = Column(Integer, ForeignKey("User.user_id"))
     author = relationship("User", backref="accepted_edits")
 
@@ -164,7 +165,7 @@ class AcceptedEdit(Base):
     citation_id = Column(Integer, ForeignKey("Citation.citation_id"))
     citation = relationship("Citation", backref="accepted_edits")
 
-    # One-to-One relationships:
+    # One-to-One relationships
     previous_edit_id = Column(Integer, ForeignKey("Accepted_Edit.edit_id"))
     previous_edit = relationship(
         "AcceptedEdit", backref=backref("next_edit", uselist=False))
@@ -181,7 +182,7 @@ class Vote(Base):
     timestamp = Column(DateTime)
     close_timestamp = Column(DateTime)
 
-    # One-to-One relationships:
+    # One-to-One relationships
     accepted_edit_id = Column(Integer, ForeignKey("Accepted_Edit.edit_id"))
     accepted_edit = relationship(
         "AcceptedEdit", backref=backref("vote", uselist=False))
@@ -190,11 +191,11 @@ class Vote(Base):
     rejected_edit = relationship(
         "RejectedEdit", backref=backref("vote", uselist=False))
 
-    # Many-to-Many relationships:
+    # Many-to-Many relationships
     authors = relationship("User", secondary=user_votes, backref="votes")
 
 
-# Many-to-Many relationship between Vote and User:
+# Many-to-Many relationship between Vote and User
 user_votes = Table("user_votes", Base.metadata,
     Column("vote_id", Integer, ForeignKey("Vote.vote_id")),
     Column("user_id", Integer, ForeignKey("User.user_id")),
@@ -211,12 +212,13 @@ class RejectedEdit(Base):
 
     edit_id = Column(Integer, primary_key=True)
     edit_text = Column(Text_)
+    edit_rationale = Column(Text_)
     content_part = Column(Text_)
     timestamp = Column(DateTime)
     rej_timestamp = Column(DateTime)
     author_type = Column(Text_)
 
-    # Many-to-One relationships:
+    # Many-to-One relationships
     author_id = Column(Integer, ForeignKey("User.user_id"))
     author = relationship("User", backref="rejected_edits")
 
