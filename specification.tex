@@ -82,14 +82,15 @@ All aspects of all pieces of content will be fully editable by any user of the k
 \item Citations --- Validated modifications, open additions with CAPTCHA authorization.
 \end{itemize}
 
-Suppose a user modifies some aspect of a piece of content which requires validation. In order to facilitate rapid growth and large throughput, content submissions will not be validated\footnote{Except via later edits.}. Hence the initial visibility of the user's modification will be dependent on whether their edit is of a part of the content that has been previously edited or not. If they have edited a part of the original submission, then the modification will be immediately visible since the original submission was not validated and hence we cannot assume that the submitted content is accurate and appropriate. If they have edited a part of the piece of content that was part of a previously validated modification, then the modification will not be immediately visible since validated edits are assumed to be relatively accurate and appropriate. 
+In order to facilitate rapid growth and large throughput, content submissions will not be validated\footnote{Except via later edits.}. Suppose a user modifies some aspect of a piece of content which requires validation. The user's modification will not be visible until it is validated, and accepted, by the authors of the piece of content. 
+%Hence the initial visibility of the user's modification will be dependent on whether their edit is of a part of the content that has been previously edited or not. If they have edited a part of the original submission, then the modification will be immediately visible since the original submission was not validated and hence we cannot assume that the submitted content is accurate and appropriate. If they have edited a part of the piece of content that was part of a previously validated modification, then the modification will not be immediately visible since validated edits are assumed to be relatively accurate and appropriate. 
 
 The validation process will proceed as follows. After a user submits an edit, all authors of the corresponding piece of content will be signalled to the existence of the modification and will have the option of either voting for or against accepting the modification\footnote{Or abstaining from (/ignoring) the vote.}. An author may change their vote at any time prior to the closing of the vote. The edit is accepted and the voting is closed if any of the following conditions are satisfied\footnote{Note that these conditions are evaluated with respect to the time at which they are satisfied, not with respect to the time of the edit. In particular, users who become authors after the validation process begins for some modification may still participate.}:
 \begin{enumerate}
-\item[1.] All authors have voted\footnote{Note that each author can vote at most once.} and a majority of the votes are for acceptance of the edit, or
-\item[2.] if there are $N$ authors, $\max\{3, \lceil N/2 \rceil\}$ authors have voted and at least $3/4$ of the votes are for acceptance of the edit\footnote{Note that these details are not finalized, although currently $N/2$ and $3/4$ are chosen because at least $3/4$ of the remaining $N/2$ authors would have to vote against acceptance of the edit for there to be less than a majority for acceptance. This is in general very unlikely, assuming benevolent authors.}, or
-\item[3.] at 5 days past modification, at least 2 votes have been submitted and at least 2/3 of the votes are for acceptance of the edit, or
-\item[4.] at 10 days past modification, at least 2 votes have been submitted and a majority of the votes are for acceptance of the edit.
+\item[1.] A majority of the authors\footnote{Note that each author can vote at most once.} have voted for acceptance of the edit, or
+\item[2.] if there are $N$ authors, at least $\max\{2, \lceil N/2 \rceil\}$ authors have voted and at least $3/4$ of the votes are for acceptance of the edit\footnote{Note that these details are not finalized, although currently $N/2$ and $3/4$ are chosen because at least $3/4$ of the remaining $N/2$ authors would have to vote against acceptance of the edit for there to be less than a majority for acceptance. This is in general very unlikely, assuming benevolent authors.}, or
+\item[3.] at 5 days past modification, at least 2 votes have been submitted and at least $2/3$ of the votes are for acceptance of the edit, or
+\item[4.] at 10 days past modification, at least 1 vote has been submitted and a majority of the votes are for acceptance of the edit.
 \end{enumerate}
 Otherwise, after 10 days, the edit is rejected and the voting process is closed. Upon acceptance of a logged in user's edit, the user\footnote{If they are not already an author.} is denoted an author of the piece of content and given the ability to participate in the edit validation process of that piece of content. In this way, there is an essentially \textit{viral authorship} system which ensures that those who validate edits have contributed useful, accurate, and appropriate edits in the past and therefore can be assumed to be relatively benevolent and have some knowledge of the content. 
 
@@ -114,18 +115,67 @@ The following is a list of each of the (functional) pages\footnote{Or areas/feat
 \item[2.] Search Results --- 3, 4, 5\textsuperscript{*}, 6, 7, 12, 1
 \item[3.] Sign-Up --- 1\textsuperscript{*}, 5
 \item[4.] Login --- 1\textsuperscript{*}, 5
-\item[5.] Content Page --- 8, 6, 4, 3, 2, 1, 7, 9, 11, 12, 13
+\item[5.] Content Page --- 8, 6, 4, 3, 2, 1, 7, 9, 11, 12, 13, 14
 \item[6.] Account Page  --- 1, 2, 7, 11
 \item[7.] Content Submission Page --- 1, 5\textsuperscript{*}, 4
 \item[8.] Content Editing Page --- 5\textsuperscript{*}, 1, 2, 3, 4, 6, 9, 12
 \item[9.] Report Content Page --- 5\textsuperscript{*}
 \item[10.] Report Authors Page --- 11\textsuperscript{*}
-\item[11.] Content Authors Page\footnote{Or content validation page.} --- 5\textsuperscript{*}, 6, 1, 2, 9, 10, 12
+\item[11.] Content Authors Page\footnote{Or content validation page.} --- 5\textsuperscript{*}, 6, 1, 2, 9, 10, 12, 14
 \item[12.] Admin Account Page --- 5\textsuperscript{*}, 13, 1, 2
 \item[13.] Admin Action Page --- 5, 12
+\item[14.] Edits Page --- 5\textsuperscript{*}, 11
 \end{enumerate}
 
 An asterisk indicates that this is the primary page to which a user will next navigate. 
+
+
+
+\section{Use Cases}
+
+\begin{enumerate}
+\item[] Users
+\begin{itemize}
+\item A user must register with a username composed of at least two words separated by a space (with each word containing at least 2 characters),\footnote{That is, with their full name. These will be stored with underscores replacing the spaces.} a password containing at least 5 characters, and a unique valid email address.  
+\item A user logs into their account by entering their email and password\footnote{Since their username and password might not be unique; i.e. the username is functionally only a display name.} and are then redirected to their account page\footnote{This behavior could be more customized---a user could be redirected to their account page only if there is a pending vote on a piece of content they have authored and, otherwise, they are redirected to the home page.}.
+\item Upon registration, a user is sent an email containing a unique\footnote{And unguessable.} link which they must follow in order to confirm their email address. Confirmation must be completed in order to submit a piece of content or be denoted an author after having an edit accepted\footnote{Primarily because an email is sent each time an edit is made to a piece of content the user has authored.}.
+\item A user must be logged in to submit a piece of content or be denoted an author after having made an accepted edit; if they attempt to submit a piece of content anonymously, they will be directed to login or sign up. 
+\item When an edit is made to a piece of content which a user has authored, the user can see the existence of the edit, and be redirected to the author page of that piece of content to inspect and vote on the edit, from their account page. 
+\end{itemize}
+\item[] Content Retrieval
+\begin{itemize}
+\item Each piece of content will have its own unique url which a user can follow to view content. 
+\item A user can search for content via a search bar located on all pages of the application, although the home page will be the primary entry site. Ten entries will be displayed per page in the search results. 
+\end{itemize}
+\item[] Content Submission
+\begin{itemize}
+\item After submitting a piece of content, the user will be directed to a preview page to confirm the content of their submission. Upon final submission, the user will be directed to the page of the posted piece of content. 
+\item Each user will be limited to submitting at most one piece of content every minute. 
+\end{itemize}
+\item[] Content Editing
+\begin{itemize}
+\item Each user will be limited to at most one edit every 10 seconds. 
+\item Upon editing, a user will have the option of including an explanation of the rationale behind the edit which will be displayed to all authors when voting.
+\item After submission of an edit, all users can see the existence of that pending edit on the edits page. 
+\end{itemize}
+\item[] Content Validation
+\begin{itemize}
+\item When an edit is made to a piece of content which a user has authored, the user is sent an email notifying them of the existence of the edit and urging them to vote. Until the voting ends or they have voted, such an email is sent to the user every 3 days. 
+\item When an edit is accepted or rejected, a log of it is displayed on the edits page of the associated piece of content. 
+\item When an edit is accepted, the piece of content is updated to display the edit. 
+\item 
+\item 
+\item 
+\end{itemize}
+\item[] Admins and Abuse Reports
+\begin{itemize}
+\item 
+\item 
+\item 
+\item 
+\item 
+\end{itemize}
+\end{enumerate}
 
 
 
@@ -388,10 +438,14 @@ Many-to-One & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Assigned admin
 \end{tabular}
 \end{center}
 
-
 % Add relationship to all edits on Content table, define a Vote table, review database design
 
 % Consider desired for (validated) knowledge database vs original research portal --- actually, consider mainly how original research, represented only by newly proven theorems/lemmas, calculations, conjectures, etc., should be handled relative to the fact that the database will primarily be composed of already "known" and validated knowledge...namely, if the database allows "original" conjectures, etc., how do we determine whether they are appropriate for inclusion in the database? 
+
+
+\subsubsection{Query API}
+
+
 
 
 
