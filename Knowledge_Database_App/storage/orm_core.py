@@ -108,15 +108,22 @@ class ContentType(Base):
         return "<ContentType(type={})>".format(self.type)
 
 
+# Many-to-Many relationship between Keyword and ContentPiece
+content_keywords = Table("content_keywords", Base.metadata,
+    Column("keyword_id", Integer, ForeignKey("Keyword.keyword_id")),
+    Column("content_id", Integer, ForeignKey("Content_Piece.content_id")),
+)
+
+
 class Keyword(Base):
     __tablename__ = "Keyword"
 
     keyword_id = Column(Integer, primary_key=True)
     keyword = Column(Text_, unique=True, index=True)
 
-    # Many-to-One relationships
-    content_id = Column(Integer, ForeignKey("Content_Piece.content_id"))
-    piece = relationship("ContentPiece", backref="keywords")
+    # Many-to-Many relationships
+    pieces = relationship("ContentPiece", secondary=content_keywords, 
+                          backref="keywords")
 
     def __repr__(self):
         return "<Keyword(keyword={})>".format(self.keyword)
