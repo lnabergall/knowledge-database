@@ -161,19 +161,15 @@ An asterisk indicates that this is the primary page to which a user will next na
 \item[] Content Validation
 \begin{itemize}
 \item When an edit is made to a piece of content which a user has authored, the user is sent an email notifying them of the existence of the edit and urging them to vote. Until the voting ends or they have voted, such an email is sent to the user every 3 days. 
-\item When an edit is accepted or rejected, a log of it is displayed on the edits page of the associated piece of content. 
+\item When an edit is accepted or rejected, a log of it is displayed on the edits page of the associated piece of content. From the edits page, users can view the changes made or proposed by all past edits.
 \item When an edit is accepted, the piece of content is updated to display the edit. 
-\item 
-\item 
-\item 
+\item While an edit is being validated, that is, a vote is open, all authors can see how many authors have voted thus far. No other information will be available until after the vote is complete, when a complete summary of the results of the vote are displayed in the authors page (including the votes of all authors). 
 \end{itemize}
 \item[] Admins and Abuse Reports
 \begin{itemize}
-\item 
-\item 
-\item 
-\item 
-\item 
+\item All users may submit an abuse report against a piece of content. They will only be required to give a nontrivially detailed report of the alleged abuse.
+\item The authors of a piece of content may also submit an abuse report against another author or group of authors. They will be required to list exactly which authors are committing the alleged abuse and give a nontrivially detailed report of the alleged abuse.
+\item When an abuse report is submitted, an administrator is selected to investigate and resolve the situation. The admin may elect to take no action, send messages of guidance or warning against authors or other editing users, temporarily or permanently suspend user accounts, or revoke authorship\footnote{This may not be an exhaustive list of all possible admin actions.}. An admin may also elect to take action against a user who is determined to be abusing the abuse reporting feature.
 \end{itemize}
 \end{enumerate}
 
@@ -258,10 +254,10 @@ Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
 One-to-One & Text & \multicolumn{2}{c|}{text\_id} \\ \hline % Text
 One-to-One & Name & \multicolumn{2}{c|}{name\_id} \\ \hline	% Primary name
 One-to-Many & Name & \multicolumn{2}{c|}{name\_id} \\ \hline % Alternative names
-One-to-Many & Keyword & \multicolumn{2}{c|}{keyword\_id} \\ \hline	% Keywords
-One-to-Many & Citation & \multicolumn{2}{c|}{citation\_id} \\ \hline % Citations
-Many-to-One & Content\_Type & \multicolumn{2}{c|}{type\_id} \\ \hline % Content Type
+Many-to-One & Content\_Type & \multicolumn{2}{c|}{content\_type\_id} \\ \hline % Content Type
 Many-to-One & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Original author
+Many-to-Many & Keyword & \multicolumn{2}{c|}{keyword\_id} \\ \hline	% Keywords
+Many-to-Many & Citation & \multicolumn{2}{c|}{citation\_id} \\ \hline % Citations
 Many-to-Many & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Authors
 \end{tabular}
 \end{center}
@@ -274,8 +270,8 @@ Many-to-Many & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Authors
 \hline
 \multicolumn{4}{|c|}{Content\_Type} \\ \hline
 Attribute Name & Type & Indexed & Required \\ \hline
-type\_id & Integer & Yes, Primary Key & Yes \\ \hline
-type & Text & No & Yes \\ \hline
+content\_type\_id & Integer & Yes, Primary Key & Yes \\ \hline
+content\_type & Text & No & Yes \\ \hline
 %\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
 %Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
 \end{tabular}
@@ -376,7 +372,7 @@ timestamp & Timestamp & No & Yes \\ \hline
 \end{center}
 
 
-\vspace*{.3cm}
+%\vspace*{.3cm}
 \begin{center}
 \label{RejectedEdit}
 \begin{tabular}{|c|c|c|c|}
@@ -417,7 +413,7 @@ Many-to-Many & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Author
 \end{center}
 
 
-\vspace*{.6cm}
+%\vspace*{.6cm}
 \begin{center}
 \label{UserReport}
 \begin{tabular}{|c|c|c|c|}
@@ -444,8 +440,55 @@ Many-to-One & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Assigned admin
 
 
 \subsubsection{Query API}
-
-
+The following is a rough layout of the Storage Query API. 
+\begin{enumerate}
+\item[] \begin{center} \textbf{Selection Queries} \end{center}
+\begin{enumerate}
+\item[] Content
+\begin{itemize}
+\item 
+\item 
+\item 
+\item 
+\item 
+\end{itemize}
+\item[] Users
+\begin{itemize}
+\item 
+\item 
+\item 
+\end{itemize}
+\item[] Reporting
+\begin{itemize}
+\item 
+\item 
+\item 
+\end{itemize}
+\end{enumerate}
+\item[] \begin{center} \textbf{Action Queries} \end{center}
+\begin{enumerate}
+\item[] Content
+\begin{itemize}
+\item 
+\item 
+\item 
+\item 
+\item 
+\end{itemize}
+\item[] Users
+\begin{itemize}
+\item 
+\item 
+\item 
+\end{itemize}
+\item[] Reporting
+\begin{itemize}
+\item 
+\item 
+\item 
+\end{itemize}
+\end{enumerate}
+\end{enumerate}
 
 
 
