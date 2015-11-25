@@ -129,15 +129,22 @@ class Keyword(Base):
         return "<Keyword(keyword={})>".format(self.keyword)
 
 
+# Many-to-Many relationship between Citation and ContentPiece
+content_citations = Table("content_citations", Base.metadata,
+    Column("citation_id", Integer, ForeignKey("Citation.citation_id")),
+    Column("content_id", Integer, ForeignKey("Content_Piece.content_id")),
+)
+
+
 class Citation(Base):
     __tablename__ = "Citation"
 
     citation_id = Column(Integer, primary_key=True)
     citation_text = Column(Text_)
 
-    # Many-to-One relationships
-    content_id = Column(Integer, ForeignKey("Content_Piece.content_id"))
-    piece = relationship("ContentPiece", backref="citations")
+    # Many-to-Many relationships
+    pieces = relationship("ContentPiece", secondary=content_citations,
+                          backref="citations")
 
     def __repr__(self):
         return "<Citation(citation_text={})>".format(self.citation_text)
