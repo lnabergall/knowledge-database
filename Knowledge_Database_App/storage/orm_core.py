@@ -40,6 +40,13 @@ def start_session():
     return sessionmaker(bind=engine)()
 
 
+# Many-to-Many relationship between Content_Piece and User
+content_authors = Table("content_authors", Base.metadata,
+    Column("content_id", Integer, ForeignKey("ContentPiece.content_id")),
+    Column("user_id", Integer, ForeignKey("User.user_id")),
+)
+
+
 class ContentPiece(Base):
     __tablename__ = "Content_Piece"
 
@@ -62,13 +69,6 @@ class ContentPiece(Base):
 
     # Many-to-Many relationships:
     authors = relationship("User", secondary=content_authors, backref="pieces")
-
-
-# Many-to-Many relationship between Content_Piece and User
-content_authors = Table("content_authors", Base.metadata,
-    Column("content_id", Integer, ForeignKey("ContentPiece.content_id")),
-    Column("user_id", Integer, ForeignKey("User.user_id")),
-)
 
 
 class Name(Base):
@@ -171,6 +171,13 @@ class AcceptedEdit(Base):
         "AcceptedEdit", backref=backref("next_edit", uselist=False))
 
 
+# Many-to-Many relationship between Vote and User
+user_votes = Table("user_votes", Base.metadata,
+    Column("vote_id", Integer, ForeignKey("Vote.vote_id")),
+    Column("user_id", Integer, ForeignKey("User.user_id")),
+)
+
+
 class Vote(Base):
     """end_timestamp: datetime of the closing of the vote."""
 
@@ -193,13 +200,6 @@ class Vote(Base):
 
     # Many-to-Many relationships
     authors = relationship("User", secondary=user_votes, backref="votes")
-
-
-# Many-to-Many relationship between Vote and User
-user_votes = Table("user_votes", Base.metadata,
-    Column("vote_id", Integer, ForeignKey("Vote.vote_id")),
-    Column("user_id", Integer, ForeignKey("User.user_id")),
-)
 
 
 class RejectedEdit(Base):
