@@ -57,8 +57,8 @@ class ContentPiece(Base):
     first_author_id = Column(Integer, ForeignKey("User.user_id"))
     first_author = relationship("User", backref="pieces_created")
 
-    type_id = Column(Integer, ForeignKey("Content_Type.type_id"))
-    type = relationship("ContentType", backref="pieces")
+    content_type_id = Column(Integer, ForeignKey("Content_Type.content_type_id"))
+    content_type = relationship("ContentType", backref="pieces")
 
     # One-to-One relationships
     name_id = Column(Integer, ForeignKey("Name.name_id"))
@@ -101,8 +101,8 @@ class Text(Base):
 class ContentType(Base):
     __tablename__ = "Content_Type"
 
-    type_id = Column(Integer, primary_key=True)
-    type = Column(Text_, unique=True)
+    content_type_id = Column(Integer, primary_key=True)
+    content_type = Column(Text_, unique=True)
 
     def __repr__(self):
         return "<ContentType(type={})>".format(self.type)
@@ -239,6 +239,10 @@ class User(Base):
     remember_token_hash = Column(Text_, unique=True, index=True)
     remember_hash_type = Column(Text_)
     timestamp = Column(DateTime)
+
+    def __repr__(self):
+        return "<User(user_name={}, user_type={})>".format(
+            self.user_name, self.user_type)
 
 
 class UserReport(Base):
