@@ -289,13 +289,16 @@ content\_type & Text & No & Yes \\ \hline
 Attribute Name & Type & Indexed & Required \\ \hline
 keyword\_id & Integer & Yes, Primary Key & Yes \\ \hline
 keyword & Text & Yes & Yes \\ \hline
-%\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
-%Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
-%One-to-Many & Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline
+timestamp & Timestamp & No & Yes \\ \hline
+\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
+Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
+One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated accepted edits, each edit creates new keyword
+One-to-Many & Rejected\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated rejected edits, each edit creates new keyword
 \end{tabular}
 \end{center}
 
 
+\vspace*{.4cm}
 \begin{center}
 \label{Name}
 \begin{tabular}{|c|c|c|c|}
@@ -304,7 +307,7 @@ keyword & Text & Yes & Yes \\ \hline
 Attribute Name & Type & Indexed & Required \\ \hline
 name\_id & Integer & Yes, Primary Key & Yes \\ \hline
 name & Text & No & Yes \\ \hline
-name\_type & Text & No & Yes \\ \hline
+name\_type & Text & No & Yes \\ \hline % "Primary" vs "Alternate"
 timestamp & Timestamp & No & Yes \\ \hline
 \multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
 Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
@@ -335,6 +338,7 @@ Many-to-One & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Author
 \end{center}
 
 
+\vspace*{.4cm}
 \begin{center}
 \label{Citation}
 \begin{tabular}{|c|c|c|c|}
@@ -343,9 +347,11 @@ Many-to-One & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Author
 Attribute Name & Type & Indexed & Required \\ \hline
 citation\_id & Integer & Yes, Primary Key & Yes \\ \hline
 citation\_text & Text & No & Yes \\ \hline
-%\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
-%Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
-%One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated edits
+timestamp & Timestamp & No & Yes \\ \hline
+\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
+Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
+One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated accepted edits, each edit creates new citation
+One-to-Many & Rejected\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated rejected edits, each edit creates new citation
 \end{tabular}
 \end{center}
 
@@ -361,6 +367,7 @@ user\_id & Integer & Yes, Primary Key & Yes \\ \hline
 user\_type & Text & No & Yes \\ \hline	% "admin" or "standard"
 user\_name & Text & Yes & Yes \\ \hline
 email & Text & Yes & Yes \\ \hline
+confirmed\_timestamp & Timestamp & No & No \\ \hline
 pass\_hash & Text & Yes & Yes \\ \hline
 pass\_hash\_type & Text & No & Yes \\ \hline
 pass\_salt & Text & Yes & Yes \\ \hline
@@ -450,46 +457,37 @@ The following is a rough layout of the Storage Query API.
 \begin{enumerate}
 \item[] Content
 \begin{itemize}
-\item 
-\item 
-\item 
-\item 
-\item 
+\item Retrieve a piece of content.
+\item Retrieve a list of alternate names.
+\item Retrieve an edit and list of edits.
+\item Retrieve a vote and list of votes.
 \end{itemize}
 \item[] Users
 \begin{itemize}
-\item 
-\item 
-\item 
+\item Retrieve a user.
+\item Retrieve a list of user email addresses.
 \end{itemize}
 \item[] Reporting
 \begin{itemize}
-\item 
-\item 
-\item 
+\item Retrieve a user report and list of user reports.
 \end{itemize}
 \end{enumerate}
 \item[] \begin{center} \textbf{Action Queries} \end{center}
 \begin{enumerate}
 \item[] Content
 \begin{itemize}
-\item 
-\item 
-\item 
-\item 
-\item 
+\item Store a piece of content and associated content parts.
+\item Store/update an edit, the associated content part, a vote, and the corresponding list of authors. 
+\item Update a piece of content's deleted\_timestamp.
 \end{itemize}
 \item[] Users
 \begin{itemize}
-\item 
-\item 
-\item 
+\item Store a new user.
+\item Update a user's user name, email address, confirmation status, password, and remember login data.
 \end{itemize}
 \item[] Reporting
 \begin{itemize}
-\item 
-\item 
-\item 
+\item Store a user report.
 \end{itemize}
 \end{enumerate}
 \end{enumerate}
