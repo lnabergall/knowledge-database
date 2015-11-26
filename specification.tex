@@ -165,11 +165,11 @@ An asterisk indicates that this is the primary page to which a user will next na
 \item When an edit is accepted, the piece of content is updated to display the edit. 
 \item While an edit is being validated, that is, a vote is open, all authors can see how many authors have voted thus far. No other information will be available until after the vote is complete, when a complete summary of the results of the vote are displayed in the authors page (including the votes of all authors). 
 \end{itemize}
-\item[] Admins and Abuse Reports
+\item[] Admins and Violation Reports
 \begin{itemize}
-\item All users may submit an abuse report against a piece of content. They will only be required to give a nontrivially detailed report of the alleged abuse.
-\item The authors of a piece of content may also submit an abuse report against another author or group of authors. They will be required to list exactly which authors are committing the alleged abuse and give a nontrivially detailed report of the alleged abuse.
-\item When an abuse report is submitted, an administrator is selected to investigate and resolve the situation. The admin may elect to take no action, send messages of guidance or warning against authors or other editing users, temporarily or permanently suspend user accounts, or revoke authorship\footnote{This may not be an exhaustive list of all possible admin actions.}. An admin may also elect to take action against a user who is determined to be abusing the abuse reporting feature.
+\item All users may submit a violation report against a piece of content, possibly calling for the deletion of the piece of content. They will only be required to give a nontrivially detailed report of the alleged violation.
+\item The authors of a piece of content may also submit a violation report against another author or group of authors. They will be required to list exactly which authors are committing the alleged violation and give a nontrivially detailed report of the alleged violation.
+\item When a violation report is submitted, an administrator is selected to investigate and resolve the situation. The admin may elect to take no action, send messages of guidance or warning against authors or other editing users, temporarily or permanently suspend user accounts, or revoke authorship\footnote{This may not be an exhaustive list of all possible admin actions.}. In the event that the reporter has requested the piece of content be deleted (e.g. if the piece of content was a duplicate of another piece of content or it contained inappropriate text), then an admin may elect to immediately delete the piece of content or give authors five\footnote{Approximately.} days notice of upcoming deletion\footnote{Primarily if the piece of content was a duplicate or was only partially unsuitable for inclusion in the knowledge database. This gives the authors time to transport some of its information over to other pieces of content if appropriate. The contents of the piece of content will also be emailed to all authors.}. An admin may also elect to take action against a user who is determined to be abusing the violation reporting feature.
 \end{itemize}
 \end{enumerate}
 
@@ -215,7 +215,7 @@ The server-side backend of the knowledge database application will be composed o
 \end{enumerate}
 
 %USING PYRAMID INSTEAD
-%Might need Redis + Task Queue for sessions, votes, and abuse reports...
+%Might need Redis + Task Queue for sessions, votes, and violation reports...
 
 \subsection{Storage}
 
@@ -223,7 +223,7 @@ A Postgres database will be the main store of all persistent data in the knowled
 
 \renewcommand{\arraystretch}{1.8}
 
-\vspace{.5cm}
+\vspace{.4cm}
 \begin{center}
 \label{Text}
 \begin{tabular}{|c|c|c|c|}
@@ -235,7 +235,8 @@ text & Text & No & Yes \\ \hline
 timestamp & Timestamp & No & Yes \\ \hline
 \multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
 Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
-One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated edits
+One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated accepted edits
+One-to-Many & Rejected\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated rejected edits
 \end{tabular}
 \end{center}
 
@@ -246,9 +247,10 @@ One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associa
 \hline
 \multicolumn{4}{|c|}{Content\_Piece} \\ \hline
 \multicolumn{1}{|c|}{Attribute Name} & \multicolumn{1}{c|}{Type} & \multicolumn{1}{c|}{Indexed} & \multicolumn{1}{c|}{Required} \\ \hline
-piece\_id & Integer & Yes, Primary Key & Yes \\ \hline
+content\_id & Integer & Yes, Primary Key & Yes \\ \hline
 %name & Text & Yes & Yes \\ \hline
 timestamp & Timestamp & No & Yes \\ \hline
+deleted\_timestamp & Timestamp & No & No \\ \hline
 \multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
 Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
 One-to-One & Text & \multicolumn{2}{c|}{text\_id} \\ \hline % Text
@@ -263,7 +265,7 @@ Many-to-Many & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Authors
 \end{center}
 
 
-\vspace*{.6cm}
+\vspace*{.4cm}
 \begin{center}
 \label{ContentType}
 \begin{tabular}{|c|c|c|c|}
@@ -278,7 +280,7 @@ content\_type & Text & No & Yes \\ \hline
 \end{center}
 
 
-\vspace*{.6cm}
+\vspace*{.4cm}
 \begin{center}
 \label{Keyword}
 \begin{tabular}{|c|c|c|c|}
@@ -306,7 +308,8 @@ name\_type & Text & No & Yes \\ \hline
 timestamp & Timestamp & No & Yes \\ \hline
 \multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
 Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
-One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated edits
+One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated accepted edits
+One-to-Many & Rejected\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated rejected edits
 \end{tabular}
 \end{center}
 
@@ -327,7 +330,7 @@ acc\_timestamp & Timestamp & No & Yes \\ \hline
 \multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
 Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
 Many-to-One & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Author
-One-to-One & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline	% Previous edit of the same content part
+%One-to-One & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline	% Previous edit of the same content part
 \end{tabular}
 \end{center}
 
@@ -340,9 +343,9 @@ One-to-One & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline	% Previous
 Attribute Name & Type & Indexed & Required \\ \hline
 citation\_id & Integer & Yes, Primary Key & Yes \\ \hline
 citation\_text & Text & No & Yes \\ \hline
-\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
-Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
-One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated edits
+%\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
+%Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
+%One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated edits
 \end{tabular}
 \end{center}
 
@@ -365,6 +368,7 @@ remember\_id & Text & Yes & No \\ \hline
 remember\_token\_hash & Text & Yes & No \\ \hline
 remember\_hash\_type & Text & No & No \\ \hline
 timestamp & Timestamp & No & Yes \\ \hline
+deleted\_timestamp & Timestamp & No & No \\ \hline
 %\multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
 %Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
 %Many-to-One & XX & \multicolumn{2}{c|}{XX} \\ \hline
@@ -392,7 +396,7 @@ Many-to-One & User & \multicolumn{2}{c|}{user\_id} \\ \hline % Author
 \end{center}
 
 
-\vspace*{.6cm}
+\vspace*{.5cm}
 \begin{center}
 \label{Vote}
 \begin{tabular}{|c|c|c|c|}
