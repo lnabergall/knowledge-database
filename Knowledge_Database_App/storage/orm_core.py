@@ -245,6 +245,7 @@ class User(Base):
     user_type = Column(Text_)
     user_name = Column(Text_, index=True)
     email = Column(Text_, unique=True, index=True)
+    confirmed_timestamp = Column(DateTime)
     pass_hash = Column(Text_, unique=True, index=True)
     pass_hash_type = Column(Text_)
     pass_salt = Column(Text_, unique=True, index=True)
