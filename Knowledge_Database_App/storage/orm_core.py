@@ -73,6 +73,8 @@ class ContentPiece(Base):
 
 
 class Name(Base):
+    """name_type: 'primary' or 'alternate'."""
+
     __tablename__ = "Name"
 
     name_id = Column(Integer, primary_key=True)
@@ -121,6 +123,7 @@ class Keyword(Base):
 
     keyword_id = Column(Integer, primary_key=True)
     keyword = Column(Text_, unique=True, index=True)
+    timestamp = Column(DateTime)
 
     # Many-to-Many relationships
     pieces = relationship("ContentPiece", secondary=content_keywords, 
@@ -142,6 +145,7 @@ class Citation(Base):
 
     citation_id = Column(Integer, primary_key=True)
     citation_text = Column(Text_, unique=True)
+    timestamp = Column(DateTime)
 
     # Many-to-Many relationships
     pieces = relationship("ContentPiece", secondary=content_citations,
@@ -176,6 +180,12 @@ class AcceptedEdit(Base):
 
     text_id = Column(Integer, ForeignKey("Text.text_id"))
     text = relationship("Text", backref="accepted_edits")
+
+    keyword_id = Column(Integer, ForeignKey("Keyword.keyword_id"))
+    keyword = relationship("Keyword", backref="accepted_edits")
+
+    citation_id = Column(Integer, ForeignKey("Citation.citation_id"))
+    citation = relationship("Citation", backref="accepted_edits")
 
 
 # Many-to-Many relationship between Vote and User
@@ -235,9 +245,15 @@ class RejectedEdit(Base):
     text_id = Column(Integer, ForeignKey("Text.text_id"))
     text = relationship("Text", backref="rejected_edits")
 
+    keyword_id = Column(Integer, ForeignKey("Keyword.keyword_id"))
+    keyword = relationship("Keyword", backref="accepted_edits")
+
+    citation_id = Column(Integer, ForeignKey("Citation.citation_id"))
+    citation = relationship("Citation", backref="accepted_edits")
+
 
 class User(Base):
-    """user_type: 'A' for admin, 'S' for standard"""
+    """user_type: 'admin' or 'standard'."""
 
     __tablename__ = "User"
 
@@ -263,7 +279,7 @@ class User(Base):
 class UserReport(Base):
     """
     author_type: 'U' for registered users, IP address for anonymous users.
-    report_type: 'C' for content, 'A' for authors
+    report_type: 'content' or 'authors'.
     res_timestamp: datetime of resolution of
                    the report by the assigned admin.
     """
