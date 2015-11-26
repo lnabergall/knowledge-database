@@ -52,6 +52,7 @@ class ContentPiece(Base):
 
     content_id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime)
+    deleted_timestamp = Column(DateTime)
 
     # Many-to-One relationships
     first_author_id = Column(Integer, ForeignKey("User.user_id"))
@@ -140,7 +141,7 @@ class Citation(Base):
     __tablename__ = "Citation"
 
     citation_id = Column(Integer, primary_key=True)
-    citation_text = Column(Text_)
+    citation_text = Column(Text_, unique=True)
 
     # Many-to-Many relationships
     pieces = relationship("ContentPiece", secondary=content_citations,
@@ -176,14 +177,6 @@ class AcceptedEdit(Base):
     text_id = Column(Integer, ForeignKey("Text.text_id"))
     text = relationship("Text", backref="accepted_edits")
 
-    citation_id = Column(Integer, ForeignKey("Citation.citation_id"))
-    citation = relationship("Citation", backref="accepted_edits")
-
-    # One-to-One relationships
-    previous_edit_id = Column(Integer, ForeignKey("Accepted_Edit.edit_id"))
-    previous_edit = relationship(
-        "AcceptedEdit", backref=backref("next_edit", uselist=False))
-
 
 # Many-to-Many relationship between Vote and User
 user_votes = Table("user_votes", Base.metadata,
@@ -193,7 +186,7 @@ user_votes = Table("user_votes", Base.metadata,
 
 
 class Vote(Base):
-    """end_timestamp: datetime of the closing of the vote."""
+    """close_timestamp: datetime of the closing of the vote."""
 
     __tablename__ = "Vote"
 
@@ -236,6 +229,12 @@ class RejectedEdit(Base):
     author_id = Column(Integer, ForeignKey("User.user_id"))
     author = relationship("User", backref="rejected_edits")
 
+    name_id = Column(Integer, ForeignKey("Name.name_id"))
+    name = relationship("Name", backref="rejected_edits")
+
+    text_id = Column(Integer, ForeignKey("Text.text_id"))
+    text = relationship("Text", backref="rejected_edits")
+
 
 class User(Base):
     """user_type: 'A' for admin, 'S' for standard"""
@@ -253,6 +252,7 @@ class User(Base):
     remember_token_hash = Column(Text_, unique=True, index=True)
     remember_hash_type = Column(Text_)
     timestamp = Column(DateTime)
+    deleted_timestamp = Column(DateTime)
 
     def __repr__(self):
         return "<User(user_name={}, user_type={})>".format(
