@@ -175,6 +175,9 @@ class AcceptedEdit(Base):
     author_id = Column(Integer, ForeignKey("User.user_id"))
     author = relationship("User", backref="accepted_edits")
 
+    content_id = Column(Integer, ForeignKey("Content_Piece.content_id"))
+    piece = relationship("ContentPiece", backref="accepted_edits")
+
     name_id = Column(Integer, ForeignKey("Name.name_id"))
     name = relationship("Name", backref="accepted_edits")
 
@@ -238,6 +241,9 @@ class RejectedEdit(Base):
     # Many-to-One relationships
     author_id = Column(Integer, ForeignKey("User.user_id"))
     author = relationship("User", backref="rejected_edits")
+
+    content_id = Column(Integer, ForeignKey("Content_Piece.content_id"))
+    piece = relationship("ContentPiece", backref="accepted_edits")
 
     name_id = Column(Integer, ForeignKey("Name.name_id"))
     name = relationship("Name", backref="rejected_edits")
