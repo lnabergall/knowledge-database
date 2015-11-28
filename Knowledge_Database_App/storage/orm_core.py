@@ -26,6 +26,8 @@ from sqlalchemy import Text as Text_
 from sqlalchemy.orm import sessionmaker, relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 
+from .select_queries import Query
+
 
 KDB_url = "postgresql+psycopg2://postgres:Cetera4247@localhost/kdb_develop"
 Base = declarative_base()
@@ -37,7 +39,7 @@ def create_scheme():
 
 
 def start_session():
-    return sessionmaker(bind=engine)()
+    return sessionmaker(bind=engine, query_cls=Query)()
 
 
 # Many-to-Many relationship between Content_Piece and User
@@ -306,3 +308,6 @@ class UserReport(Base):
 
     admin_id = Column(Integer, ForeignKey("User.user_id"))
     admin = relationship("User", backref="reports_resolved")
+
+    content_id = Column(Integer, ForeignKey("Content_Piece.content_id"))
+    content = relationship("ContentPiece", backref="user_reports")
