@@ -1,7 +1,7 @@
 """
 Contains the core classes and functions used to interact with the
 Postgres database, in particular mapping classes defining the database
-scheme.
+scheme. Uses SQLAlchemy.
 
 Functions:
 
@@ -15,7 +15,7 @@ Functions:
 Classes:
 
     Content, Name, Text, ContentType, Keyword, Citation, Edit, Vote,
-    RejectedEdit, User, UserReport.
+    RejectedEdit, User, UserReport
 
     For all classes X, X.timestamp holds the datetime of creation.
 """
@@ -159,6 +159,7 @@ class Citation(Base):
 
 class AcceptedEdit(Base):
     """
+    content_part: 'name', 'text', 'keyword', or 'citation'.
     author_type: 'U' for registered users, IP address for anonymous users.
     acc_timestamp: datetime of acceptance of the edit.
     """
@@ -201,7 +202,10 @@ user_votes = Table("user_votes", Base.metadata,
 
 
 class Vote(Base):
-    """close_timestamp: datetime of the closing of the vote."""
+    """
+    content_part: 'name', 'text', 'keyword', or 'citation'.
+    close_timestamp: datetime of the closing of the vote.
+    """
 
     __tablename__ = "Vote"
 
@@ -221,11 +225,12 @@ class Vote(Base):
         "RejectedEdit", backref=backref("vote", uselist=False))
 
     # Many-to-Many relationships
-    authors = relationship("User", secondary=user_votes, backref="votes")
+    voters = relationship("User", secondary=user_votes, backref="votes")
 
 
 class RejectedEdit(Base):
     """
+    content_part: 'name', 'text', 'keyword', or 'citation'.
     author_type: 'U' for registered users, IP address for anonymous users.
     rej_timestamp: datetime of rejection of the edit.
     """

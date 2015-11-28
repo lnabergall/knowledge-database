@@ -14,13 +14,12 @@ Exceptions:
 
 Functions:
 
-	get_content_piece, get_alternate_names, get_accepted_edits,
-	get_rejected_edits, get_user_votes, get_accepted_votes, 
-	get_rejected_votes, get_user_encrypt_info, get_user, get_user_emails, 
-	get_user_reports
+	get_content_piece, get_alternate_names, get_content_types, 
+	get_accepted_edits, get_rejected_edits, get_user_votes, 
+	get_accepted_votes, get_rejected_votes, get_user_encrypt_info, 
+	get_user, get_user_emails, get_user_reports
 """
 
-from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.orm.query import Query as _Query
 
@@ -53,7 +52,7 @@ class MultipleValuesFound(ValueError, MultipleResultsFound):
 
 class SelectError(Exception):
     """
-    General exception raised when a database query returns an invalid 
+    General exception raised when a database select query returns an invalid 
     result.
     """
 
@@ -89,6 +88,12 @@ def get_alternate_names(content_id):
     alternate_names = session.query(orm.ContentPiece.alternate_names).filter(
         orm.ContentPiece.content_id == content_id).all()
     return alternate_names
+
+
+def get_content_types():
+	session = orm.start_session()
+	content_types = session.query(orm.ContentType).all()
+	return content_types
 
 
 def get_accepted_edits(content_id=None, edit_id=None, user_id=None, 
@@ -294,10 +299,11 @@ def get_user_encrypt_info(email):
         return encrypt_info
 
 
-def get_user(email=None, pass_hash=None, remember_id=None, 
+def get_user(user_id=None, email=None, pass_hash=None, remember_id=None, 
              remember_token_hash=None):
     """
-    Input: email and pass_hash or remember_id and remember_token_hash.
+    Input: user_id, email and pass_hash, or remember_id and 
+    	   remember_token_hash.
     Returns: 'User' instance.
     """
     session = orm.start_session()
@@ -318,6 +324,12 @@ def get_user(email=None, pass_hash=None, remember_id=None,
             raise SelectError(str(e))
         except NoResultFound:
             return None
+    elif user_id is not None:
+    	try:
+    		user = session.query(orm.User).filter(
+    			orm.User.user_id == user_id).one()
+    	except (NoResultFound, MultipleResultsFound) as e:
+    		raise SelectError(str(e))
     else:
         raise InputError("Invalid arguments!")
 
