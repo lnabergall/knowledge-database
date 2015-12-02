@@ -18,6 +18,9 @@ Functions:
     get_accepted_edits, get_rejected_edits, get_user_votes,
     get_accepted_votes, get_rejected_votes, get_user_encrypt_info,
     get_user, get_user_emails, get_user_reports
+
+    Note that all functions take a common 'session' keyword argument,
+    with default value None.
 """
 
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
@@ -64,12 +67,13 @@ class InputError(Exception):
     """
 
 
-def get_content_piece(content_id):
+def get_content_piece(content_id, session=None):
     """
-    Input: content_id.
+    Input: content_id. Optionally, session.
     Returns: 'ContentPiece' instance.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     try:
         content_piece = session.query(orm.ContentPiece).filter(
             orm.ContentPiece.content_id == content_id).one()
@@ -79,32 +83,39 @@ def get_content_piece(content_id):
         return content_piece
 
 
-def get_alternate_names(content_id):
+def get_alternate_names(content_id, session=None):
     """
-    Input: content_id.
+    Input: content_id. Optionally, session.
     Returns: list of 'Name' instances.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     alternate_names = session.query(orm.ContentPiece.alternate_names).filter(
         orm.ContentPiece.content_id == content_id).all()
     return alternate_names
 
 
-def get_content_types():
-    session = orm.start_session()
+def get_content_types(session=None):
+    """
+    Input: Optionally, session.
+    Returns: list of 'ContentType' instances.
+    """
+    if session is None:
+        session = orm.start_session()
     content_types = session.query(orm.ContentType).all()
     return content_types
 
 
 def get_accepted_edits(content_id=None, edit_id=None, user_id=None,
                        text_id=None, name_id=None, citation_id=None,
-                       keyword_id=None, ip_address=None):
+                       keyword_id=None, ip_address=None, session=None):
     """
-    Input: content_id, edit_id, user_id, text_id, name_id, citation_id,
-           keyword_id, or ip_address.
+    Input: Optionally, content_id, edit_id, user_id, text_id, name_id,
+           citation_id, keyword_id, ip_address, and session.
     Returns: 'AcceptedEdit' instance or list of 'AcceptedEdit' instances.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     if content_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
             orm.ContentPiece).filter(orm.ContentPiece.content_id
@@ -140,19 +151,22 @@ def get_accepted_edits(content_id=None, edit_id=None, user_id=None,
             raise SelectError(str(e))
         else:
             return accepted_edit
+    else:
+        InputError("No arguments!")
 
     return accepted_edits
 
 
 def get_rejected_edits(content_id=None, edit_id=None, user_id=None,
                        text_id=None, name_id=None, citation_id=None,
-                       keyword_id=None, ip_address=None):
+                       keyword_id=None, ip_address=None, session=None):
     """
-    Input: content_id, edit_id, user_id, text_id, name_id, citation_id,
-           keyword_id, or ip_address.
+    Input: Optionally, content_id, edit_id, user_id, text_id, name_id,
+           citation_id, keyword_id, ip_address, and session.
     Returns: 'RejectedEdit' instance or list of 'RejectedEdit' instances.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     if content_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
             orm.ContentPiece).filter(orm.ContentPiece.content_id
@@ -194,24 +208,27 @@ def get_rejected_edits(content_id=None, edit_id=None, user_id=None,
     return rejected_edits
 
 
-def get_user_votes(user_id):
+def get_user_votes(user_id, session=None):
     """
-    Input: user_id.
+    Input: user_id. Optionally, session.
     Returns: list of 'Vote' instances.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     votes = session.query(orm.Vote).join(orm.User).filter(
         orm.User.user_id == user_id).all()
     return votes
 
 
-def get_accepted_votes(content_id=None, edit_id=None,
-                       vote_id=None, user_id=None, ip_address=None):
+def get_accepted_votes(content_id=None, edit_id=None, vote_id=None,
+                       user_id=None, ip_address=None, session=None):
     """
-    Input: content_id, edit_id, vote_id, user_id, or ip_address.
+    Input: Optionally, content_id, edit_id, vote_id, user_id, ip_address,
+           and session.
     Returns: 'Vote' instance or list of 'Vote' instances.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     if content_id is not None:
         votes = session.query(orm.Vote).join(orm.AcceptedEdit).join(
             orm.ContentPiece).filter(orm.ContentPiece.content_id
@@ -244,13 +261,15 @@ def get_accepted_votes(content_id=None, edit_id=None,
     return votes
 
 
-def get_rejected_votes(content_id=None, edit_id=None,
-                       vote_id=None, user_id=None, ip_address=None):
+def get_rejected_votes(content_id=None, edit_id=None, vote_id=None,
+                       user_id=None, ip_address=None, session=None):
     """
-    Input: content_id, edit_id, vote_id, user_id, or ip_address.
+    Input: Optionally, content_id, edit_id, vote_id, user_id, ip_address,
+           and session.
     Returns: 'Vote' instance or list of 'Vote' instances.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     if content_id is not None:
         votes = session.query(orm.Vote).join(orm.RejectedEdit).join(
             orm.ContentPiece).filter(orm.ContentPiece.content_id
@@ -283,12 +302,13 @@ def get_rejected_votes(content_id=None, edit_id=None,
     return votes
 
 
-def get_user_encrypt_info(email):
+def get_user_encrypt_info(email, session=None):
     """
-    Input: email.
+    Input: email. Optionally, session.
     Returns: tuple (pass_hash_type, pass_salt, remember_token_hash).
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     try:
         encrypt_info = session.query(orm.User.pass_hash_type,
             orm.User.pass_salt, orm.User.remember_token_hash).filter(
@@ -300,13 +320,14 @@ def get_user_encrypt_info(email):
 
 
 def get_user(user_id=None, email=None, pass_hash=None, remember_id=None,
-             remember_token_hash=None):
+             remember_token_hash=None, session=None):
     """
-    Input: user_id, email and pass_hash, or remember_id and 
-           remember_token_hash.
+    Input: Optionally, user_id, email and pass_hash, remember_id and
+           remember_token_hash, and session.
     Returns: 'User' instance.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     if email is not None and pass_hash is not None:
         try:
             user = session.query(orm.User).filter(orm.User.email == email,
@@ -337,12 +358,14 @@ def get_user(user_id=None, email=None, pass_hash=None, remember_id=None,
 
 
 def get_user_emails(content_id=None, accepted_edit_id=None,
-                    rejected_edit_id=None):
+                    rejected_edit_id=None, session=None):
     """
-    Input: content_id or edit_id.
+    Input: Optionally, contend_id, accepted_edit_id, rejected_edit_id,
+           and session.
     Returns: email or list of emails.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     if content_id is not None:
         try:
             emails = session.query(orm.User.email).join(
@@ -374,13 +397,15 @@ def get_user_emails(content_id=None, accepted_edit_id=None,
         raise InputError("Invalid arguments!")
 
 
-def get_user_reports(content_id=None, report_id=None,
-                     user_id=None, admin_id=None, ip_address=None):
+def get_user_reports(content_id=None, report_id=None, user_id=None,
+                     admin_id=None, ip_address=None, session=None):
     """
-    Input: content_id, report_id, user_id, admin_id, or ip_address.
+    Input: Optionally, content_id, report_id, user_id, admin_id, ip_address,
+           and session.
     Returns: 'UserReport' instance or list of 'UserReport' instances.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     if content_id is not None:
         reports = session.query(orm.UserReport).join(orm.ContentPiece).filter(
             orm.ContentPiece.content_id == content_id).all()

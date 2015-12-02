@@ -14,6 +14,9 @@ Functions:
     store_content_part, remove_content_part, update_content_part, 
     store_accepted_edit, store_rejected_edit, store_new_user, update_user, 
     store_user_report
+
+    Note that all functions take a common 'session' keyword argument,
+    with default value None.
 """
 
 import sys
@@ -28,13 +31,14 @@ class ActionError(Exception):
     """General exception raised when a database action query fails."""
 
 
-def store_content_piece(user_id, name, text, content_type, keywords,
-                        timestamp, citations=None, alternate_names=None):
+def store_content_piece(user_id, name, text, content_type, keywords, timestamp,
+                        citations=None, alternate_names=None, session=None):
     """
     Input: user_id, name, text, content_type, keywords, and timestamp. 
-           Optionally, citations and alternate_names.
+           Optionally, citations, alternate_names, and session.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     content_piece = orm.ContentPiece(timestamp=timestamp)
     author = get_user(user_id=user_id)
     content_piece.first_author = author
@@ -61,32 +65,40 @@ def store_content_piece(user_id, name, text, content_type, keywords,
         content_piece.citations = citations
 
     session.add(content_piece)
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise ActionError(str(sys.exc_info()[0]))
+    if session is None:
+        try:
+            session.commit()
+        except:
+            session.rollback()
+            raise ActionError(str(sys.exc_info()[0]))
 
 
-def delete_content_piece(content_id, deleted_timestamp):
-    """Input: content_id and deleted_timestamp."""
-
-    session = orm.start_session()
+def delete_content_piece(content_id, deleted_timestamp, session=None):
+    """
+    Input: content_id and deleted_timestamp.
+           Optionally, session.
+    """
+    if session is None:
+        session = orm.start_session()
     session.query(orm.ContentPiece).filter(
         orm.ContentPiece.content_id == content_id).update(
         {orm.ContentPiece.deleted_timestamp: deleted_timestamp},
         synchronize_session=False)
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise ActionError(str(sys.exc_info()[0]))
+    if session is None:
+        try:
+            session.commit()
+        except:
+            session.rollback()
+            raise ActionError(str(sys.exc_info()[0]))
 
 
-def update_content_type(content_id, content_type):
-    """Input: content_id and content_type."""
-
-    session = orm.start_session()
+def update_content_type(content_id, content_type, session=None):
+    """
+    Input: content_id and content_type.
+           Optionally, session.
+    """
+    if session is None:
+        session = orm.start_session()
     content_piece = get_content_piece(content_id)
     try:
         new_content_type = session.query(orm.ContentType).filter(
@@ -95,19 +107,23 @@ def update_content_type(content_id, content_type):
         raise InputError(str(e))
     else:
         content_piece.content_type = new_content_type
-        try:
-            session.commit()
-        except:
-            session.rollback()
-            raise ActionError(str(sys.exc_info()[0]))
+        if session is None:
+            try:
+                session.commit()
+            except:
+                session.rollback()
+                raise ActionError(str(sys.exc_info()[0]))
 
 
-def store_content_part(content_part, part_text, content_id, timestamp):
+def store_content_part(content_part, part_text,
+                       content_id, timestamp, session=None):
     """
     Input: content_part ('name', 'keyword', or 'citation'), part_text, 
            content_id, and timestamp.
+           Optionally, session.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     content_piece = get_content_piece(content_id)
     if content_part == "name":
         alt_name = orm.Name(name=part_text, name_type="alternate",
@@ -121,21 +137,24 @@ def store_content_part(content_part, part_text, content_id, timestamp):
         content_piece.citations.append(citation)
     else:
         raise InputError("Invalid argument!")
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise ActionError(str(sys.exc_info()[0]))
+    if session is None:
+        try:
+            session.commit()
+        except:
+            session.rollback()
+            raise ActionError(str(sys.exc_info()[0]))
 
 
-def remove_content_part(content_id, part_id, content_part):
+def remove_content_part(content_id, part_id, content_part, session=None):
     """
     Input: content_id, part_id, and content_part 
            ('keyword', 'citation', or 'name').
+           Optionally, session.
     Deletes name or removes association between content piece and 
     keyword/citation. 
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     if content_part == "keyword":
         session.execute(orm.content_keywords.delete(),
             params={"keyword_id": part_id, "content_id": content_id})
@@ -147,17 +166,21 @@ def remove_content_part(content_id, part_id, content_part):
             synchronize_session=False)
     else:
         raise InputError("Invalid argument!")
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise ActionError(str(sys.exc_info()[0]))
+    if session is None:
+        try:
+            session.commit()
+        except:
+            session.rollback()
+            raise ActionError(str(sys.exc_info()[0]))
 
 
-def update_content_part(part_id, content_part, part_text):
-    """Input: part_id, content_part ('name' or 'text'), and part_text."""
-
-    session = orm.start_session()
+def update_content_part(part_id, content_part, part_text, session=None):
+    """
+    Input: part_id, content_part ('name' or 'text'), and part_text.
+           Optionally, session.
+    """
+    if session is None:
+        session = orm.start_session()
     if content_part == "name":
         session.query(orm.Name).filter(orm.Name.name_id == part_id).update(
             {orm.Name.name: part_text}, synchronize_session=False)
@@ -166,23 +189,25 @@ def update_content_part(part_id, content_part, part_text):
             {orm.Text.text: part_text}, synchronize_session=False)
     else:
         raise InputError("Invalid argument!")
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise ActionError(str(sys.exc_info()[0]))
+    if session is None:
+        try:
+            session.commit()
+        except:
+            session.rollback()
+            raise ActionError(str(sys.exc_info()[0]))
 
 
 def store_accepted_edit(edit_text, edit_rationale, content_part, part_id,
                         content_id, vote, voter_ids, timestamp, acc_timestamp,
-                        author_type, user_id=None):
+                        author_type, user_id=None, session=None):
     """
     Input: edit_text, edit_rationale, content_part ('name', 'text', 'keyword',
            or 'citation'), part_id, content_id, vote, voter_ids, timestamp,
            acc_timestamp, and author_type. 
-           Optionally, user_id.
+           Optionally, user_id and session.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     vote = orm.Vote(vote=vote, content_part=content_part, timestamp=timestamp,
                     close_timestamp=acc_timestamp)
     session.flush()     # To get vote.vote_id
@@ -211,23 +236,25 @@ def store_accepted_edit(edit_text, edit_rationale, content_part, part_id,
         raise InputError("Invalid argument!")
 
     session.add(edit)
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise ActionError(str(sys.exc_info()[0]))
+    if session is None:
+        try:
+            session.commit()
+        except:
+            session.rollback()
+            raise ActionError(str(sys.exc_info()[0]))
 
 
 def store_rejected_edit(edit_text, edit_rationale, content_part, part_id,
                         content_id, vote, voter_ids, timestamp, rej_timestamp,
-                        author_type, user_id=None):
+                        author_type, user_id=None, session=None):
     """
     Input: edit_text, edit_rationale, content_part ('name', 'text', 'keyword',
            or 'citation'), part_id, content_id, vote, voter_ids, timestamp,
            rej_timestamp, and author_type. 
-           Optionally, user_id.
+           Optionally, user_id and session.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     vote = orm.Vote(vote=vote, content_part=content_part, timestamp=timestamp,
                     close_timestamp=rej_timestamp)
     session.flush()     # To get vote.vote_id
@@ -254,43 +281,48 @@ def store_rejected_edit(edit_text, edit_rationale, content_part, part_id,
         raise InputError("Invalid argument!")
 
     session.add(edit)
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise ActionError(str(sys.exc_info()[0]))
+    if session is None:
+        try:
+            session.commit()
+        except:
+            session.rollback()
+            raise ActionError(str(sys.exc_info()[0]))
 
 
 def store_new_user(user_type, user_name, email, pass_hash,
-                   pass_hash_type, pass_salt, timestamp):
+                   pass_hash_type, pass_salt, timestamp, session=None):
     """
     Input: user_type, user_name, email, pass_hash, pass_hash_type, 
            pass_salt, and timestamp.
+           Optionally, session.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     user = orm.User(user_type=user_type, user_name=user_name, email=email,
                     pass_hash=pass_hash, pass_hash_type=pass_hash_type,
                     pass_salt=pass_salt, timestamp=timestamp)
     session.add(user)
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise ActionError(str(sys.exc_info()[0]))
+    if session is None:
+        try:
+            session.commit()
+        except:
+            session.rollback()
+            raise ActionError(str(sys.exc_info()[0]))
 
 
 def update_user(user_id, new_user_name=None, new_email=None,
                 confirmed_timestamp=None, new_pass_hash=None,
                 new_pass_hash_type=None, new_pass_salt=None,
                 new_remember_token_hash=None,
-                new_remember_hash_type=None):
+                new_remember_hash_type=None, session=None):
     """
     Input: user_id. 
            Optionally, new_user_name, new_email, confirmed_timestamp,
-           new_pass_hash and new_pass_hash_type and new_pass_salt, or
-           new_remember_token_hash and new_remember_hash_type. 
+           new_pass_hash and new_pass_hash_type and new_pass_salt,
+           new_remember_token_hash and new_remember_hash_type, or session.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     if new_user_name is not None:
         session.query(orm.User).filter(orm.User.user_id == user_id).update(
             {orm.User.user_name: new_user_name}, synchronize_session=False)
@@ -315,22 +347,24 @@ def update_user(user_id, new_user_name=None, new_email=None,
             synchronize_session=False)
     else:
         raise InputError("Invalid arguments!")
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise ActionError(str(sys.exc_info()[0]))
+    if session is None:
+        try:
+            session.commit()
+        except:
+            session.rollback()
+            raise ActionError(str(sys.exc_info()[0]))
 
 
 def store_user_report(content_id, report_text, report_type, admin_report,
                       timestamp, res_timestamp, admin_id, author_type,
-                      user_id=None):
+                      user_id=None, session=None):
     """
     Input: content_id, report_text, report_type, admin_report, timestamp, 
            res_timestamp, admin_id, and author_type.
-           Optionally, user_id.
+           Optionally, user_id and session.
     """
-    session = orm.start_session()
+    if session is None:
+        session = orm.start_session()
     user_report = orm.UserReport(report_text=report_text,
         report_type=report_type, author_type=author_type,
         admin_report=admin_report, timestamp=timestamp, admin_id=admin_id,
@@ -339,8 +373,9 @@ def store_user_report(content_id, report_text, report_type, admin_report,
         user_report.author_id = user_id
 
     session.add(user_report)
-    try:
-        session.commit()
-    except:
-        session.rollback()
-        raise ActionError(str(sys.exc_info()[0]))
+    if session is None:
+        try:
+            session.commit()
+        except:
+            session.rollback()
+            raise ActionError(str(sys.exc_info()[0]))
