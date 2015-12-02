@@ -26,7 +26,7 @@ Functions:
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.orm.query import Query as _Query
 
-from . import orm_core as orm
+import orm_core as orm
 
 
 class Query(_Query):

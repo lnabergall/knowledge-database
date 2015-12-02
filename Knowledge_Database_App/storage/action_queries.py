@@ -23,8 +23,8 @@ import sys
 
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
-from . import orm_core as orm
-from .select_queries import InputError, get_user, get_content_piece
+import orm_core as orm
+from select_queries import InputError, get_user, get_content_piece
 
 
 class ActionError(Exception):
