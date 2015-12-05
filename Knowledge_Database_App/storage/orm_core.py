@@ -35,7 +35,7 @@ KDB_url = "postgresql+psycopg2://postgres:Cetera4247@localhost/kdb_develop"
 Base = declarative_base()
 
 
-def create_scheme():
+def create_schema():
     engine = create_engine(KDB_url, echo=False)
     Base.metadata.create_all(engine)
 
@@ -47,24 +47,26 @@ def start_session():
 
 class StorageHandler:
     """
-    Class which handles queries made to the Postgres database.
+    Handles queries made to the Postgres database.
 
     Call a function from select_queries or action_queries using the
-    'run' method. The class features built-in session management, including
+    'call' method. The class features built-in session management, including
     handling commits.
     """
     def __init__(self):
         self.session = start_session()
 
-    def run(self, function, *args, **kwargs):
+    def call(self, function, *args, **kwargs):
         try:
             output = function(*args, session=self.session, **kwargs)
         except (NameError, ValueError, TypeError) as e:
             raise RuntimeError(str(e))
         if function.__name__ in dir(action_queries):
             self.session.commit()
-        self.session.close()
         return output
+
+    def close(self):
+        self.session.close()
 
 
 # Many-to-Many relationship between Content_Piece and User
