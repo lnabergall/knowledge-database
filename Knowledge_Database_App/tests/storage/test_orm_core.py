@@ -8,10 +8,10 @@ from . import StorageTest
 class ORMTest(TestCase, StorageTest):
 
     def setUp(self):
-        super().setup()
+        self.setup()
 
     def tearDown(self):
-        super().teardown()
+        self.teardown()
 
     def test_schema(self):
         try:
