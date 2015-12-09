@@ -157,3 +157,53 @@ class SelectQueryTest(TestCase, StorageTest):
                 self.assertIsInstance(votes, list)
                 if votes:
                     self.assertIsInstance(votes[-1], orm.Vote)
+
+    def test_get_accepted_votes(self):
+        ids = self.get_sample_ids()
+        if not ids:
+            return
+        else:
+            results = []
+            try:
+                results.append(self.call(select.get_accepted_votes,
+                                         content_id=ids["content_id"]))
+                results.append(self.call(select.get_accepted_votes,
+                                         edit_id=ids["accepted_edit_id"]))
+                results.append(self.call(select.get_accepted_votes,
+                                         vote_id=ids["vote_id"]))
+                results.append(self.call(select.get_accepted_votes,
+                                         user_id=ids["user_id"]))
+            except Exception as e:
+                self.fail(str(e))
+            else:
+                for i in range(len(results)):
+                    if i == 1 or 1 == 2:
+                        self.assertIsInstance(results[i], orm.Vote)
+                    else:
+                        self.assertIsInstance(results[i], list)
+                        self.assertIsInstance(results[i][-1], orm.Vote)
+
+    def test_get_rejected_votes(self):
+        ids = self.get_sample_ids()
+        if not ids:
+            return
+        else:
+            results = []
+            try:
+                results.append(self.call(select.get_rejected_votes,
+                                         content_id=ids["content_id"]))
+                results.append(self.call(select.get_rejected_votes,
+                                         edit_id=ids["rejected_edit_id"]))
+                results.append(self.call(select.get_rejected_votes,
+                                         vote_id=ids["vote_id"]))
+                results.append(self.call(select.get_rejected_votes,
+                                         user_id=ids["user_id"]))
+            except Exception as e:
+                self.fail(str(e))
+            else:
+                for i in range(len(results)):
+                    if i == 1 or 1 == 2:
+                        self.assertIsInstance(results[i], orm.Vote)
+                    else:
+                        self.assertIsInstance(results[i], list)
+                        self.assertIsInstance(results[i][-1], orm.Vote)
