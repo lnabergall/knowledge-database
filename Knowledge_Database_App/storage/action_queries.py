@@ -34,7 +34,7 @@ class ActionError(Exception):
 def store_content_piece(user_id, name, text, content_type, keywords, timestamp,
                         citations=None, alternate_names=None, session=None):
     """
-    Input: user_id, name, text, content_type, keywords, and timestamp. 
+    Input: user_id, name, text, content_type, keywords, and timestamp.
            Optionally, citations, alternate_names, and session.
     """
     if session is None:
@@ -225,13 +225,13 @@ def store_accepted_edit(edit_text, edit_rationale, content_part, part_id,
         session.execute(orm.content_authors.insert(),
             params={"content_id": content_id, "user_id": user_id})
     if content_part == "name":
-        edit.name_id == part_id
+        edit.name_id = part_id
     elif content_part == "text":
-        edit.text_id == part_id
+        edit.text_id = part_id
     elif content_part == "keyword":
-        edit.keyword_id == part_id
+        edit.keyword_id = part_id
     elif content_part == "citation":
-        edit.citation_id == part_id
+        edit.citation_id = part_id
     else:
         raise InputError("Invalid argument!")
 
@@ -270,13 +270,13 @@ def store_rejected_edit(edit_text, edit_rationale, content_part, part_id,
     if author_type == "U" and user_id is not None:
         edit.author_id = user_id
     if content_part == "name":
-        edit.name_id == part_id
+        edit.name_id = part_id
     elif content_part == "text":
-        edit.text_id == part_id
+        edit.text_id = part_id
     elif content_part == "keyword":
-        edit.keyword_id == part_id
+        edit.keyword_id = part_id
     elif content_part == "citation":
-        edit.citation_id == part_id
+        edit.citation_id = part_id
     else:
         raise InputError("Invalid argument!")
 
