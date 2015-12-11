@@ -302,17 +302,24 @@ def get_rejected_votes(content_id=None, edit_id=None, vote_id=None,
     return votes
 
 
-def get_user_encrypt_info(email, session=None):
+def get_user_encrypt_info(email=None, remember_id=None, session=None):
     """
-    Input: email. Optionally, session.
-    Returns: tuple (pass_hash_type, pass_salt, remember_token_hash).
+    Input: Optionally, email, remember_id, and session.
+    Returns: tuple (pass_hash_type, pass_salt, remember_hash_type).
     """
     if session is None:
         session = orm.start_session()
     try:
-        encrypt_info = session.query(orm.User.pass_hash_type,
-            orm.User.pass_salt, orm.User.remember_token_hash).filter(
-            orm.User.email == email).one()
+        if email is not None:
+            encrypt_info = session.query(orm.User.pass_hash_type,
+                orm.User.pass_salt, orm.User.remember_hash_type).filter(
+                orm.User.email == email).one()
+        elif remember_id is not None:
+            encrypt_info = session.query(orm.User.pass_hash_type,
+                orm.User.pass_salt, orm.User.remember_hash_type).filter(
+                orm.User.remember_id == remember_id).one()
+        else:
+            raise InputError("Invalid arguments!")
     except (NoResultFound, MultipleResultsFound) as e:
         raise SelectError(str(e))
     else:

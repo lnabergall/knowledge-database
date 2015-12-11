@@ -1,3 +1,10 @@
+"""
+Storage Select Query API Unit Tests
+
+Automatically manages sessions and resetting the database
+between tests. Currently primarily checks core functionality of
+all functions, not exceptional cases.
+"""
 
 from unittest import TestCase
 
@@ -207,3 +214,106 @@ class SelectQueryTest(TestCase, StorageTest):
                     else:
                         self.assertIsInstance(results[i], list)
                         self.assertIsInstance(results[i][-1], orm.Vote)
+
+    def test_get_user_encrypt_info(self):
+        email = self.session.query(orm.User.email).first()
+        remember_id = self.session.query(orm.User.remember_id).first()
+        if not email:
+            return
+        else:
+            try:
+                info_with_email = self.call(select.get_user_encrypt_info,
+                                            email=email)
+                info_with_id = self.call(select.get_user_encrypt_info,
+                                         remember_id=remember_id)
+            except Exception as e:
+                self.fail(str(e))
+            else:
+                self.assertIsInstance(info_with_email, tuple)
+                self.assertIsInstance(info_with_id, tuple)
+
+                self.assertIsInstance(info_with_email[0],
+                    orm.User.pass_hash_type)
+                self.assertIsInstance(info_with_email[1], orm.User.pass_salt)
+                self.assertIsInstance(info_with_email[2],
+                    orm.User.remember_hash_type)
+
+                self.assertIsInstance(info_with_id[0], orm.User.pass_hash_type)
+                self.assertIsInstance(info_with_id[1], orm.User.pass_salt)
+                self.assertIsInstance(info_with_id[2],
+                    orm.User.remember_hash_type)
+
+    def test_get_user(self):
+        parameters = self.session.query(orm.User.user_id, orm.User.email,
+                                        orm.User.pass_hash, orm.User.remember_id,
+                                        orm.User.remember_token_hash).first()
+        if not parameters:
+            return
+        else:
+            user_id, email, pass_hash, remember_id, remember_token_hash \
+                = parameters
+            try:
+                user_from_email = self.call(select.get_user, email=email,
+                                            pass_hash=pass_hash)
+                user_from_remember = self.call(select.get_user,
+                    remember_id=remember_id,
+                    remember_token_hash=remember_token_hash)
+                user_from_id = self.call(select.get_user, user_id=user_id)
+            except Exception as e:
+                self.fail(str(e))
+            else:
+                self.assertIsInstance(user_from_email, orm.User)
+                self.assertIsInstance(user_from_remember, orm.User)
+                self.assertIsInstance(user_from_id, orm.User)
+                self.assertEqual(user_from_email, user_from_remember)
+                self.assertEqual(user_from_remember, user_from_id)
+
+    def test_get_user_emails(self):
+        ids = self.get_sample_ids()
+        if not ids:
+            return
+        else:
+            try:
+                emails = self.call(select.get_user_emails,
+                                   content_id=ids["content_id"])
+                email_accepted = self.call(select.get_user_emails,
+                    accepted_edit_id=ids["accepted_edit_id"])
+                email_rejected = self.call(select.get_user_emails,
+                    rejected_edit_id=ids["rejected_edit_id"])
+            except Exception as e:
+                self.fail(str(e))
+            else:
+                self.assertIsInstance(emails, list)
+                self.assertIsInstance(emails[-1], str)
+                self.assertIn("@", emails[-1])
+                self.assertIsInstance(email_accepted, str)
+                self.assertIn("@", email_accepted)
+                self.assertIsInstance(email_rejected, str)
+                self.assertIn("@", email_rejected)
+
+    def test_get_user_reports(self):
+        ids = self.get_sample_ids()
+        admin_id = self.session.query(orm.User.user_id).filter(
+                orm.User.user_type == "admin").first()
+        if not ids or not admin_id:
+            return
+        else:
+            results = []
+            try:
+                results.append(self.call(select.get_user_reports,
+                                         content_id=ids["content_id"]))
+                results.append(self.call(select.get_user_reports,
+                                         report_id=ids["report_id"]))
+                results.append(self.call(select.get_user_reports,
+                                         user_id=ids["user_id"]))
+                results.append(self.call(select.get_user_reports,
+                                         admin_id=admin_id))
+            except Exception as e:
+                self.fail(str(e))
+            else:
+                for i in range(len(results)):
+                    if i == 1:
+                        self.assertIsInstance(results[i], orm.UserReport)
+                    else:
+                        self.assertIsInstance(results[i], list)
+                        self.assertIsInstance(results[i][-1], orm.UserReport)
