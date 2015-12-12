@@ -29,6 +29,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 import action_queries
 from select_queries import Query
+from action_queries import ActionError
 
 
 KDB_url = "postgresql+psycopg2://postgres:Cetera4247@localhost/kdb_develop"
@@ -62,7 +63,11 @@ class StorageHandler:
         except (NameError, ValueError, TypeError) as e:
             raise RuntimeError(str(e))
         if function.__name__ in dir(action_queries):
-            self.session.commit()
+            try:
+                self.session.commit()
+            except Exception as e:
+                self.session.rollback()
+                raise ActionError(str(e))
         return output
 
     def close(self):
