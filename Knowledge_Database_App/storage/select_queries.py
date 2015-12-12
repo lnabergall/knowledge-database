@@ -14,10 +14,11 @@ Exceptions:
 
 Functions:
 
-    get_content_piece, get_alternate_names, get_content_types,
-    get_accepted_edits, get_rejected_edits, get_user_votes,
-    get_accepted_votes, get_rejected_votes, get_user_encrypt_info,
-    get_user, get_user_emails, get_user_reports
+    get_content_piece, get_alternate_names, get_keyword, get_citation,
+    get_content_type, get_content_types, get_accepted_edits,
+    get_rejected_edits, get_user_votes, get_accepted_votes,
+    get_rejected_votes, get_user_encrypt_info, get_user, get_user_emails,
+    get_user_reports
 
     Note that all functions take a common 'session' keyword argument,
     with default value None.
@@ -93,6 +94,54 @@ def get_alternate_names(content_id, session=None):
     alternate_names = session.query(orm.ContentPiece.alternate_names).filter(
         orm.ContentPiece.content_id == content_id).all()
     return alternate_names
+
+
+def get_keyword(keyword_string, session=None):
+    """
+    Input: keyword_string. Optionally, session.
+    Returns: 'Keyword' instance.
+    """
+    if session is None:
+        session = orm.start_session()
+    try:
+        keyword = session.query(orm.Keyword).filter(
+            orm.Keyword.keyword == keyword_string).one()
+    except (NoResultFound, MultipleResultsFound) as e:
+        raise SelectError(str(e))
+    else:
+        return keyword
+
+
+def get_citation(citation_string, session=None):
+    """
+    Input: citation_string. Optionally, session.
+    Returns: 'Citation' instance.
+    """
+    if session is None:
+        session = orm.start_session()
+    try:
+        citation = session.query(orm.Citation).filter(
+            orm.Citation.citation_text == citation_string).one()
+    except (NoResultFound, MultipleResultsFound) as e:
+        raise SelectError(str(e))
+    else:
+        return citation
+
+
+def get_content_type(content_type_string, session=None):
+    """
+    Input: content_type_string. Optionally, session.
+    Returns: 'ContentType' instance.
+    """
+    if session is None:
+        session = orm.start_session()
+    try:
+        content_type = session.query(orm.ContentType).filter(
+            orm.ContentType.content_type == content_type_string).one()
+    except (NoResultFound, MultipleResultsFound) as e:
+        raise SelectError(str(e))
+    else:
+        return content_type
 
 
 def get_content_types(session=None):
