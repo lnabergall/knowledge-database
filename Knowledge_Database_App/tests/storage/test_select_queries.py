@@ -1,9 +1,9 @@
 """
 Storage Select Query API Unit Tests
 
-Automatically manages sessions and resetting the database
-between tests. Currently primarily checks core functionality of
-all functions, not exceptional cases.
+Automatically manages sessions and resets the database between
+tests. Currently primarily checks only core functionality of all
+functions, not exceptional cases.
 """
 
 from unittest import TestCase
@@ -76,6 +76,47 @@ class SelectQueryTest(TestCase, StorageTest):
                 self.assertIsInstance(alternate_names, list)
                 if alternate_names:
                     self.assertIsInstance(alternate_names[-1], orm.Name)
+
+    def test_get_keyword(self):
+        keyword_string = self.session.query(orm.Keyword.keyword).first()
+        if not keyword_string:
+            return
+        else:
+            try:
+                keyword = self.call(select.get_keyword, keyword_string)
+            except Exception as e:
+                self.fail(str(e))
+            else:
+                self.assertIsInstance(keyword, orm.Keyword)
+                self.assertEqual(keyword.keyword, keyword_string)
+
+    def test_get_citation(self):
+        citation_string = self.session.query(orm.Citation.citation_text).first()
+        if not citation_string:
+            return
+        else:
+            try:
+                citation = self.call(select.get_citation, citation_string)
+            except Exception as e:
+                self.fail(str(e))
+            else:
+                self.assertIsInstance(citation, orm.Citation)
+                self.assertEqual(citation.citation_text, citation_string)
+
+    def test_get_content_type(self):
+        content_type_string = self.session.query(
+            orm.ContentType.content_type).first()
+        if not content_type_string:
+            return
+        else:
+            try:
+                content_type = self.call(select.get_content_type,
+                                         content_type_string)
+            except Exception as e:
+                self.fail(str(e))
+            else:
+                self.assertIsInstance(content_type, orm.ContentType)
+                self.assertEqual(content_type.content_type, content_type_string)
 
     def test_get_content_types(self):
         try:
