@@ -21,7 +21,7 @@ Functions:
     get_user_reports
 
     Note that all functions take a common 'session' keyword argument,
-    with default value None.
+    which defaults to None.
 """
 
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
@@ -35,11 +35,14 @@ class Query(_Query):
 
     def values(self):
         """
-        Return an iterable of all scalar element values from rows 
+        Returns an iterable of all scalar element values from rows
         matched by this query.
 
-        :raise MultipleValuesFound: If result rows have more than 
-                                    one element.
+        Returns:
+            List of scalars.
+        Raises:
+            MultipleValuesFound: If result rows have more than
+                one element.
         """
         try:
             return [x for (x,) in self.all()]
@@ -56,22 +59,28 @@ class MultipleValuesFound(ValueError, MultipleResultsFound):
 
 class SelectError(Exception):
     """
-    General exception raised when a database select query returns an invalid 
-    result.
+    General exception raised when a database select query returns an
+    invalid result.
     """
 
 
 class InputError(Exception):
     """
-    General exception raised when function is called with invalid argument 
-    values.
+    General exception raised when a function is called with invalid
+    argument values.
     """
 
 
 def get_content_piece(content_id, session=None):
     """
-    Input: content_id. Optionally, session.
-    Returns: 'ContentPiece' instance.
+    Args:
+        content_id: Integer.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        ContentPiece: if content piece matching content_id is found.
+    Raises:
+        SelectError: if content_id does not match any row in the
+            Content_Piece table.
     """
     if session is None:
         session = orm.start_session()
@@ -86,8 +95,11 @@ def get_content_piece(content_id, session=None):
 
 def get_alternate_names(content_id, session=None):
     """
-    Input: content_id. Optionally, session.
-    Returns: list of 'Name' instances.
+    Args:
+        content_id: Integer.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        list of Names.
     """
     if session is None:
         session = orm.start_session()
@@ -98,8 +110,14 @@ def get_alternate_names(content_id, session=None):
 
 def get_keyword(keyword_string, session=None):
     """
-    Input: keyword_string. Optionally, session.
-    Returns: 'Keyword' instance.
+    Args:
+        keyword_string: String.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        Keyword: if keyword matching keyword_string is found.
+    Raises:
+        SelectError: if keyword_string does not match any row in the
+            Keyword table.
     """
     if session is None:
         session = orm.start_session()
@@ -114,8 +132,14 @@ def get_keyword(keyword_string, session=None):
 
 def get_citation(citation_string, session=None):
     """
-    Input: citation_string. Optionally, session.
-    Returns: 'Citation' instance.
+    Args:
+        citation_string: String.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        Citation: if citation matching citation_string is found.
+    Raises:
+        SelectError: if citation_string does not match any row in the
+            Citation table.
     """
     if session is None:
         session = orm.start_session()
@@ -130,8 +154,14 @@ def get_citation(citation_string, session=None):
 
 def get_content_type(content_type_string, session=None):
     """
-    Input: content_type_string. Optionally, session.
-    Returns: 'ContentType' instance.
+    Args:
+        content_type_string: String.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        ContentType: if content type matching content_type_string is found.
+    Raises:
+        SelectError: if content_type_string does not match any row in the
+            Content_Type table.
     """
     if session is None:
         session = orm.start_session()
@@ -146,8 +176,10 @@ def get_content_type(content_type_string, session=None):
 
 def get_content_types(session=None):
     """
-    Input: Optionally, session.
-    Returns: list of 'ContentType' instances.
+    Args:
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        list of ContentTypes.
     """
     if session is None:
         session = orm.start_session()
@@ -159,9 +191,22 @@ def get_accepted_edits(content_id=None, edit_id=None, user_id=None,
                        text_id=None, name_id=None, citation_id=None,
                        keyword_id=None, ip_address=None, session=None):
     """
-    Input: Optionally, content_id, edit_id, user_id, text_id, name_id,
-           citation_id, keyword_id, ip_address, and session.
-    Returns: 'AcceptedEdit' instance or list of 'AcceptedEdit' instances.
+    Args:
+        content_id: Integer. Defaults to None.
+        edit_id: Integer. Defaults to None.
+        user_id: Integer. Defaults to None.
+        text_id: Integer. Defaults to None.
+        name_id: Integer. Defaults to None.
+        citation_id: Integer. Defaults to None.
+        keyword_id: Integer. Defaults to None.
+        ip_address: String. Defaults to None.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        AcceptedEdit or list of AcceptedEdits.
+    Raises:
+        SelectError: if edit_id does not match any row in the
+            Accepted_Edit table.
+        InputError: if all arguments are None.
     """
     if session is None:
         session = orm.start_session()
@@ -210,9 +255,22 @@ def get_rejected_edits(content_id=None, edit_id=None, user_id=None,
                        text_id=None, name_id=None, citation_id=None,
                        keyword_id=None, ip_address=None, session=None):
     """
-    Input: Optionally, content_id, edit_id, user_id, text_id, name_id,
-           citation_id, keyword_id, ip_address, and session.
-    Returns: 'RejectedEdit' instance or list of 'RejectedEdit' instances.
+    Args:
+        content_id: Integer. Defaults to None.
+        edit_id: Integer. Defaults to None.
+        user_id: Integer. Defaults to None.
+        text_id: Integer. Defaults to None.
+        name_id: Integer. Defaults to None.
+        citation_id: Integer. Defaults to None.
+        keyword_id: Integer. Defaults to None.
+        ip_address: String. Defaults to None.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        RejectedEdit or list of RejectedEdits.
+    Raises:
+        SelectError: if edit_id does not match any row in the
+            Rejected_Edit table.
+        InputError: if all arguments are None.
     """
     if session is None:
         session = orm.start_session()
@@ -259,8 +317,11 @@ def get_rejected_edits(content_id=None, edit_id=None, user_id=None,
 
 def get_user_votes(user_id, session=None):
     """
-    Input: user_id. Optionally, session.
-    Returns: list of 'Vote' instances.
+    Args:
+        user_id: Integer.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        list of Votes.
     """
     if session is None:
         session = orm.start_session()
@@ -272,9 +333,20 @@ def get_user_votes(user_id, session=None):
 def get_accepted_votes(content_id=None, edit_id=None, vote_id=None,
                        user_id=None, ip_address=None, session=None):
     """
-    Input: Optionally, content_id, edit_id, vote_id, user_id, ip_address,
-           and session.
-    Returns: 'Vote' instance or list of 'Vote' instances.
+    Args:
+        content_id: Integer. Defaults to None.
+        edit_id: Integer. Defaults to None.
+        vote_id: Integer. Defaults to None.
+        user_id: Integer. Defaults to None.
+        ip_address: String. Defaults to None.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        Vote or list of Votes.
+    Raises:
+        SelectError: if edit_id does not match any row in the
+            AcceptedEdit table or vote_id does not match any row
+            in the Vote table.
+        InputError: if all arguments are None.
     """
     if session is None:
         session = orm.start_session()
@@ -305,7 +377,7 @@ def get_accepted_votes(content_id=None, edit_id=None, vote_id=None,
         else:
             return vote
     else:
-        raise InputError("Invalid arguments!")
+        raise InputError("No arguments!")
 
     return votes
 
@@ -313,9 +385,20 @@ def get_accepted_votes(content_id=None, edit_id=None, vote_id=None,
 def get_rejected_votes(content_id=None, edit_id=None, vote_id=None,
                        user_id=None, ip_address=None, session=None):
     """
-    Input: Optionally, content_id, edit_id, vote_id, user_id, ip_address,
-           and session.
-    Returns: 'Vote' instance or list of 'Vote' instances.
+    Args:
+        content_id: Integer. Defaults to None.
+        edit_id: Integer. Defaults to None.
+        vote_id: Integer. Defaults to None.
+        user_id: Integer. Defaults to None.
+        ip_address: String. Defaults to None.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        Vote or list of Votes.
+    Raises:
+        SelectError: if edit_id does not match any row in the
+            RejectedEdit table or vote_id does not match any row
+            in the Vote table.
+        InputError: if all arguments are None.
     """
     if session is None:
         session = orm.start_session()
@@ -346,15 +429,23 @@ def get_rejected_votes(content_id=None, edit_id=None, vote_id=None,
         else:
             return vote
     else:
-        raise InputError("Invalid arguments!")
+        raise InputError("No arguments!")
 
     return votes
 
 
 def get_user_encrypt_info(email=None, remember_id=None, session=None):
     """
-    Input: Optionally, email, remember_id, and session.
-    Returns: tuple (pass_hash_type, pass_salt, remember_hash_type).
+    Args:
+        email: String. Defaults to None.
+        remember_id: Integer. Defaults to None.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        tuple (pass_hash_type, pass_salt, remember_hash_type).
+    Raises:
+        InputError: if all arguments are None.
+        SelectError: if email or remember_id does not match any row in
+            the User table.
     """
     if session is None:
         session = orm.start_session()
@@ -368,7 +459,7 @@ def get_user_encrypt_info(email=None, remember_id=None, session=None):
                 orm.User.pass_salt, orm.User.remember_hash_type).filter(
                 orm.User.remember_id == remember_id).one()
         else:
-            raise InputError("Invalid arguments!")
+            raise InputError("No arguments!")
     except (NoResultFound, MultipleResultsFound) as e:
         raise SelectError(str(e))
     else:
@@ -378,9 +469,23 @@ def get_user_encrypt_info(email=None, remember_id=None, session=None):
 def get_user(user_id=None, email=None, pass_hash=None, remember_id=None,
              remember_token_hash=None, session=None):
     """
-    Input: Optionally, user_id, email and pass_hash, remember_id and
-           remember_token_hash, and session.
-    Returns: 'User' instance.
+    Args:
+        user_id: Integer. Defaults to None.
+        email: String. Defaults to None.
+        pass_hash: String. Defaults to None.
+        remember_id: Integer. Defaults to None.
+        remember_token_hash: String. Defaults to None.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        User.
+    Raises:
+        SelectError: if email and pass_hash do not match any row in the
+            User table, or remember_id and remember_token_hash do not
+            match any row in the User table, or user_id does not match any
+            row in the User table.
+        InputError: if email or pass_hash is None, and remember_id or
+            remember_token_hash is None, and user_id is None. Indicates
+            insufficient information was provided to identify a user.
     """
     if session is None:
         session = orm.start_session()
@@ -416,9 +521,19 @@ def get_user(user_id=None, email=None, pass_hash=None, remember_id=None,
 def get_user_emails(content_id=None, accepted_edit_id=None,
                     rejected_edit_id=None, session=None):
     """
-    Input: Optionally, contend_id, accepted_edit_id, rejected_edit_id,
-           and session.
-    Returns: email or list of emails.
+    Args:
+        contend_id: Integer. Defaults to None.
+        accepted_edit_id: Integer. Defaults to None.
+        rejected_edit_id: Integer. Defaults to None.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        email or list of emails.
+    Raises:
+        SelectError: if content_id matches multiple values in one row,
+            or accepted_edit_id does not match any row in the
+            Accepted_Edit table, or rejected_edit_id does not match
+            any row in the Rejected_Edit table.
+        InputError: if all arguments are None.
     """
     if session is None:
         session = orm.start_session()
@@ -450,15 +565,25 @@ def get_user_emails(content_id=None, accepted_edit_id=None,
         else:
             return email
     else:
-        raise InputError("Invalid arguments!")
+        raise InputError("No arguments!")
 
 
 def get_user_reports(content_id=None, report_id=None, user_id=None,
                      admin_id=None, ip_address=None, session=None):
     """
-    Input: Optionally, content_id, report_id, user_id, admin_id, ip_address,
-           and session.
-    Returns: 'UserReport' instance or list of 'UserReport' instances.
+    Args:
+        content_id: Integer. Defaults to None.
+        report_id: Integer. Defaults to None.
+        user_id: Integer. Defaults to None.
+        admin_id: Integer. Defaults to None.
+        ip_address: String. Defaults to None.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        UserReport or list of UserReports.
+    Raises:
+        SelectError: if report_id does not match any row in the
+            User_Report table.
+        InputError: if all arguments are None.
     """
     if session is None:
         session = orm.start_session()
@@ -483,6 +608,6 @@ def get_user_reports(content_id=None, report_id=None, user_id=None,
         else:
             return report
     else:
-        raise InputError("Invalid arguments!")
+        raise InputError("No arguments!")
 
     return reports

@@ -51,8 +51,8 @@ class StorageHandler:
     Handles queries made to the Postgres database.
 
     Call a function from select_queries or action_queries using the
-    'call' method. The class features built-in session management, including
-    handling commits.
+    'call' method. The class features built-in session management,
+    including handling commits.
     """
     def __init__(self):
         self.session = start_session()
@@ -82,6 +82,24 @@ content_authors = Table("content_authors", Base.metadata,
 
 
 class ContentPiece(Base):
+    """
+    Attributes:
+        content_id: Integer, primary key.
+        timestamp: Datetime.
+        deleted_timestamp: Datetime.
+        first_author_id: Integer, foreign key to User table.
+        first_author: User, Many-to-One relationship, backref
+            'pieces_created'.
+        content_type_id: Integer, foreign key to Content_Type table.
+        content_type: ContentType, Many-to-One relationship,
+            backref 'pieces'.
+        name_id: Integer, foreign key to Name table.
+        name: Name, One-to-One relationship, backref 'piece'.
+        text_id: Integer, foreign key to Text table.
+        text: Text, One-to-One relationship, backref 'piece'.
+        authors: list of Users, Many-to-Many relationship,
+            backref 'pieces'.
+    """
     __tablename__ = "Content_Piece"
 
     content_id = Column(Integer, primary_key=True)
@@ -107,8 +125,16 @@ class ContentPiece(Base):
 
 
 class Name(Base):
-    """name_type: 'primary' or 'alternate'."""
-
+    """
+    Attributes:
+        name_id: Integer, primary key.
+        name: String.
+        name_type: String, expects 'primary' or 'alternate'.
+        timestamp: Datetime.
+        content_id: Integer, foreign key to Content_Piece table.
+        piece: ContentPiece, Many-to-One relationship, backref
+            'alternate_names'.
+    """
     __tablename__ = "Name"
 
     name_id = Column(Integer, primary_key=True)
@@ -125,6 +151,12 @@ class Name(Base):
 
 
 class Text(Base):
+    """
+    Attributes:
+        text_id: Integer, primary key.
+        text: String.
+        timestamp: Datetime.
+    """
     __tablename__ = "Text"
 
     text_id = Column(Integer, primary_key=True)
@@ -136,6 +168,11 @@ class Text(Base):
 
 
 class ContentType(Base):
+    """
+    Attributes:
+        content_type_id: Integer, primary key.
+        content_type: String, constrained to be unique.
+    """
     __tablename__ = "Content_Type"
 
     content_type_id = Column(Integer, primary_key=True)
@@ -153,6 +190,14 @@ content_keywords = Table("content_keywords", Base.metadata,
 
 
 class Keyword(Base):
+    """
+    Attributes:
+        keyword_id: Integer, primary key.
+        keyword: String, indexed and constrained to be unique.
+        timestamp: Datetime.
+        pieces: list of ContentPieces, Many-to-Many relationship,
+            backref 'content_keywords'.
+    """
     __tablename__ = "Keyword"
 
     keyword_id = Column(Integer, primary_key=True)
@@ -175,6 +220,14 @@ content_citations = Table("content_citations", Base.metadata,
 
 
 class Citation(Base):
+    """
+    Attributes:
+        citation_id: Integer, primary key.
+        citation_text: String, constrained to be unique.
+        timestamp: Datetime.
+        pieces: list of ContentPieces, Many-to-Many relationship,
+            backref 'citations'.
+    """
     __tablename__ = "Citation"
 
     citation_id = Column(Integer, primary_key=True)
@@ -191,9 +244,31 @@ class Citation(Base):
 
 class AcceptedEdit(Base):
     """
-    content_part: 'name', 'text', 'keyword', or 'citation'.
-    author_type: 'U' for registered users, IP address for anonymous users.
-    acc_timestamp: datetime of acceptance of the edit.
+    Attributes:
+        edit_id: Integer, primary key.
+        edit_text: String.
+        edit_rational: String.
+        content_part: String, expects 'name', 'text', 'keyword',
+            or 'citation'.
+        timestamp: Datetime.
+        acc_timestamp: Datetime of acceptance of the edit.
+        author_type: String, expects 'U' for registered users, IP address
+            for anonymous users.
+        author_id: Integer, foreign key to User table.
+        author: User, Many-to-One relationship, backref 'accepted_edits'.
+        content_id: Integer, foreign key to Content_Piece table.
+        piece: ContentPiece, Many-to-One relationship, backref
+            'accepted_edits'.
+        name_id: Integer, foreign key to Name table.
+        name: Name, Many-to-One relationship, backref 'accepted_edits'.
+        text_id: Integer, foreign key to Name table.
+        text: Text, Many-to-One relationship, backref 'accepted_edits'.
+        keyword_id: Integer, foreign key to Keyword table.
+        keyword: Keyword, Many-to-One relationship, backref
+            'accepted_edits'.
+        citation_id: Integer, foreign key to Citation table.
+        citation: Citation, Many-to-One relationship, backref
+            'accepted_edits'.
     """
 
     __tablename__ = "Accepted_Edit"
@@ -235,8 +310,18 @@ user_votes = Table("user_votes", Base.metadata,
 
 class Vote(Base):
     """
-    content_part: 'name', 'text', 'keyword', or 'citation'.
-    close_timestamp: datetime of the closing of the vote.
+    Attributes:
+        vote_id: Integer, primary key.
+        vote: String.
+        content_part: String, expects 'name', 'text', 'keyword',
+            or 'citation'.
+        timestamp: Datetime.
+        close_timestamp: Datetime of the closing of the vote.
+        accepted_edit_id: Integer, foreign key to Accepted_Edit table.
+        accepted_edit: AcceptedEdit, One-to-One relationship, backref 'vote'.
+        rejected_edit_id: Integer, foreign key to Rejected_Edit table.
+        rejected_edit: RejectedEdit, One-to-One relationship, backref 'vote'.
+        voters: list of Users, Many-to-Many relationship, backref 'votes'.
     """
 
     __tablename__ = "Vote"
@@ -262,9 +347,31 @@ class Vote(Base):
 
 class RejectedEdit(Base):
     """
-    content_part: 'name', 'text', 'keyword', or 'citation'.
-    author_type: 'U' for registered users, IP address for anonymous users.
-    rej_timestamp: datetime of rejection of the edit.
+    Attributes:
+        edit_id: Integer, primary key.
+        edit_text: String.
+        edit_rational: String.
+        content_part: String, expects 'name', 'text', 'keyword',
+            or 'citation'.
+        timestamp: Datetime.
+        rej_timestamp: Datetime of rejection of the edit.
+        author_type: String, expects 'U' for registered users, IP address
+            for anonymous users.
+        author_id: Integer, foreign key to User table.
+        author: User, Many-to-One relationship, backref 'accepted_edits'.
+        content_id: Integer, foreign key to Content_Piece table.
+        piece: ContentPiece, Many-to-One relationship, backref
+            'accepted_edits'.
+        name_id: Integer, foreign key to Name table.
+        name: Name, Many-to-One relationship, backref 'accepted_edits'.
+        text_id: Integer, foreign key to Name table.
+        text: Text, Many-to-One relationship, backref 'accepted_edits'.
+        keyword_id: Integer, foreign key to Keyword table.
+        keyword: Keyword, Many-to-One relationship, backref
+            'accepted_edits'.
+        citation_id: Integer, foreign key to Citation table.
+        citation: Citation, Many-to-One relationship, backref
+            'accepted_edits'.
     """
 
     __tablename__ = "Rejected_Edit"
@@ -298,7 +405,21 @@ class RejectedEdit(Base):
 
 
 class User(Base):
-    """user_type: 'admin' or 'standard'."""
+    """
+    Attributes:
+        user_id: Integer, primary key.
+        user_type: String, expects 'admin' or 'standard'.
+        user_name: String, indexed.
+        email: String, indexed and constrained to be unique.
+        confirmed_timestamp: Datetime.
+        pass_hash: String, indexed and constrained to be unique.
+        pass_hash_type: String.
+        pass_salt: String, indexed and constrained to be unique.
+        remember_id: Integer, indexed and constrained to be unique.
+        remember_token_hash: String, indexed and constrained to be unique.
+        timestamp: Datetime.
+        deleted_timestamp: Datetime.
+    """
 
     __tablename__ = "User"
 
@@ -323,10 +444,23 @@ class User(Base):
 
 class UserReport(Base):
     """
-    author_type: 'U' for registered users, IP address for anonymous users.
-    report_type: 'content' or 'authors'.
-    res_timestamp: datetime of resolution of
-                   the report by the assigned admin.
+    Attributes:
+        report_id: Integer, primary key.
+        report_text: String.
+        report_type: String, expects 'content' or 'authors'.
+        author_type: String, expects 'U' for registered users,
+            IP address for anonymous users.
+        admin_report: String.
+        timestamp: Datetime.
+        res_timestamp: Datetime of resolution of the report by
+            the assigned admin.
+        author_id: Integer, foreign key to User table.
+        author: User, Many-to-One relationship, backref 'reports'.
+        admin_id: Integer, foreign key to User table.
+        admin: User, Many-to-One relationship, backref 'reports_resolved'.
+        content_id: Integer, foreign key to Content_Piece table.
+        piece: ContentPiece, Many-to-One relationship, backref
+            'user_reports'.
     """
 
     __tablename__ = "User_Report"
@@ -347,4 +481,4 @@ class UserReport(Base):
     admin = relationship("User", backref="reports_resolved")
 
     content_id = Column(Integer, ForeignKey("Content_Piece.content_id"))
-    content = relationship("ContentPiece", backref="user_reports")
+    piece = relationship("ContentPiece", backref="user_reports")

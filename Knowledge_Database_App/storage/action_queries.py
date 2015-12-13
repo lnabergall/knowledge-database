@@ -19,8 +19,6 @@ Functions:
     with default value None.
 """
 
-from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
-
 import orm_core as orm
 from select_queries import InputError, get_user, get_content_piece
 
@@ -32,8 +30,18 @@ class ActionError(Exception):
 def store_content_piece(user_id, name, text, content_type, keywords, timestamp,
                         citations=None, alternate_names=None, session=None):
     """
-    Input: user_id, name, text, content_type, keywords, and timestamp.
-           Optionally, citations, alternate_names, and session.
+    Args:
+        user_id: Integer.
+        name: Name.
+        text: Text.
+        content_type: ContentType.
+        keywords: list of Keywords.
+        timestamp: Datetime.
+        citations: list of Citations. Defaults to None.
+        alternate_names: list of Names of type 'alternate'. Defaults to None.
+        session: SQLAlchemy session. Defaults to None.
+    Raises:
+        ActionError: if session is provided and committing changes fails.
     """
     if session is None:
         session = orm.start_session()
@@ -64,8 +72,12 @@ def store_content_piece(user_id, name, text, content_type, keywords, timestamp,
 
 def delete_content_piece(content_id, deleted_timestamp, session=None):
     """
-    Input: content_id and deleted_timestamp.
-           Optionally, session.
+    Args:
+        content_id: Integer.
+        deleted_timestamp: datetime.
+        session: SQLAlchemy session. Defaults to None.
+    Raises:
+        ActionError: if session is provided and committing changes fails.
     """
     if session is None:
         session = orm.start_session()
@@ -83,8 +95,12 @@ def delete_content_piece(content_id, deleted_timestamp, session=None):
 
 def update_content_type(content_id, content_type, session=None):
     """
-    Input: content_id and content_type.
-           Optionally, session.
+    Args:
+        content_id: Integer.
+        content_type: ContentType.
+        session: SQLAlchemy session. Defaults to None.
+    Raises:
+        ActionError: if session is provided and committing changes fails.
     """
     if session is None:
         session = orm.start_session()
@@ -98,11 +114,15 @@ def update_content_type(content_id, content_type, session=None):
             raise ActionError(str(e))
 
 
-def store_content_part(content_part, content_id, timestamp, session=None):
+def store_content_part(content_part, content_id, session=None):
     """
-    Input: content_part ('Name', 'Keyword', or 'Citation' instance),
-           content_id, and timestamp.
-           Optionally, session.
+    Args:
+        content_part: Name, Keyword, or Citation.
+        content_id: Integer.
+        session: SQLAlchemy session. Defaults to None.
+    Raises:
+        InputError: if content_part is not a Name, Keyword, or Citation.
+        ActionError: if session is provided and committing changes fails.
     """
     if session is None:
         session = orm.start_session()
@@ -125,11 +145,17 @@ def store_content_part(content_part, content_id, timestamp, session=None):
 
 def remove_content_part(content_id, part_id, content_part, session=None):
     """
-    Input: content_id, part_id, and content_part 
-           ('keyword', 'citation', or 'name').
-           Optionally, session.
-    Deletes name or removes association between content piece and 
-    keyword/citation. 
+    Deletes name or removes association between content piece and
+    keyword/citation.
+
+    Args:
+        content_id: Integer.
+        part_id: Integer.
+        content_part: String, accepts 'keyword', 'citation', or 'name'.
+        session: SQLAlchemy session. Defaults to None.
+    Raises:
+        InputError: if content_part != 'keyword', 'citation', or 'name'.
+        ActionError: if session is provided and committing changes fails.
     """
     if session is None:
         session = orm.start_session()
@@ -154,8 +180,14 @@ def remove_content_part(content_id, part_id, content_part, session=None):
 
 def update_content_part(part_id, content_part, part_text, session=None):
     """
-    Input: part_id, content_part ('name' or 'text'), and part_text.
-           Optionally, session.
+    Args:
+        part_id: Integer.
+        content_part: String, accepts 'name' or 'text'.
+        part_text: String.
+        session: SQLAlchemy session. Defaults to None.
+    Raises:
+        InputError: if content_part != 'name' or 'text'.
+        ActionError: if session is provided and committing changes fails.
     """
     if session is None:
         session = orm.start_session()
@@ -179,10 +211,23 @@ def store_accepted_edit(edit_text, edit_rationale, content_part, part_id,
                         content_id, vote_string, voter_ids, timestamp,
                         acc_timestamp, author_type, user_id=None, session=None):
     """
-    Input: edit_text, edit_rationale, content_part ('name', 'text', 'keyword',
-           or 'citation'), part_id, content_id, vote_string, voter_ids,
-           timestamp, acc_timestamp, and author_type.
-           Optionally, user_id and session.
+    Args:
+        edit_text: String.
+        edit_rationale: String.
+        content_part: String, accepts 'name', 'text', 'keyword' or 'citation'.
+        part_id: Integer.
+        content_id: Integer.
+        vote_string: String.
+        voter_ids: list of Integers.
+        timestamp: Datetime.
+        acc_timestamp: Datetime.
+        author_type: String, expects 'U' or an IP address.
+        user_id: Integer. Defaults to None.
+        session: SQLAlchemy session. Defaults to None.
+    Raises:
+        InputError: if content_part != 'name', 'text', 'keyword',
+            or 'citation'.
+        ActionError: if session is provided and committing changes fails.
     """
     if session is None:
         session = orm.start_session()
@@ -226,10 +271,23 @@ def store_rejected_edit(edit_text, edit_rationale, content_part, part_id,
                         content_id, vote_string, voter_ids, timestamp,
                         rej_timestamp, author_type, user_id=None, session=None):
     """
-    Input: edit_text, edit_rationale, content_part ('name', 'text', 'keyword',
-           or 'citation'), part_id, content_id, vote_string, voter_ids,
-           timestamp, rej_timestamp, and author_type.
-           Optionally, user_id and session.
+    Args:
+        edit_text: String.
+        edit_rationale: String.
+        content_part: String, accepts 'name', 'text', 'keyword' or 'citation'.
+        part_id: Integer.
+        content_id: Integer.
+        vote_string: String.
+        voter_ids: list of Integers.
+        timestamp: Datetime.
+        rej_timestamp: Datetime.
+        author_type: String, expects 'U' or an IP address.
+        user_id: Integer. Defaults to None.
+        session: SQLAlchemy session. Defaults to None.
+    Raises:
+        InputError: if content_part != 'name', 'text', 'keyword',
+            or 'citation'.
+        ActionError: if session is provided and committing changes fails.
     """
     if session is None:
         session = orm.start_session()
@@ -270,9 +328,17 @@ def store_rejected_edit(edit_text, edit_rationale, content_part, part_id,
 def store_new_user(user_type, user_name, email, pass_hash,
                    pass_hash_type, pass_salt, timestamp, session=None):
     """
-    Input: user_type, user_name, email, pass_hash, pass_hash_type, 
-           pass_salt, and timestamp.
-           Optionally, session.
+    Args:
+        user_type: String, expects 'standard' or 'admin'.
+        user_name: String.
+        email: String.
+        pass_hash: String.
+        pass_hash_type: String.
+        pass_salt: String.
+        timestamp: Datetime.
+        session: SQLAlchemy session. Defaults to None.
+    Raises:
+        ActionError: if session is provided and committing changes fails.
     """
     if session is None:
         session = orm.start_session()
@@ -294,10 +360,23 @@ def update_user(user_id, new_user_name=None, new_email=None,
                 new_remember_token_hash=None,
                 new_remember_hash_type=None, session=None):
     """
-    Input: user_id. 
-           Optionally, new_user_name, new_email, confirmed_timestamp,
-           new_pass_hash and new_pass_hash_type and new_pass_salt,
-           new_remember_token_hash and new_remember_hash_type, or session.
+    Args:
+        user_id: Integer.
+        new_user_name: String. Defaults to None.
+        new_email: String. Defaults to None.
+        confirmed_timestamp: datetime. Defaults to None.
+        new_pass_hash: String. Defaults to None.
+        new_pass_hash_type: String. Defaults to None.
+        new_pass_salt: String. Defaults to None.
+        new_remember_token_hash: String. Defaults to None.
+        new_remember_hash_type: String. Defaults to None.
+        session: SQLAlchemy session. Defaults to None.
+    Raises:
+        InputError: if new_user_name is None, new_email is None,
+            confirmed_timestamp is None, new_pass_hash or new_pass_hash_type
+            or new_pass_salt is None, and new_remember_token_hash or
+            new_remember_hash_type is None.
+        ActionError: if session is provided and committing changes fails.
     """
     if session is None:
         session = orm.start_session()
@@ -337,9 +416,19 @@ def store_user_report(content_id, report_text, report_type, admin_report,
                       timestamp, res_timestamp, admin_id, author_type,
                       user_id=None, session=None):
     """
-    Input: content_id, report_text, report_type, admin_report, timestamp, 
-           res_timestamp, admin_id, and author_type.
-           Optionally, user_id and session.
+    Args:
+        content_id: Integer.
+        report_text: String.
+        report_type: String, expects 'content' or 'authors'.
+        admin_report: String.
+        timestamp: Datetime.
+        res_timestamp: Datetime.
+        admin_id: Integer.
+        author_type: String, expects 'U' or an IP address.
+        user_id: Integer. Defaults to None.
+        session: SQLAlchemy session. Defaults to None.
+    Raises:
+        ActionError: if session is provided and committing changes fails.
     """
     if session is None:
         session = orm.start_session()
