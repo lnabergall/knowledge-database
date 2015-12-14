@@ -326,7 +326,8 @@ def store_rejected_edit(edit_text, edit_rationale, content_part, part_id,
 
 
 def store_new_user(user_type, user_name, email, pass_hash,
-                   pass_hash_type, pass_salt, timestamp, session=None):
+                   pass_hash_type, pass_salt, remember_id, timestamp,
+                   session=None):
     """
     Args:
         user_type: String, expects 'standard' or 'admin'.
@@ -344,7 +345,8 @@ def store_new_user(user_type, user_name, email, pass_hash,
         session = orm.start_session()
     user = orm.User(user_type=user_type, user_name=user_name, email=email,
                     pass_hash=pass_hash, pass_hash_type=pass_hash_type,
-                    pass_salt=pass_salt, timestamp=timestamp)
+                    pass_salt=pass_salt, remember_id=remember_id,
+                    timestamp=timestamp)
     session.add(user)
     if session is None:
         try:

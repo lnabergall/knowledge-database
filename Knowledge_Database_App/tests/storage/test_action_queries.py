@@ -1,11 +1,16 @@
 """
+Storage Action Query API Unit Tests
 
+Automatically manages sessions and resets the database between
+tests. Currently primarily checks only core functionality of all
+functions, not exceptional cases.
 """
 
 from unittest import TestCase
 from datetime import datetime
 
 import Knowledge_Database_App.storage.action_queries as action
+import Knowledge_Database_App.storage.select_queries as select
 import Knowledge_Database_App.storage.orm_core as orm
 from . import StorageTest
 
@@ -102,7 +107,7 @@ class ActionQueryTest(TestCase, StorageTest):
         else:
             results = self.session.query(orm.ContentPiece).filter(
                 orm.ContentPiece.content_id == self.test_data["content_id"],
-                orm.ContentPiece.deleted_timestamp == None).all()
+                orm.ContentPiece.deleted_timestamp.is_(None)).all()
             self.assertEqual(results, [])
 
     def test_update_content_type(self):
@@ -191,4 +196,168 @@ class ActionQueryTest(TestCase, StorageTest):
             self.assertEqual(name_string, self.test_data["name"].name)
             self.assertEqual(text_string, self.test_data["text"].text)
 
+    def test_store_accepted_edit(self):
+        timestamp = datetime.utcnow()
+        try:
+            self.call(action.store_accepted_edit, self.test_data["edit_text"],
+                      self.test_data["edit_rationale"], "name",
+                      self.test_data["name_id"], self.test_data["content_id"],
+                      self.test_data["vote_string"], self.test_data["voter_ids"],
+                      timestamp, timestamp, "U", self.test_data["user_id"])
+            self.call(action.store_accepted_edit, self.test_data["edit_text"],
+                      self.test_data["edit_rationale"], "text",
+                      self.test_data["text_id"], self.test_data["content_id"],
+                      self.test_data["vote_string"], self.test_data["voter_ids"],
+                      timestamp, timestamp, "U", self.test_data["user_id"])
+            self.call(action.store_accepted_edit, self.test_data["edit_text"],
+                      self.test_data["edit_rationale"], "keyword",
+                      self.test_data["keyword_id"], self.test_data["content_id"],
+                      self.test_data["vote_string"], self.test_data["voter_ids"],
+                      timestamp, timestamp, "U", self.test_data["user_id"])
+            self.call(action.store_accepted_edit, self.test_data["edit_text"],
+                      self.test_data["edit_rationale"], "citation",
+                      self.test_data["citation_id"], self.test_data["content_id"],
+                      self.test_data["vote_string"], self.test_data["voter_ids"],
+                      timestamp, timestamp, "U", self.test_data["user_id"])
+        except Exception as e:
+            self.fail(str(e))
+        else:
+            name_accepted_edits = select.get_accepted_edits(
+                name_id=self.test_data["name_id"])
+            text_accepted_edits = select.get_accepted_edits(
+                text_id=self.test_data["text_id"])
+            keyword_accepted_edits = select.get_accepted_edits(
+                keyword_id=self.test_data["keyword_id"])
+            citation_accepted_edits = select.get_accepted_edits(
+                citation_id=self.test_data["citation_id"])
+            self.assertIn(self.test_data["edit_text"],
+                          [edit.edit_text for edit in name_accepted_edits])
+            self.assertIn(self.test_data["edit_text"],
+                          [edit.edit_text for edit in text_accepted_edits])
+            self.assertIn(self.test_data["edit_text"],
+                          [edit.edit_text for edit in keyword_accepted_edits])
+            self.assertIn(self.test_data["edit_text"],
+                          [edit.edit_text for edit in citation_accepted_edits])
 
+    def test_store_rejected_edit(self):
+        timestamp = datetime.utcnow()
+        try:
+            self.call(action.store_rejected_edit, self.test_data["edit_text"],
+                      self.test_data["edit_rationale"], "name",
+                      self.test_data["name_id"], self.test_data["content_id"],
+                      self.test_data["vote_string"], self.test_data["voter_ids"],
+                      timestamp, timestamp, "U", self.test_data["user_id"])
+            self.call(action.store_rejected_edit, self.test_data["edit_text"],
+                      self.test_data["edit_rationale"], "text",
+                      self.test_data["text_id"], self.test_data["content_id"],
+                      self.test_data["vote_string"], self.test_data["voter_ids"],
+                      timestamp, timestamp, "U", self.test_data["user_id"])
+            self.call(action.store_rejected_edit, self.test_data["edit_text"],
+                      self.test_data["edit_rationale"], "keyword",
+                      self.test_data["keyword_id"], self.test_data["content_id"],
+                      self.test_data["vote_string"], self.test_data["voter_ids"],
+                      timestamp, timestamp, "U", self.test_data["user_id"])
+            self.call(action.store_rejected_edit, self.test_data["edit_text"],
+                      self.test_data["edit_rationale"], "citation",
+                      self.test_data["citation_id"], self.test_data["content_id"],
+                      self.test_data["vote_string"], self.test_data["voter_ids"],
+                      timestamp, timestamp, "U", self.test_data["user_id"])
+        except Exception as e:
+            self.fail(str(e))
+        else:
+            name_rejected_edits = select.get_rejected_edits(
+                name_id=self.test_data["name_id"])
+            text_rejected_edits = select.get_rejected_edits(
+                text_id=self.test_data["text_id"])
+            keyword_rejected_edits = select.get_rejected_edits(
+                keyword_id=self.test_data["keyword_id"])
+            citation_rejected_edits = select.get_rejected_edits(
+                citation_id=self.test_data["citation_id"])
+            self.assertIn(self.test_data["edit_text"],
+                          [edit.edit_text for edit in name_rejected_edits])
+            self.assertIn(self.test_data["edit_text"],
+                          [edit.edit_text for edit in text_rejected_edits])
+            self.assertIn(self.test_data["edit_text"],
+                          [edit.edit_text for edit in keyword_rejected_edits])
+            self.assertIn(self.test_data["edit_text"],
+                          [edit.edit_text for edit in citation_rejected_edits])
+
+    def test_store_new_user(self):
+        timestamp = datetime.utcnow()
+        remember_id = "hashofemail"
+        try:
+            self.call(action.store_new_user, "standard",
+                      self.test_data["user_name"], self.test_data["email"],
+                      self.test_data["pass_hash"], self.test_data["pass_hash_type"],
+                      self.test_data["pass_salt"], remember_id, timestamp)
+        except Exception as e:
+            self.fail(str(e))
+        else:
+            try:
+                user = select.get_user(email=self.test_data["email"],
+                                       pass_hash=self.test_data["pass_hash"])
+            except Exception as e:
+                self.fail(str(e))
+            else:
+                self.assertEqual(user.user_name, self.test_data["user_name"])
+                self.assertEqual(user.pass_salt, self.test_data["pass_salt"])
+                self.assertEqual(user.remember_id, remember_id)
+
+    def test_update_user(self):
+        confirmed_timestamp = datetime.utcnow()
+        new_remember_token_hash = "abc"
+        try:
+            self.call(action.update_user, self.test_data["user_id"],
+                      new_user_name=self.test_data["user_name"])
+            self.call(action.update_user, self.test_data["user_id"],
+                      new_email=self.test_data["email"])
+            self.call(action.update_user, self.test_data["user_id"],
+                      confirmed_timestamp=confirmed_timestamp)
+            self.call(action.update_user, self.test_data["user_id"],
+                      new_pass_hash=self.test_data["pass_hash"],
+                      new_pass_hash_type=self.test_data["pass_hash_type"],
+                      new_pass_salt=self.test_data["pass_salt"])
+            self.call(action.update_user, self.test_data["user_id"],
+                      new_remember_token_hash=new_remember_token_hash,
+                      new_remember_hash_type=self.test_data["pass_hash_type"])
+        except Exception as e:
+            self.fail(str(e))
+        else:
+            try:
+                user = select.get_user(email=self.test_data["email"],
+                                       pass_hash=self.test_data["pass_hash"])
+            except Exception as e:
+                self.fail(str(e))
+            else:
+                self.assertEqual(user.user_name, self.test_data["user_name"])
+                self.assertEqual(user.pass_salt, self.test_data["pass_salt"])
+                self.assertEqual(user.pass_hash_type,
+                                 self.test_data["pass_hash_type"])
+                self.assertEqual(user.remember_token_hash, new_remember_token_hash)
+                self.assertEqual(user.remember_hash_type,
+                                 self.test_data["pass_hash_type"])
+                self.assertEqual(user.confirmed_timestamp, confirmed_timestamp)
+
+    def test_store_user_report(self):
+        report_text = "This is a report."
+        admin_report = "This is an admin report."
+        timestamp = datetime.utcnow()
+        admin_id = self.session.query(orm.User.user_id).filter(
+            orm.User.user_type == "admin").first()
+        try:
+            self.call(action.store_user_report, self.test_data["content_id"],
+                      report_text, "content", admin_report, timestamp,
+                      timestamp, admin_id, "U", self.test_data["user_id"])
+        except Exception as e:
+            self.fail(str(e))
+        else:
+            try:
+                user_reports = select.get_user_reports(
+                    content_id=self.test_data["content_id"])
+            except Exception as e:
+                self.fail(str(e))
+            else:
+                self.assertIn(report_text, [report.report_text
+                                            for report in user_reports])
+                self.assertIn(self.test_data["user_id"],
+                              [report.author_id for report in user_reports])
