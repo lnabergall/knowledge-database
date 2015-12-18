@@ -44,7 +44,8 @@ class SearchableContentPiece(DocType):
     alternate_names = String(
         multi=True,
         fields={"raw": String(multi=True, index="not_analyzed")},
-        properties={"suggest": Completion(multi=True, payloads=True)}
+        properties={"suggest": Completion(multi=True, payloads=True)},
+        position_offset_gap=100
     )
     text = String(fields={"bigrams": String(analyzer=bigram_analyzer)})
     content_type = String()
