@@ -9,6 +9,7 @@ from unittest import TestCase
 
 from Knowledge_Database_App.search import search, autocomplete
 
+
 class SearchQueryTestCase(TestCase):
 
     def test_search(self):
