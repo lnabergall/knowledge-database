@@ -16,10 +16,11 @@ from Knowledge_Database_App.storage.select_queries import InputError
 from index import SearchableContentPiece
 
 
-def search(query_string):
+def search(query_string, page_num):
     """
     Args:
         query_string: String.
+        page_num: Positive integer.
 
     Returns:
         A list, sorted in descending order by score,
@@ -46,6 +47,7 @@ def search(query_string):
     )
     bigram_query = Match(query=query_string, fields=["text.bigrams"], boost=0.4)
     content_search = SearchableContentPiece.search()
+    content_search = content_search[10*(page_num-1) : 10*page_num]
     content_search = content_search.query(query).query(bigram_query)
 
     # Then rescore the top results with a fuzzy phrase match.
