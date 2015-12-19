@@ -1,5 +1,21 @@
 """
 Search Index API
+
+Contains functions and classes used to read and write to the
+Elasticsearch cluster. Uses elasticsearch-py-dsl.
+
+Classes:
+
+    SearchableContentPiece
+
+Exceptions:
+
+    IndexAccessError
+
+Functions:
+
+    create_index, index_content_piece, update_content_piece,
+    delete_content_piece
 """
 
 from elasticsearch import NotFoundError
@@ -39,12 +55,16 @@ class SearchableContentPiece(DocType):
     """
     name = String(
         fields={"raw": String(index="not_analyzed")},
-        properties={"suggest": Completion(payloads=True)}
+        properties={"suggest": Completion(payloads=True,
+                                          preserve_separators=False,
+                                          preserve_position_increments=False)}
     )
     alternate_names = String(
         multi=True,
         fields={"raw": String(multi=True, index="not_analyzed")},
-        properties={"suggest": Completion(multi=True, payloads=True)},
+        properties={"suggest": Completion(multi=True, payloads=True,
+                                          preserve_separators=False,
+                                          preserve_position_increments=False)},
         position_offset_gap=100
     )
     text = String(fields={"bigrams": String(analyzer=bigram_analyzer)})
@@ -52,12 +72,16 @@ class SearchableContentPiece(DocType):
     keywords = String(
         multi=True,
         fields={"raw": String(multi=True, index="not_analyzed")},
-        properties={"suggest": Completion(multi=True, payloads=True)}
+        properties={"suggest": Completion(multi=True, payloads=True,
+                                          preserve_separators=False,
+                                          preserve_position_increments=False)}
     )
     citations = String(
         multi=True,
         fields={"raw": String(multi=True, index="not_analyzed")},
-        properties={"suggest": Completion(multi=True, payloads=True)}
+        properties={"suggest": Completion(multi=True, payloads=True,
+                                          preserve_separators=False,
+                                          preserve_position_increments=False)}
     )
 
 

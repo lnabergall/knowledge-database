@@ -1,10 +1,18 @@
 """
 Search Query API
+
+Contains functions used to query the Elasticsearch cluster.
+Uses elasticsearch-py-dsl.
+
+Functions:
+
+    search, autocomplete
 """
 
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import MultiMatch, Match
 
+from Knowledge_Database_App.storage.select_queries import InputError
 from index import SearchableContentPiece
 
 
@@ -12,8 +20,10 @@ def search(query_string):
     """
     Args:
         query_string: String.
+
     Returns:
-        A dict of the form:
+        A list, sorted in descending order by score,
+        containing dict elements of the form:
 
         {
             "score": float,
@@ -55,12 +65,14 @@ def search(query_string):
                                 "query": query_string, "slop": 10}}}
                     ]
                 }
-            }
+            },
+            "query_weight": 2,
+            "rescore_query_weight": 1
         }
     }
     content_search = Search.from_dict(search_dict)
 
-    # Apply highlighting, execute the search, and return the result.
+    # Request highlighting, execute the search, and return the result.
     content_search = content_search.highlight(
         "text", fragment_size=150, number_of_fragments=3)
     content_search = content_search.highlight("name", number_of_fragments=0)
@@ -84,9 +96,60 @@ def search(query_string):
 
     return query_result
 
-def auto_complete(content_part, query_string):
+
+def autocomplete(content_part, query_string):
     """
     Args:
         content_part: String, accepts 'name', 'keyword', or 'citation'.
         query_string: String.
+
+    Returns:
+        A list. If content_part == 'name', contains dict
+        elements of the form:
+
+        {"completion": completed string, "content_id": int}
+
+        Otherwise, contains dict elements of the form:
+
+        {"completion": completed string}
     """
+    # Setup autocomplete search.
+    autocomplete_search = SearchableContentPiece.search()
+    if content_part == "name":
+        autocomplete_search = autocomplete_search.suggest(
+            "suggestions", query_string,
+            completion={"field": "name.suggest", "fuzzy": True, "size": 10}
+        ).suggest(
+            "alt_suggestions", query_string,
+            completion={"field": "alternate_names.suggest",
+                        "fuzzy": True, "size": 10}
+        )
+    elif content_part == "keyword":
+        autocomplete_search = autocomplete_search.suggest(
+            "suggestions", query_string,
+            completion={"field": "keywords.suggest", "fuzzy": True, "size": 10}
+        )
+    elif content_part == "citation":
+        autocomplete_search = autocomplete_search.suggest(
+            "suggestions", query_string,
+            completion={"field": "citations.suggest", "fuzzy": True, "size": 10}
+        )
+    else:
+        raise InputError("Invalid argument!")
+
+    # Execute the search and reformat the result.
+    response = autocomplete_search.execute()
+    completions = []
+    if content_part == "name":
+        suggestions = response.suggest.suggestions.options \
+            + response.suggest.alt_suggestions.options
+        for suggestion in suggestions:
+            completions.append({
+                "completion": suggestion.text,
+                "content_id": suggestion.payload.content_id
+            })
+    elif content_part == "keyword" or content_part == "citation":
+        for suggestion in response.suggest.suggitions.options:
+            completions.append({"completion": suggestion.text})
+
+    return completions
