@@ -33,7 +33,7 @@ def search(query_string, page_num):
             "alternate_names": list of strings,
             "highlights": {
                 "name": string or None,
-                "alternate_names": list of strings,
+                "alternate_names": list of strings and Nones,
                 "text": list of strings
             }
         }
@@ -76,7 +76,7 @@ def search(query_string, page_num):
 
     # Request highlighting, execute the search, and return the result.
     content_search = content_search.highlight(
-        "text", fragment_size=150, number_of_fragments=3)
+        "text", fragment_size=150, number_of_fragments=3, no_match_size=150)
     content_search = content_search.highlight("name", number_of_fragments=0)
     content_search = content_search.highlight(
         "alternate_names", number_of_fragments=0)
