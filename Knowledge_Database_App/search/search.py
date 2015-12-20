@@ -23,8 +23,13 @@ def search(query_string, page_num):
         page_num: Positive integer.
 
     Returns:
-        A list, sorted in descending order by score,
-        containing dict elements of the form:
+        A dictionary of the form
+
+        {"count": int, "results": result_list}
+
+        where "count" holds a count of the number of results returned by
+        the search and result_list is a list, sorted in descending order
+        by query matching score, containing dict elements of the form:
 
         {
             "score": float,
@@ -81,7 +86,7 @@ def search(query_string, page_num):
     content_search = content_search.highlight(
         "alternate_names", number_of_fragments=0)
     response = content_search.execute()
-    query_result = []
+    query_result = {"count": response.hits.total, "results": []}
     for hit in response:
         body = {
             "score": hit.meta.score,
@@ -94,7 +99,7 @@ def search(query_string, page_num):
                 "text": hit.meta.highlight.text
             }
         }
-        query_result.append(body)
+        query_result["results"].append(body)
 
     return query_result
 
