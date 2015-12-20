@@ -25,7 +25,7 @@ def search(query_string, page_num):
     Returns:
         A dictionary of the form
 
-        {"count": int, "results": result_list}
+        {"count": int, "results": result_list},
 
         where "count" holds a count of the number of results returned by
         the search and result_list is a list, sorted in descending order
