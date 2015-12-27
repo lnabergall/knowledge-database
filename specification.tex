@@ -55,11 +55,11 @@ All pieces of content will be of a single form containing the following items:
 \item Name --- the primary name of the idea to be displayed in searches and lists, may contain \LaTeX \textrm{ }and other special formatting; e.g. $abc$ conjecture, the $W$-trick, Equipartition theorem, Finite Field, etc.
 \item Alternative Names [Aliases] (optional) --- alternate names (aliases) of the idea which may also be used for identification and search.
 \item Content Type --- the type of the idea, e.g. idea, theorem, conjecture, lemma, equation, formula, inequality, code, algorithm, visualization, technique, proof, etc.
-\item Text --- the actual explication/description/explanation of the idea, {\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}50 characters minimum\footnote{To be finalized.}, {\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}2000 characters maximum\footnote{To be finalized.}, can contain \LaTeX, \TeX, code, rich text, HTML, and other special formatting\footnote{The input field will be a rich text editor containing buttons which automate much of the formatting process.}; e.g. ``Given double occurrence words $w_{1}, w_{2}$, define the word distance $\delta$ by...".
+\item Text --- the actual explication/description/explanation of the idea, {\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}50 characters minimum\footnote{To be finalized.}, {\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}2000 characters maximum,\footnote{To be finalized.} can contain \LaTeX, \TeX, code, rich text, HTML, and other special formatting;\footnote{The input field will be a rich text editor containing buttons which automate much of the formatting process.} e.g. ``Given double occurrence words $w_{1}, w_{2}$, define the word distance $\delta$ by...".
 \item Images (optional) --- related images, including all common file types (JPEG, PNG, TIFF, BMP, GIF, etc.).
 \item Keywords / Subject Designations --- keywords and subject designations contained in or related to the idea, approximately 2 or 3 required; e.g. for a piece of content on finite fields, could include field, group, field theory, abstract algebra, associativity, operation, etc.
 \item Dependencies (optional) --- references contained in the text to other pieces of content via their names or aliases, can be manually specified via special formatting and automatically generated\footnote{Possibly with user validation.} by matching words in the text  with other pieces of content in the database, will be given hyperlinks on display; e.g. ``Given {\color{blue} double occurrence words} $w_{1}, w_{2}$, define the word distance $\delta$ by...".
-\item Citations (optional) --- Including both implicitly and explicitly (in-text) cited works, input with some standard academic citation format\footnote{To be specified.} (although including less information, e.g. only a url, is acceptable but discouraged), in-text citations are referenced in the text via special formatting\footnote{To be specified.}.
+\item Citations (optional) --- Including both implicitly and explicitly (in-text) cited works, input with some standard academic citation format\footnote{To be specified.} (although including less information, e.g. only a url, is acceptable but discouraged), in-text citations are referenced in the text via special formatting.\footnote{To be specified.}
 \end{itemize}
 
 To prevent mass fraudulent content submissions, an authentication scheme (e.g. CAPTCHA\footnote{In the sequel, it is assumed that CAPTCHA will be used for authentication in the knowledge database.}) will be used to verify that a human is indeed making the submission.  
@@ -71,7 +71,7 @@ To prevent mass fraudulent content submissions, an authentication scheme (e.g. C
 All aspects of all pieces of content will be fully editable by any user of the knowledge database. To combat malicious, inaccurate, or inappropriate content submissions and edits, an essentially democratic validation scheme will be implemented on most aspects of the content. 
 
 \begin{itemize}
-\item Name --- All modifications will be validated using the system specified below\footnote{Which will henceforth be assumed when discussing validation, unless otherwise specified.}.
+\item Name --- All modifications will be validated using the system specified below.\footnote{Which will henceforth be assumed when discussing validation, unless otherwise specified.}
 \item Aliases --- Validated modifications, open (not validated) additions with CAPTCHA authorization.
 \item Content Type --- Validated modifications. 
 \item Text --- Validation modifications, including insertions and deletions.
@@ -81,19 +81,20 @@ All aspects of all pieces of content will be fully editable by any user of the k
 \item Citations --- Validated modifications, open additions with CAPTCHA authorization.
 \end{itemize}
 
-In order to facilitate rapid growth and large throughput, content submissions will not be validated\footnote{Except via later edits.}. Suppose a user modifies some aspect of a piece of content which requires validation. The user's modification will not be visible until it is validated, and accepted, by the authors of the piece of content. 
+In order to facilitate rapid growth and large throughput, content submissions will not be validated.\footnote{Except via later edits.} Suppose a user modifies some aspect of a piece of content which requires validation. The user's modification will not be visible until it is validated, and accepted, by the authors of the piece of content. 
 %Hence the initial visibility of the user's modification will be dependent on whether their edit is of a part of the content that has been previously edited or not. If they have edited a part of the original submission, then the modification will be immediately visible since the original submission was not validated and hence we cannot assume that the submitted content is accurate and appropriate. If they have edited a part of the piece of content that was part of a previously validated modification, then the modification will not be immediately visible since validated edits are assumed to be relatively accurate and appropriate. 
 
-The validation process will proceed as follows. After a user submits an edit, all authors of the corresponding piece of content will be signalled to the existence of the modification and will have the option of either voting for or against accepting the modification\footnote{Or abstaining from (/ignoring) the vote.}. An author may change their vote at any time prior to the closing of the vote. The edit is accepted and the voting is closed if any of the following conditions are satisfied\footnote{Note that these conditions are evaluated with respect to the time at which they are satisfied, not with respect to the time of the edit. In particular, users who become authors after the validation process begins for some modification may still participate.}:
+The validation process will proceed as follows. After a user submits an edit, all authors of the corresponding piece of content will be signalled to the existence of the modification and will have the option of either voting for or against accepting the modification.\footnote{Or abstaining from (/ignoring) the vote.} An author may change their vote at any time prior to the closing of the vote. The edit is accepted and the voting is closed if any of the following conditions are satisfied:\footnote{Note that these conditions are evaluated with respect to the time at which they are satisfied, not with respect to the time of the edit. In particular, users who become authors after the validation process begins for some modification may still participate.}
 \begin{enumerate}
 \item[1.] A majority of the authors\footnote{Note that each author can vote at most once.} have voted for acceptance of the edit, or
-\item[2.] if there are $N$ authors, at least $\max\{2, \lceil N/2 \rceil\}$ authors have voted and at least $3/4$ of the votes are for acceptance of the edit\footnote{Note that these details are not finalized, although currently $N/2$ and $3/4$ are chosen because at least $3/4$ of the remaining $N/2$ authors would have to vote against acceptance of the edit for there to be less than a majority for acceptance. This is in general very unlikely, assuming benevolent authors.}, or
+\item[2.] if there are $N \in \mathbb{N}$ authors, at least $\lceil N/2 \rceil$ authors have voted and at least $3/4$ of the votes are for acceptance of the edit,\footnote{Note that these details are not finalized, although currently $N/2$ and $3/4$ are chosen because at least $3/4$ of the remaining $N/2$ authors would have to vote against acceptance of the edit for there to be less than a majority for acceptance. This is in general very unlikely, assuming benevolent authors.} or
 \item[3.] at 5 days past modification, at least 2 votes have been submitted and at least $2/3$ of the votes are for acceptance of the edit, or
-\item[4.] at 10 days past modification, at least 1 vote has been submitted and a majority of the votes are for acceptance of the edit.
+\item[4.] at 10 days past modification, at least 1 vote has been submitted and a majority of the votes are for acceptance of the edit, or
+\item[5.] there are no authors.\footnote{Although it will likely be very rare, this could occur if all the authors delete their accounts.}
 \end{enumerate}
 Otherwise, after 10 days, the edit is rejected and the voting process is closed. Upon acceptance of a logged in user's edit, the user\footnote{If they are not already an author.} is denoted an author of the piece of content and given the ability to participate in the edit validation process of that piece of content. In this way, there is an essentially \textit{viral authorship} system which ensures that those who validate edits have contributed useful, accurate, and appropriate edits in the past and therefore can be assumed to be relatively benevolent and have some knowledge of the content. 
 
-The only other caveat to the editing process is that we will assign a probability of {\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}$1/7$\footnote{To be finalized.} to the possibility that CAPTCHA authorization will be required in order for any given user to submit an edit\footnote{Where we assume that a user is defined by a unique IP address (or some similar metrics).}. This will reduce the likelihood of a malicious user successfully using a series of computers to perform mass fraudulent modification of content in the database, while also minimizing the fixed costs of editing content for benevolent human users.
+The only other caveat to the editing process is that we will assign a probability of {\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}$1/7$\footnote{To be finalized.} to the possibility that CAPTCHA authorization will be required in order for any given user to submit an edit.\footnote{Where we assume that a user is defined by a unique IP address (or some similar metrics).} This will reduce the likelihood of a malicious user successfully using a series of computers to perform mass fraudulent modification of content in the database, while also minimizing the fixed costs of editing content for benevolent human users.
 
 The above procedure covers all cases except when a user has submitted a piece of content that is entirely inappropriate or unsuitable for inclusion in the knowledge database or a group of authors are maliciously or inappropriately rigging the validation process in order to advance an agenda which runs counter to the principles of the knowledge database. In this case, any user will have the option to report a piece of content or a group of authors to the administrators\footnote{Likely individuals from among the organization which will maintain and develop the knowledge database.} of the database, one or more of whom will investigate and make an appropriate action. 
 
@@ -136,8 +137,8 @@ An asterisk indicates that this is the primary page to which a user will next na
 \item[] Users
 \begin{itemize}
 \item A user must register with a username composed of at least two words separated by a space (with each word containing at least 2 characters),\footnote{That is, with their full name. These will be stored with underscores replacing the spaces.} a password containing at least 5 characters, and a unique valid email address.  
-\item A user logs into their account by entering their email and password\footnote{Since their username and password might not be unique; i.e. the username is functionally only a display name.} and are then redirected to their account page\footnote{This behavior could be more customized---a user could be redirected to their account page only if there is a pending vote on a piece of content they have authored and, otherwise, they are redirected to the home page.}.
-\item Upon registration, a user is sent an email containing a unique\footnote{And unguessable.} link which they must follow in order to confirm their email address. Confirmation must be completed in order to submit a piece of content or be denoted an author after having an edit accepted\footnote{Primarily because an email is sent each time an edit is made to a piece of content the user has authored.}.
+\item A user logs into their account by entering their email and password\footnote{Since their username and password might not be unique; i.e. the username is functionally only a display name.} and are then redirected to their account page.\footnote{This behavior could be more customized---a user could be redirected to their account page only if there is a pending vote on a piece of content they have authored and, otherwise, they are redirected to the home page.}
+\item Upon registration, a user is sent an email containing a unique\footnote{And unguessable.} link which they must follow in order to confirm their email address. Confirmation must be completed in order to submit a piece of content or be denoted an author after having an edit accepted.\footnote{Primarily because an email is sent each time an edit is made to a piece of content the user has authored.}
 \item A user must be logged in to submit a piece of content or be denoted an author after having made an accepted edit; if they attempt to submit a piece of content anonymously, they will be directed to login or sign up. 
 \item When an edit is made to a piece of content which a user has authored, the user can see the existence of the edit, and be redirected to the author page of that piece of content to inspect and vote on the edit, from their account page. 
 \end{itemize}
@@ -168,7 +169,7 @@ An asterisk indicates that this is the primary page to which a user will next na
 \begin{itemize}
 \item All users may submit a violation report against a piece of content, possibly calling for the deletion of the piece of content. They will only be required to give a nontrivially detailed report of the alleged violation.
 \item The authors of a piece of content may also submit a violation report against another author or group of authors. They will be required to list exactly which authors are committing the alleged violation and give a nontrivially detailed report of the alleged violation.
-\item When a violation report is submitted, an administrator is selected to investigate and resolve the situation. The admin may elect to take no action, send messages of guidance or warning against authors or other editing users, temporarily or permanently suspend user accounts, or revoke authorship\footnote{This may not be an exhaustive list of all possible admin actions.}. In the event that the reporter has requested the piece of content be deleted (e.g. if the piece of content was a duplicate of another piece of content or it contained inappropriate text), then an admin may elect to immediately delete the piece of content or give authors five\footnote{Approximately.} days notice of upcoming deletion\footnote{Primarily if the piece of content was a duplicate or was only partially unsuitable for inclusion in the knowledge database. This gives the authors time to transport some of its information over to other pieces of content if appropriate. The contents of the piece of content will also be emailed to all authors.}. An admin may also elect to take action against a user who is determined to be abusing the violation reporting feature.
+\item When a violation report is submitted, an administrator is selected to investigate and resolve the situation. The admin may elect to take no action, send messages of guidance or warning against authors or other editing users, temporarily or permanently suspend user accounts, revoke authorship, or grant authorship\footnote{To registered users that have made some number of ``good" edits to the piece of content.} in the case\footnote{Likely rare.} where there are no authors.\footnote{Or the current authors have become essentially unactive.}\footnote{This may not be an exhaustive list of all possible admin actions.} In the event that the reporter has requested the piece of content be deleted (e.g. if the piece of content was a duplicate of another piece of content or it contained inappropriate text), then an admin may elect to immediately delete the piece of content or give authors five\footnote{Approximately.} days notice of upcoming deletion.\footnote{Primarily if the piece of content was a duplicate or was only partially unsuitable for inclusion in the knowledge database. This gives the authors time to transport some of its information over to other pieces of content if appropriate. The contents of the piece of content will also be emailed to all authors.} An admin may also elect to take action against a user who is determined to be abusing the violation reporting feature.
 \end{itemize}
 \end{enumerate}
 
@@ -505,13 +506,62 @@ The following is a rough layout of the Storage Query API.
 
 
 
-\subsection{Application Logic}
+\subsection{Content}
+
+
+Since most application functions (submitting content pieces, searching and retrieving content pieces, etc.) expect immediate retrieval and delivery of data, most of the Content API will be synchronous. Certain functions though, most notably parts of the edit validation and voting process and the delivery of update notifications and reminders to authors, should be asynchronous and run outside of the main request-response event loop. 
+
+Hence, Celery will be used for asynchronous task execution, with RabbitMQ selected as the broker. Redis\footnote{Configured for maximum persistance by writing every change to disk.} will be used to store results, but manually, not via Celery's result store mechanisms. Redis is chosen over the PostgreSQL database because Redis is more optimized for read and write performance.
 
 
 
+\subsubsection{Edit Validation and Voting}
 
-\subsubsection{Asynchronous and Scheduled Processing}
+Asynchronous processing will almost exclusively\footnote{It will also be used for password recovery, at the least.} be needed for certain parts of the edit validation and voting process. The process will roughly proceed as follows (note that, where necessary, we mark events as processed synchronously or asynchronously by writing ``sync" or ``async", respectively):
 
+\begin{enumerate}
+\item[1.] An edit of a content piece is submitted and received by the Content API. The edit\footnote{And all associated metadata.} is stored in Redis (sync) and notifications are emitted to both the account pages and emails of all authors of the content piece (async). A periodic task is started which emits an additional email notification every 3 days to all authors who have not yet voted (async). Another periodic task is started which checks after 5 days and 10 days have passed whether the time-dependent conditions have been met for the vote to close (async) (if so, see 3).
+\item[2.] All relevant pages check Redis for the existence of an edit each time the associated Content API functions are called. All authors of the content piece are now directed to vote whenever they visit the author page (directly, via an email link, a link from their account page, etc.). 
+\item[3.] Upon submission of an author's vote, Redis (specifically the entry containing the edit) is updated with all the vote's information (sync). Calculations are then run to determine whether the vote has ended (async). If not, the process continues and no further changes are made. If the vote has ended, the edit and vote data is stored in the database and deleted from Redis, and, if the edit was accepted, the associated content piece is updated (async). Additionally, all remaining periodic tasks (from 1) are cancelled (async).
+\end{enumerate}
+
+% need to add ways for an edit to be quickly rejected
+% also remember to reference the original text with each edit in case of multiple edits made in conflicting time periods
+
+
+
+\subsubsection{API Layout}
+
+The following roughly documents the layout of the client-facing Content API; we denote class and static methods by ``class" and ``static", respectively.
+
+\begin{enumerate}
+\item[] Content - instantiation of a Content object can create a new content piece or retrieve an existing content piece. 
+\begin{enumerate}
+\item[] bulk\_retrieve (class)
+\item[] get\_content\_types (class)
+\item[] search (class)
+\item[] autocomplete (class)
+\item[] save
+\item[] update
+\item[] delete
+\end{enumerate}
+\item[] Edit - instantiation of an Edit object can create a new edit or retrieve an existing edit.\footnote{From Redis or the database.}
+\begin{enumerate}
+\item[] bulk\_retrieve (class)
+\item[] start\_vote
+\item[] save
+\item[] validate
+\item[] accept
+\item[] reject
+\end{enumerate}
+\item[] AuthorVote - instantiation of an AuthorVote object can create a new author vote or retrieve an existing author vote.
+\begin{enumerate}
+\item[] get\_vote\_summary (class)
+\item[] save
+\end{enumerate}
+\end{enumerate}
+
+An email package separate from the Content API will provide email notification functionality and a diff module will provide for the calculation of edit diffs and the merging of edits with existing content parts to produce new versions. A Redis module will also provide for the storage, retrieval, and deletion of edits and votes from Redis.
 
 
 
