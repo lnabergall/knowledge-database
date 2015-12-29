@@ -15,6 +15,6 @@ class ORMTest(TestCase, StorageTest):
 
     def test_schema(self):
         try:
-            orm.create_schema()
+            orm._create_schema()
         except Exception as e:
             self.fail(str(e))
