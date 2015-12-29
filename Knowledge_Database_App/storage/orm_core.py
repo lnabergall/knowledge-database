@@ -5,9 +5,6 @@ scheme. Uses SQLAlchemy.
 
 Functions:
 
-    create_scheme -
-        Creates the database scheme from the ORM classes.
-
     start_session -
         Starts a session for interacting with the database.
         Returns: session object
@@ -36,7 +33,7 @@ KDB_url = "postgresql+psycopg2://postgres:Cetera4247@localhost/kdb_develop"
 Base = declarative_base()
 
 
-def create_schema():
+def _create_schema():
     engine = create_engine(KDB_url, echo=False)
     Base.metadata.create_all(engine)
 

@@ -14,8 +14,7 @@ Exceptions:
 
 Functions:
 
-    create_index, index_content_piece, update_content_piece,
-    delete_content_piece
+    index_content_piece, update_content_piece, delete_content_piece
 """
 
 from elasticsearch import NotFoundError
@@ -31,7 +30,7 @@ connections.create_connection(hosts=[KDB_cluster_url])
 content = Index("content")
 
 
-def create_index():
+def _create_index():
     # Call only once.
     content.create()
 
