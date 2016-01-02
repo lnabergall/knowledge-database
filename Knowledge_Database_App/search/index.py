@@ -14,7 +14,7 @@ Exceptions:
 
 Functions:
 
-    index_content_piece, update_content_piece, delete_content_piece
+    index_content_piece, update_content_piece, remove_content_piece
 """
 
 from elasticsearch import NotFoundError
@@ -178,7 +178,7 @@ def update_content_piece(content_id, content_part, part_string=None,
             raise InputError("Invalid arguments!")
 
 
-def delete_content_piece(content_id):
+def remove_content_piece(content_id):
     """
     Args:
         content_id: Integer.
