@@ -61,3 +61,6 @@ class Content:
 
     def _delete(self):
         pass
+
+    def serialize(self):
+        pass
