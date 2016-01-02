@@ -19,12 +19,9 @@ Functions:
     with default value None.
 """
 
-import orm_core as orm
-from select_queries import InputError, get_user, get_content_piece
-
-
-class ActionError(Exception):
-    """General exception raised when a database action query fails."""
+from . import orm_core as orm
+from .orm_core import ActionError
+from .select_queries import InputError, get_user, get_content_piece
 
 
 def store_content_piece(user_id, name, text, content_type, keywords, timestamp,

@@ -4,10 +4,6 @@ Storage Selection Query API
 Contains functions and classes for making selections from the Postgres 
 database. Uses SQLAlchemy.
 
-Classes:
-
-    Query
-
 Exceptions:
 
     SelectError, InputError, MultipleValuesFound
@@ -25,29 +21,9 @@ Functions:
 """
 
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
-from sqlalchemy.orm.query import Query as _Query
 
-import orm_core as orm
-
-
-class Query(_Query):
-    """Custom SQLAlchemy query class."""
-
-    def values(self):
-        """
-        Returns an iterable of all scalar element values from rows
-        matched by this query.
-
-        Returns:
-            List of scalars.
-        Raises:
-            MultipleValuesFound: If result rows have more than
-                one element.
-        """
-        try:
-            return [x for (x,) in self.all()]
-        except ValueError as e:
-            raise MultipleValuesFound(str(e))
+from . import orm_core as orm
+from .orm_core import Query
 
 
 class MultipleValuesFound(ValueError, MultipleResultsFound):

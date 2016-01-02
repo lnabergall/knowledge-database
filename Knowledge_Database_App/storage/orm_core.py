@@ -11,8 +11,8 @@ Functions:
 
 Classes:
 
-    StorageHandler, Content, Name, Text, ContentType, Keyword, Citation,
-    Edit, Vote, RejectedEdit, User, UserReport
+    Query, StorageHandler, Content, Name, Text, ContentType, Keyword,
+    Citation, Edit, Vote, RejectedEdit, User, UserReport
 
     For all classes X, the attribute 'timestamp' holds the datetime
     of creation.
@@ -22,11 +22,8 @@ from sqlalchemy import (create_engine, Column, Integer,
                         DateTime, ForeignKey, Table)
 from sqlalchemy import Text as Text_
 from sqlalchemy.orm import sessionmaker, relationship, backref
+from sqlalchemy.orm.query import Query as _Query
 from sqlalchemy.ext.declarative import declarative_base
-
-import action_queries
-from select_queries import Query
-from action_queries import ActionError
 
 
 KDB_url = "postgresql+psycopg2://postgres:Cetera4247@localhost/kdb_develop"
@@ -41,6 +38,30 @@ def _create_schema():
 def start_session():
     engine = create_engine(KDB_url, echo=False)
     return sessionmaker(bind=engine, query_cls=Query)()
+
+
+class Query(_Query):
+    """Custom SQLAlchemy query class."""
+
+    def values(self):
+        """
+        Returns an iterable of all scalar element values from rows
+        matched by this query.
+
+        Returns:
+            List of scalars.
+        Raises:
+            MultipleValuesFound: If result rows have more than
+                one element.
+        """
+        try:
+            return [x for (x,) in self.all()]
+        except ValueError as e:
+            raise MultipleValuesFound(str(e))
+
+
+class ActionError(Exception):
+    """General exception raised when a database action query fails."""
 
 
 class StorageHandler:
@@ -59,12 +80,11 @@ class StorageHandler:
             output = function(*args, session=self.session, **kwargs)
         except (NameError, ValueError, TypeError) as e:
             raise RuntimeError(str(e))
-        if function.__name__ in dir(action_queries):
-            try:
-                self.session.commit()
-            except Exception as e:
-                self.session.rollback()
-                raise ActionError(str(e))
+        try:
+            self.session.commit()
+        except Exception as e:
+            self.session.rollback()
+            raise ActionError(str(e))
         return output
 
     def close(self):
