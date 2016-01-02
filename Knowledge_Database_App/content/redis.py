@@ -57,7 +57,7 @@ def store_edit(content_id, edit_text, edit_rationale, original_part_text,
             else:
                 break
 
-        # Now store the edit
+        # Now store the edit with the edit id
         pipe.lpush("content:" + str(content_id), edit_id)
         pipe.hmset("edit:" + str(edit_id), {
             "edit_text": edit_text,
