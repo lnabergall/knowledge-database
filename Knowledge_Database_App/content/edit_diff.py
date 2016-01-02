@@ -262,44 +262,44 @@ def _compute_combined_diff(first_diff, later_diff):
     for i, line in enumerate(later_diff_lines):
         if line.startswith("-"):
             original_indices = later_diff_index_dict[i]
-            pairs = [merged_diff_index_dict[i] for i in original_indices]
+            pairs = [merged_diff_index_dict[j] for j in original_indices]
             first_line_index, start_subindex = min(pairs)
             last_line_index, finish_subindex = max(pairs)
             first_line_index += index_offset
             start_subindex += index_offset
             last_line_index += index_offset
             finish_subindex += index_offset
-            for i in range(first_line_index, last_line_index+1):
-                merged_line = merged_diff_lines[i]
-                if i == first_line_index:
+            for j in range(first_line_index, last_line_index+1):
+                merged_line = merged_diff_lines[j]
+                if j == first_line_index:
                     if merged_line.startswith(" "):
-                        equal_part = merged_diff_lines[i][:start_subindex]
+                        equal_part = merged_diff_lines[j][:start_subindex]
                         if not equal_part.endswith(" "):
                             equal_part += " "
-                        deleted_part = merged_diff_lines[i][start_subindex:]
+                        deleted_part = merged_diff_lines[j][start_subindex:]
                         if deleted_part.startswith(" "):
                             deleted_part = "-    " + deleted_part
                         else:
                             deleted_part = "-     " + deleted_part
-                        del merged_diff_lines[i]
-                        merged_diff_lines.insert(i, equal_part)
-                        merged_diff_lines.insert(i+1, deleted_part)
-                elif i == last_line_index:
+                        del merged_diff_lines[j]
+                        merged_diff_lines.insert(j, equal_part)
+                        merged_diff_lines.insert(j+1, deleted_part)
+                elif j == last_line_index:
                     if merged_line.startswith(" "):
-                        equal_part = merged_diff_lines[i][finish_subindex+1:]
+                        equal_part = merged_diff_lines[j][finish_subindex+1:]
                         if equal_part.startswith(" "):
                             equal_part = "     " + equal_part
                         else:
                             equal_part = "      " + equal_part
-                        deleted_part = merged_diff_lines[i][:finish_subindex+1]
+                        deleted_part = merged_diff_lines[j][:finish_subindex+1]
                         if not deleted_part.endswith(" "):
                             deleted_part += " "
-                        del merged_diff_lines[i]
-                        merged_diff_lines.insert(i, deleted_part)
-                        merged_diff_lines.insert(i+1, equal_part)
+                        del merged_diff_lines[j]
+                        merged_diff_lines.insert(j, deleted_part)
+                        merged_diff_lines.insert(j+1, equal_part)
                 else:
                     if merged_line.startswith(" "):
-                        merged_diff_lines[i][0] = "-"
+                        merged_diff_lines[j][0] = "-"
 
     return "\n".join(merged_diff_lines)
 
