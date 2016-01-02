@@ -10,11 +10,11 @@ Exceptions:
 
 Functions:
 
-    get_content_piece, get_alternate_names, get_keyword, get_citation,
-    get_content_type, get_content_types, get_accepted_edits,
-    get_rejected_edits, get_user_votes, get_accepted_votes,
-    get_rejected_votes, get_user_encrypt_info, get_user, get_user_emails,
-    get_user_reports
+    get_content_piece, get_content_pieces, get_alternate_names,
+    get_keyword, get_citation, get_content_type, get_content_types,
+    get_accepted_edits, get_rejected_edits, get_user_votes,
+    get_accepted_votes, get_rejected_votes, get_user_encrypt_info,
+    get_user, get_user_emails, get_user_reports
 
     Note that all functions take a common 'session' keyword argument,
     which defaults to None.
@@ -67,6 +67,22 @@ def get_content_piece(content_id, session=None):
         raise SelectError(str(e))
     else:
         return content_piece
+
+
+def get_content_pieces(user_id, session=None):
+    """
+    Args:
+        user_id: Integer.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        list of ContentPieces that user_id has authored.
+    """
+    if session is None:
+        session = orm.start_session()
+    content_pieces = session.query(orm.ContentPiece).join(
+        orm.User, orm.ContentPiece.authors).filter(
+        orm.User.user_id == user_id).all()
+    return content_pieces
 
 
 def get_alternate_names(content_id, session=None):
