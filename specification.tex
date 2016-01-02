@@ -543,7 +543,8 @@ The following roughly documents the layout of the client-facing Content API; we 
 \item[] autocomplete (class)
 \item[] save
 \item[] update
-\item[] delete
+\item[] serialize - to JSON for transmission over HTTP.
+\item[] \_delete
 \end{enumerate}
 \item[] Edit - instantiation of an Edit object can create a new edit or retrieve an existing edit.\footnote{From Redis or the database.}
 \begin{enumerate}
@@ -553,11 +554,13 @@ The following roughly documents the layout of the client-facing Content API; we 
 \item[] validate
 \item[] accept
 \item[] reject
+\item[] serialize - to JSON for transmission over HTTP.
 \end{enumerate}
 \item[] AuthorVote - instantiation of an AuthorVote object can create a new author vote or retrieve an existing author vote.
 \begin{enumerate}
 \item[] get\_vote\_summary (class)
 \item[] save
+\item[] serialize - to JSON for transmission over HTTP.
 \end{enumerate}
 \end{enumerate}
 
