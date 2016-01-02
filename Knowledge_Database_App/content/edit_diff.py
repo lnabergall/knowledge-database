@@ -2,6 +2,10 @@
 Tools to compute diffs of edits and new versions of a content piece.
 Uses difflib.
 
+Exceptions:
+
+    DiffComputationError
+
 Functions:
 
     compute_diff, restore, conflict, merge
@@ -121,26 +125,41 @@ def conflict(diff1, diff2):
         Boolean indicating whether the edit diffs could
         semantically conflict on merging.
     """
-    equal_sections = []
-    changed_sections = []
-    previous_line = ""
-    for line in diff1.splitlines():
-        if line.startswith(" "):
-            if previous_line.startswith(" "):
-                equal_sections[-1] += line[6:]
-            else:
-                equal_sections.append(line[6:])
+    # Locate all the edited sentences in the original text.
+    sentence_edit_indicators1 = []
+    for i, line in enumerate(diff1.splitlines()):
+        if not line.startswith("+"):
+            periods = [j for j in range(len(line)) if line[j] == "."
+                       and line[j-1:j+1] != "\."]
         else:
-            if previous_line.startswith(" "):
-                changed_sections.append(line[6:])
-            else:
-                changed_sections[-1] += line[6:]
-        previous_line = line
-    for line in diff2.splitlines():
+            sentence_edit_indicators1[-1] = True
+        if line.startswith(" "):
+            sentence_edit_indicators1.extend([False]*len(periods))
+        elif line.startswith("-"):
+            sentence_edit_indicators1.extend([True]*len(periods))
+    sentence_edit_indicators2 = []
+    for i, line in enumerate(diff2.splitlines()):
+        if not line.startswith("+"):
+            periods = [j for j in range(len(line)) if line[j] == "."
+                       and line[j-1:j+1] != "\."]
+        else:
+            sentence_edit_indicators2[-1] = True
+        if line.startswith(" "):
+            sentence_edit_indicators2.extend([False]*len(periods))
+        elif line.startswith("-"):
+            sentence_edit_indicators2.extend([True]*len(periods))
+
+    # Then search for conflicts by looking for a sentence
+    # with edits in both diffs.
+    if list(filter(lambda pair: pair[0] and pair[1], zip(
+            sentence_edit_indicators1, sentence_edit_indicators2))):
+        return True
+    else:
+        return False
 
 
 # throw in quick path for edits involving only one insertion
-# or one deletion, for conflict function too...
+# or one deletion...
 def _compute_combined_diff(first_diff, later_diff):
     """
     Args:
@@ -157,7 +176,7 @@ def _compute_combined_diff(first_diff, later_diff):
     first_diff_splits = []
     partial_original = ""
     reverse_partial_original = restore(first_diff, version="original")
-    for line in first_diff_lines:
+    for i, line in enumerate(first_diff_lines):
         first_diff_splits.append(
                 (partial_original, reverse_partial_original))
         if not line.startswith("+"):
@@ -165,30 +184,30 @@ def _compute_combined_diff(first_diff, later_diff):
             reverse_partial_original = reverse_partial_original[len(line[6:]):]
 
     # Get splits of the original version of the later diff
-    # at the insertion points.
-    later_diff_insertion_splits = []
-    later_diff_deletion_splits = []
-    later_diff_insertions = []
-    later_diff_deletions = []
+    # at the insertion points and indices at the deletion points.
+    later_diff_lines = later_diff.splitlines()
+    later_diff_insertion_splits, later_diff_insertions = [], []
     partial_original = ""
     reverse_partial_original = restore(later_diff, version="original")
-    for line in later_diff.splitlines():
+    original_text_index_offset = 0
+    later_diff_index_dict = {}
+    for i, line in enumerate(later_diff_lines):
         if line.startswith("-"):
-            later_diff_deletion_splits.append(
-                (partial_original, reverse_partial_original))
-            later_diff_deletions.append(line)
+            later_diff_index_dict.update({
+                i : [original_text_index_offset+j-5 for j in range(len(line))]
+            })
         if line.startswith("+"):
             later_diff_insertion_splits.append(
                 (partial_original, reverse_partial_original))
             later_diff_insertions.append(line)
         else:
             partial_original += line[6:]
-            reverse_partial_original = reverse_partial_original[len(line[6:]):]
+            reverse_partial_original = reverse_partial_original[len(line)-6:]
+            original_text_index_offset += len(line)-6
 
     # Merge insertions of the later diff into the first diff
     merged_diff_lines = first_diff_lines
-    index_offset = 0
-    index_offset_dict = {}
+    index_offset, index_offset_dict = 0, {}
     for (partial1, partial2), line in zip(
             later_diff_insertion_splits, later_diff_insertions):
         match_index, min_offset = min(enumerate(
@@ -230,20 +249,59 @@ def _compute_combined_diff(first_diff, later_diff):
                 "An error was encountered while merging two diffs.")
 
     # Merge deletions of the later diff into the first diff
+    original_text_index_offset = 0
+    merged_diff_index_dict = {}
+    for i, line in enumerate(merged_diff_lines):
+        if not line.startswith("+"):
+            original_text_index_offset += len(line)-6
+            merged_diff_index_dict.update({
+            original_text_index_offset+j-5 : (i, j)
+            for j in range(len(line))
+        })
     index_offset = 0
-    for (partial1, partial2), line in zip(
-            later_diff_deletion_splits, later_diff_deletions):
-        match_index, min_offset = min(enumerate(
-            len(partial1) - len(first_diff_p) for first_diff_p,
-            first_diff_pr in first_diff_splits if first_diff_p1 in partial1),
-            key=lambda pair: pair[1])
-        offset_match_index = match_index + index_offset + max(filter(
-            lambda index: index <= match_index, index_offset_dict.keys()))
-        if min_offset == 0:
-            if first_diff_lines[match_index].startswith("+"):
-                merged_diff_lines
-        elif min_offset == len(first_diff_lines[match_index])-6:
+    for i, line in enumerate(later_diff_lines):
+        if line.startswith("-"):
+            original_indices = later_diff_index_dict[i]
+            pairs = [merged_diff_index_dict[i] for i in original_indices]
+            first_line_index, start_subindex = min(pairs)
+            last_line_index, finish_subindex = max(pairs)
+            first_line_index += index_offset
+            start_subindex += index_offset
+            last_line_index += index_offset
+            finish_subindex += index_offset
+            for i in range(first_line_index, last_line_index+1):
+                merged_line = merged_diff_lines[i]
+                if i == first_line_index:
+                    if merged_line.startswith(" "):
+                        equal_part = merged_diff_lines[i][:start_subindex]
+                        if not equal_part.endswith(" "):
+                            equal_part += " "
+                        deleted_part = merged_diff_lines[i][start_subindex:]
+                        if deleted_part.startswith(" "):
+                            deleted_part = "-    " + deleted_part
+                        else:
+                            deleted_part = "-     " + deleted_part
+                        del merged_diff_lines[i]
+                        merged_diff_lines.insert(i, equal_part)
+                        merged_diff_lines.insert(i+1, deleted_part)
+                elif i == last_line_index:
+                    if merged_line.startswith(" "):
+                        equal_part = merged_diff_lines[i][finish_subindex+1:]
+                        if equal_part.startswith(" "):
+                            equal_part = "     " + equal_part
+                        else:
+                            equal_part = "      " + equal_part
+                        deleted_part = merged_diff_lines[i][:finish_subindex+1]
+                        if not deleted_part.endswith(" "):
+                            deleted_part += " "
+                        del merged_diff_lines[i]
+                        merged_diff_lines.insert(i, deleted_part)
+                        merged_diff_lines.insert(i+1, equal_part)
+                else:
+                    if merged_line.startswith(" "):
+                        merged_diff_lines[i][0] = "-"
 
+    return "\n".join(merged_diff_lines)
 
 
 def merge(chronologically_ascending_diffs):
@@ -260,6 +318,7 @@ def merge(chronologically_ascending_diffs):
     for diff in chronologically_ascending_diffs[1:]:
         if initial:
             merged_diff = _compute_combined_diff(base_diff, diff)
+            initial = False
         else:
             merged_diff = _compute_combined_diff(merged_diff, diff)
 
