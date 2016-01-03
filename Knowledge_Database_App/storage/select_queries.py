@@ -20,6 +20,7 @@ Functions:
     which defaults to None.
 """
 
+from sqlalchemy.orm import subqueryload
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from . import orm_core as orm
@@ -61,7 +62,15 @@ def get_content_piece(content_id, session=None):
     if session is None:
         session = orm.start_session()
     try:
-        content_piece = session.query(orm.ContentPiece).filter(
+        content_piece = session.query(orm.ContentPiece).options(
+            subqueryload(orm.ContentPiece.first_author),
+            subqueryload(orm.ContentPiece.authors),
+            subqueryload(orm.ContentPiece.content_type),
+            subqueryload(orm.ContentPiece.name),
+            subqueryload(orm.ContentPiece.alternate_names),
+            subqueryload(orm.ContentPiece.text),
+            subqueryload(orm.ContentPiece.keywords),
+            subqueryload(orm.ContentPiece.citations)).filter(
             orm.ContentPiece.content_id == content_id).one()
     except (NoResultFound, MultipleResultsFound) as e:
         raise SelectError(str(e))
