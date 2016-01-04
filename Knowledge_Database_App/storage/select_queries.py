@@ -88,7 +88,15 @@ def get_content_pieces(user_id, session=None):
     """
     if session is None:
         session = orm.start_session()
-    content_pieces = session.query(orm.ContentPiece).join(
+    content_pieces = session.query(orm.ContentPiece).options(
+        subqueryload(orm.ContentPiece.first_author),
+        subqueryload(orm.ContentPiece.authors),
+        subqueryload(orm.ContentPiece.content_type),
+        subqueryload(orm.ContentPiece.name),
+        subqueryload(orm.ContentPiece.alternate_names),
+        subqueryload(orm.ContentPiece.text),
+        subqueryload(orm.ContentPiece.keywords),
+        subqueryload(orm.ContentPiece.citations)).join(
         orm.User, orm.ContentPiece.authors).filter(
         orm.User.user_id == user_id).all()
     return content_pieces
