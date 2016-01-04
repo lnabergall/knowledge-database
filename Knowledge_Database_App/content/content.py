@@ -8,7 +8,9 @@ from datetime import datetime
 from Knowledge_Database_App import email
 from Knowledge_Database_App.storage import (select_queries as select,
                                             action_queries as action)
-from Knowledge_Database_App.search import index, search
+from Knowledge_Database_App import search as search_api
+from Knowledge_Database_App.search import index
+
 from .celery import celery_app
 
 
@@ -98,9 +100,9 @@ class Content:
     citations = None            # String.
     notification = None
 
-    def __init__(self, content_id=None, first_author=None,
-                 content_type=None, name=None, alternate_names=None,
-                 text=None, keywords=None, citations=None):
+    def __init__(self, content_id=None, first_author=None, content_type=None,
+                 name=None, alternate_names=None, text=None,
+                 keywords=None, citations=None, content_piece=None):
         """
         Args:
             content_id: Integer.
@@ -118,8 +120,9 @@ class Content:
             except:
                 raise
             else:
-                self.content_id = content_id
                 self._transfer(content_piece)
+        elif content_piece is not None:
+            self._transfer(content_piece)
         else:
             if (not first_author or not content_type or not name or
                     not text or not keywords):
@@ -141,6 +144,7 @@ class Content:
         Args:
             content_piece: ContentPiece object.
         """
+        self.content_id = content_piece.content_id
         self.timestamp = content_piece.timestamp
         self.deleted_timestamp = content_piece.deleted_timestamp
         self.first_author = UserData(
@@ -167,22 +171,56 @@ class Content:
 
     @classmethod
     def bulk_retrieve(cls, user_id=None):
+        """
+        Args:
+            user_id: Integer. Defaults to None.
+        Returns:
+            List of Content objects.
+        """
         if user_id is not None:
-            pass
+            try:
+                content_pieces = select.get_content_pieces(user_id=user_id)
+            except:
+                raise
+            else:
+                content = [Content(content_piece=content_piece)
+                           for content_piece in content_pieces]
+                return content
         else:
             return []
 
     @classmethod
     def get_content_types(cls):
-        pass
+        """
+        Returns:
+            List of content type strings.
+        """
+        try:
+            content_types = select.get_content_types()
+        except:
+            raise
+        else:
+            return content_types
 
     @classmethod
-    def search(cls):
-        pass
+    def search(cls, query, page_num=1):
+        try:
+            results = search_api.search(query, page_num)
+        except:
+            raise
+        else:
+            for result in results["results"]:
+                del result["score"]
+            return results
 
     @classmethod
-    def autocomplete(cls):
-        pass
+    def autocomplete(cls, content_part, query):
+        try:
+            completions = search_api.autocomplete(content_part, query)
+        except:
+            raise
+        else:
+            return completions
 
     def save(self):
         pass
@@ -195,3 +233,15 @@ class Content:
 
     def serialize(self):
         pass
+
+
+# Automatically parsing content piece text for matches to the
+# names (incl. alternate names) of other content pieces and
+# and then adding in a hyperlink (likely in some separate
+# field distinct from the actual text).
+
+# Also could be a very good idea to explicitly make keywords,
+# citations (although maybe not in the beginning for citations
+# since they will not be shared as much as keywords), and
+# content types hyperlinked to a list of all content pieces
+# containing that keyword, citation, or content type, respectively.
