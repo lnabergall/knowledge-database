@@ -16,11 +16,11 @@ from Knowledge_Database_App.storage.select_queries import InputError
 from index import SearchableContentPiece
 
 
-def search(query_string, page_num):
+def search(query_string, page_num=1):
     """
     Args:
         query_string: String.
-        page_num: Positive integer.
+        page_num: Positive integer. Defaults to 1.
 
     Returns:
         A dictionary of the form
@@ -80,6 +80,7 @@ def search(query_string, page_num):
     content_search = Search.from_dict(search_dict)
 
     # Request highlighting, execute the search, and return the result.
+    content_search = content_search.highlight_options(order="score")
     content_search = content_search.highlight(
         "text", fragment_size=150, number_of_fragments=3, no_match_size=150)
     content_search = content_search.highlight("name", number_of_fragments=0)
