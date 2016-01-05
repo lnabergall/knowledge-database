@@ -113,10 +113,6 @@ class UserData:
         return {"user_id": self.user_id, "user_name": self.user_name}
 
 
-class MissingDataError(Exception):
-    """General exception to raise when required data is missing."""
-
-
 class Content:
 
     storage_handler = orm.StorageHandler()
@@ -165,7 +161,7 @@ class Content:
         else:
             if (not first_author_id or not first_author_name or
                     not content_type or not name or not text or not keywords):
-                raise MissingDataError("Required arguments not provided!")
+                raise action.InputError("Required arguments not provided!")
             self.timestamp = datetime.utcnow()
             self.first_author = UserData(user_id=first_author_id,
                                          user_name=first_author_name)
@@ -251,6 +247,13 @@ class Content:
 
     @classmethod
     def search(cls, query, page_num=1):
+        """
+        Args:
+            query: String.
+            page_num: Integer. Defaults to 1.
+        Returns:
+            Dictionary of results.
+        """
         try:
             results = search_api.search(query, page_num)
         except:
@@ -262,6 +265,13 @@ class Content:
 
     @classmethod
     def autocomplete(cls, content_part, query):
+        """
+        Args:
+            content_part: String, expects 'name', 'keyword', or 'citation'.
+            query: String.
+        Returns:
+            List of completion dictionaries.
+        """
         try:
             completions = search_api.autocomplete(content_part, query)
         except:
@@ -320,8 +330,43 @@ class Content:
 
     @classmethod
     def update(cls, content_id, content_part, update_type,
-               part_id=None, part_text=None):
-        pass
+               part_text=None, part_id=None):
+        """
+        Args:
+            content_id: Integer.
+            content_part: String, orm.Name, orm.Keyword, orm.Citation,
+                or orm.ContentType. As a string, expects 'name', 'text',
+                'keyword', or 'citation'.
+            update_type: String, accepts 'modify', 'add', or 'remove'.
+            part_text: String. Defaults to None.
+            part_id: Integer. Defaults to None.
+        """
+        if part_id is None and update_type == 'modify':
+            try:
+                self.storage_handler.call(action.update_content_type,
+                                          content_id, content_part)
+            except:
+                raise
+        elif update_type == 'add':
+            try:
+                self.storage_handler.call(action.store_content_part,
+                                          content_part, content_id)
+            except:
+                raise
+        elif part_id is not None and update_type == 'remove':
+            try:
+                self.storage_handler.call(action.remove_content_part,
+                                          content_id, part_id, content_part)
+            except:
+                raise
+        elif part_id is not None and update_type == 'modify':
+            try:
+                self.storage_handler.call(action.update_content_part, part_id,
+                                          content_part, part_text)
+            except:
+                raise
+        else:
+            raise action.InputError("Invalid arguments!")
 
     def _delete(self):
         if not self.stored:
