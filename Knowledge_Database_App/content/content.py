@@ -246,6 +246,36 @@ class Content:
             return content_types
 
     @classmethod
+    def filter_by(cls, keyword=None, content_type=None,
+                  citation=None, page_num=1):
+        """
+        Args:
+            keyword: String. Defaults to None.
+            content_type: String. Defaults to None.
+            citation: String. Defaults to None.
+        Returns:
+            Dictionary of results.
+        """
+        try:
+            if keyword is not None:
+                results = search_api.filter_by(keyword_string=keyword,
+                                               page_num=page_num)
+            elif content_type is not None:
+                results = search_api.filter_by(content_type_string=content_type,
+                                               page_num=page_num)
+            elif citation is not None:
+                results = search_api.filter_by(citation_string=citation,
+                                               page_num=page_num)
+            else:
+                raise action.InputError("No arguments!")
+        except:
+            raise
+        else:
+            for result in results["results"]:
+                del result["score"]
+            return results
+
+    @classmethod
     def search(cls, query, page_num=1):
         """
         Args:
@@ -409,9 +439,3 @@ class Content:
 # names (incl. alternate names) of other content pieces and
 # and then adding in a hyperlink (likely in some separate
 # field distinct from the actual text).
-
-# Also could be a very good idea to explicitly make keywords,
-# citations (although maybe not in the beginning for citations
-# since they will not be shared as much as keywords), and
-# content types hyperlinked to a list of all content pieces
-# containing that keyword, citation, or content type, respectively.

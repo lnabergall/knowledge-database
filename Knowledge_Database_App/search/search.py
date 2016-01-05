@@ -6,11 +6,11 @@ Uses elasticsearch-py-dsl.
 
 Functions:
 
-    search, autocomplete
+    search, filter_by, autocomplete
 """
 
 from elasticsearch_dsl import Search
-from elasticsearch_dsl.query import MultiMatch, Match
+from elasticsearch_dsl.query import MultiMatch, Match, Term
 
 from Knowledge_Database_App.storage.select_queries import InputError
 from index import SearchableContentPiece
@@ -103,6 +103,54 @@ def search(query_string, page_num=1):
         query_result["results"].append(body)
 
     return query_result
+
+
+def filter_by(keyword_string=None, content_type_string=None,
+              citation_string=None, page_num=1):
+    """
+    Args:
+        keyword_string: String.
+        content_type_string: String. Defaults to None.
+        citation_string: String. Defaults to None.
+        page_num: Positive integer. Defaults to 1.
+    Returns:
+        A dictionary of the form
+
+        {"count": int, "results": result_list},
+
+        where "count" holds a count of the number of results returned by
+        the search and result_list is a list, sorted in descending order
+        by query matching score, containing dict elements of the form:
+
+        {
+            "score": float,
+            "content_id": int,
+            "name": string,
+            "text_fragment": 200 character string fragment,
+        }
+    """
+    search = SearchableContentPiece.search()
+    search = search[10*(page_num-1) : 10*page_num]
+    if keyword_string is not None:
+        query = Term(keywords=keyword_string)
+    elif content_type_string is not None:
+        query = Term(content_type=content_type_string)
+    elif citation_string is not None:
+        query = Term(citations=citation_string)
+    else:
+        raise InputError("Missing arguments!")
+    response = search.query(query).execute()
+    results = {"count": response.hits.total, "results": []}
+    for hit in response:
+        body = {
+            "score": hit.meta.score,
+            "content_id": hit.meta.id,
+            "name": hit.name,
+            "text_fragment": hit.text[:201],
+        }
+        results["results"].append(body)
+
+    return results
 
 
 def autocomplete(content_part, query_string):
