@@ -80,6 +80,8 @@ class StorageHandler:
             output = function(*args, session=self.session, **kwargs)
         except (NameError, ValueError, TypeError) as e:
             raise RuntimeError(str(e))
+        except:
+            raise
         try:
             self.session.commit()
         except Exception as e:
@@ -87,7 +89,7 @@ class StorageHandler:
             raise ActionError(str(e))
         return output
 
-    def close(self):
+    def _close(self):
         self.session.close()
 
 
