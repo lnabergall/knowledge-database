@@ -6,7 +6,8 @@ Content Piece API
 from datetime import datetime
 
 from Knowledge_Database_App import email
-from Knowledge_Database_App.storage import (select_queries as select,
+from Knowledge_Database_App.storage import (orm_core as orm,
+                                            select_queries as select,
                                             action_queries as action)
 from Knowledge_Database_App import search as search_api
 from Knowledge_Database_App.search import index
@@ -40,6 +41,20 @@ class Name:
             timestamp=self.timestamp,
         )
 
+    @property
+    def json_ready(self):
+        return {
+            "name_id": self.name_id,
+            "name": self.name,
+            "name_type": self.name_type,
+            "timestamp": self.timestamp,
+        }
+
+    @property
+    def storage_object(self):
+        return orm.Name(name_id=self.name_id, name=self.name,
+                        name_type=self.name_type, timestamp=self.timestamp)
+
 
 class Text:
 
@@ -62,6 +77,19 @@ class Text:
             timestamp=self.timestamp,
         )
 
+    @property
+    def json_ready(self):
+        return {
+            "text_id": self.text_id,
+            "text": self.text,
+            "timestamp": self.timestamp
+        }
+
+    @property
+    def storage_object(self):
+        return orm.Text(text_id=self.text_id, text=self.text,
+                        timestamp=self.timestamp)
+
 
 class UserData:
 
@@ -80,12 +108,18 @@ class UserData:
             user_name=self.user_name,
         )
 
+    @property
+    def json_ready(self):
+        return {"user_id": self.user_id, "user_name": self.user_name}
+
 
 class MissingDataError(Exception):
     """General exception to raise when required data is missing."""
 
 
 class Content:
+
+    storage_handler = orm.StorageHandler()
 
     content_id = None           # Integer.
     timestamp = None            # Datetime.
@@ -100,9 +134,10 @@ class Content:
     citations = None            # String.
     notification = None
 
-    def __init__(self, content_id=None, first_author=None, content_type=None,
-                 name=None, alternate_names=None, text=None,
-                 keywords=None, citations=None, content_piece=None):
+    def __init__(self, content_id=None, first_author_name=None,
+                 first_author_id=None, content_type=None, name=None,
+                 alternate_names=None, text=None, keywords=None,
+                 citations=None, content_piece=None):
         """
         Args:
             content_id: Integer.
@@ -113,29 +148,38 @@ class Content:
             text: Text object.
             keywords: List of Strings.
             citations: List of Strings.
+            content_piece: ContentPiece object.
         """
         if content_id is not None:
             try:
-                content_piece = select.get_content_piece(content_id=content_id)
+                content_piece = self.storage_handler.call(
+                    select.get_content_piece, content_id=content_id)
             except:
                 raise
             else:
                 self._transfer(content_piece)
+                self.stored = True
         elif content_piece is not None:
             self._transfer(content_piece)
+            self.stored = True
         else:
-            if (not first_author or not content_type or not name or
-                    not text or not keywords):
+            if (not first_author_id or not first_author_name or
+                    not content_type or not name or not text or not keywords):
                 raise MissingDataError("Required arguments not provided!")
             self.timestamp = datetime.utcnow()
-            self.first_author = first_author
-            self.authors = [first_author]
+            self.first_author = UserData(user_id=first_author_id,
+                                         user_name=first_author_name)
+            self.authors = [self.first_author]
             self.content_type = content_type
-            self.name = name
-            self.alternate_names = alternate_names
-            self.text = text
+            self.name = Name(name=name, name_type="primary",
+                             timestamp=self.timestamp)
+            self.alternate_names = [Name(name=name, name_type="alternate",
+                                         timestamp=self.timestamp)
+                                    for name in alternate_names]
+            self.text = Text(text=text, timestamp=self.timestamp)
             self.keywords = keywords
             self.citations = citations
+            self.stored = False
 
     def _transfer(self, content_piece):
         """
@@ -179,7 +223,8 @@ class Content:
         """
         if user_id is not None:
             try:
-                content_pieces = select.get_content_pieces(user_id=user_id)
+                content_pieces = self.storage_handler.call(
+                    select.get_content_pieces, user_id=user_id)
             except:
                 raise
             else:
@@ -196,7 +241,9 @@ class Content:
             List of content type strings.
         """
         try:
-            content_types = select.get_content_types()
+            content_types = self.storage_handler.call(select.get_content_types)
+            content_types = [content_type.content_type
+                             for content_type in content_types]
         except:
             raise
         else:
@@ -222,17 +269,95 @@ class Content:
         else:
             return completions
 
-    def save(self):
-        pass
+    def store(self):
+        if self.stored:
+            return
+        else:
+            keywords_for_storage = []
+            for keyword_string in self.keywords:
+                try:
+                    keyword = self.storage_handler.call(select.get_keyword,
+                                                        keyword_string)
+                except select.SelectError:
+                    keyword = orm.Keyword(keyword=keyword_string,
+                                          timestamp=self.timestamp)
+                    keywords_for_storage.append(keyword)
+                except:
+                    raise
+                else:
+                    keywords_for_storage.append(keyword)
+            citations_for_storage = []
+            for citation_string in self.citations:
+                try:
+                    citation = self.storage_handler.call(select.get_citation,
+                                                         citation_string)
+                except select.SelectError:
+                    citation = orm.Citation(citation_text=citation_string,
+                                            timestamp=self.timestamp)
+                    citations_for_storage.append(citation)
+                except:
+                    raise
+                else:
+                    citations_for_storage.append(citation)
+            try:
+                self.storage_handler.call(
+                    action.store_content_piece,
+                    self.first_author.user_id,
+                    self.name.storage_object,
+                    self.text.storage_object,
+                    self.storage_handler.call(select.get_content_type,
+                                              self.content_type),
+                    keywords_for_storage,
+                    self.timestamp,
+                    citations=citations_for_storage,
+                    alternate_names=[name.storage_object
+                                     for name in self.alternate_names],
+                )
+            except:
+                raise
+            else:
+                self.stored = True
 
-    def update(self):
+    @classmethod
+    def update(cls, content_id, content_part, update_type,
+               part_id=None, part_text=None):
         pass
 
     def _delete(self):
-        pass
+        if not self.stored:
+            return
+        else:
+            deleted_timestamp = datetime.now()
+            try:
+                self.storage_handler.call(action.delete_content_piece,
+                                          self.content_id, deleted_timestamp)
+            except:
+                raise
+            else:
+                self.deleted_timestamp = deleted_timestamp
 
-    def serialize(self):
-        pass
+    @property
+    def json_ready(self):
+        return {
+            "content_id": self.content_id,
+            "timestamp": (str(self.timestamp)
+                          if self.timestamp is not None else None),
+            "deleted_timestamp": (str(self.deleted_timestamp)
+                if self.deleted_timestamp is not None else None),
+            "first_author": (self.first_author.json_ready
+                             if self.first_author is not None else None),
+            "authors": ([author.json_ready for author in self.authors]
+                        if authors is not None else None),
+            "content_type": self.content_type,
+            "name": self.name.json_ready if self.name is not None else None,
+            "alternate_names": ([name.json_ready for name in self.alternate_names]
+                                if self.alternate_names is not None else None),
+            "text": self.text.json_ready if self.text is not None else None,
+            "keywords": self.keywords,
+            "citations": self.citations,
+            "notification": self.notification,
+            "stored": self.stored,
+        }
 
 
 # Automatically parsing content piece text for matches to the
