@@ -82,11 +82,7 @@ class StorageHandler:
             raise RuntimeError(str(e))
         except:
             raise
-        try:
-            self.session.commit()
-        except Exception as e:
-            self.session.rollback()
-            raise ActionError(str(e))
+
         return output
 
     def _close(self):
