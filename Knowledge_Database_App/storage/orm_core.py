@@ -309,6 +309,9 @@ class AcceptedEdit(Base):
     text_id = Column(Integer, ForeignKey("Text.text_id"))
     text = relationship("Text", backref="accepted_edits")
 
+    content_type_id = Column(Integer, ForeignKey("Content_Type.content_type_id"))
+    content_type = relationship("ContentType", backref="accepted_edits")
+
     keyword_id = Column(Integer, ForeignKey("Keyword.keyword_id"))
     keyword = relationship("Keyword", backref="accepted_edits")
 
@@ -328,8 +331,8 @@ class Vote(Base):
     Attributes:
         vote_id: Integer, primary key.
         vote: String.
-        content_part: String, expects 'name', 'text', 'keyword',
-            or 'citation'.
+        content_part: String, expects 'name', 'text', 'content_type',
+            'keyword', or 'citation'.
         timestamp: Datetime.
         close_timestamp: Datetime of the closing of the vote.
         accepted_edit_id: Integer, foreign key to Accepted_Edit table.
@@ -411,6 +414,9 @@ class RejectedEdit(Base):
 
     text_id = Column(Integer, ForeignKey("Text.text_id"))
     text = relationship("Text", backref="rejected_edits")
+
+    content_type_id = Column(Integer, ForeignKey("Content_Type.content_type_id"))
+    content_type = relationship("ContentType", backref="rejected_edits")
 
     keyword_id = Column(Integer, ForeignKey("Keyword.keyword_id"))
     keyword = relationship("Keyword", backref="accepted_edits")
