@@ -10,11 +10,12 @@ Exceptions:
 
 Functions:
 
-    get_content_piece, get_content_pieces, get_alternate_names,
-    get_keyword, get_citation, get_content_type, get_content_types,
-    get_accepted_edits, get_rejected_edits, get_user_votes,
-    get_accepted_votes, get_rejected_votes, get_user_encrypt_info,
-    get_user, get_user_emails, get_user_reports
+    get_content_piece, get_content_pieces, get_name, get_alternate_names,
+    get_keywords, get_citations, get_keyword, get_citation,
+    get_content_type, get_content_types, get_accepted_edits,
+    get_rejected_edits, get_user_votes, get_accepted_votes,
+    get_rejected_votes, get_user_encrypt_info, get_user, get_user_emails,
+    get_user_reports
 
     Note that all functions take a common 'session' keyword argument,
     which defaults to None.
@@ -100,6 +101,24 @@ def get_content_pieces(user_id, session=None):
         orm.User, orm.ContentPiece.authors).filter(
         orm.User.user_id == user_id).all()
     return content_pieces
+
+
+def get_name(content_id, session=None):
+    """
+    Args:
+        content_id: Integer.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        Name.
+    """
+    if session is None:
+        session = orm.start_session()
+    try:
+        name = session.query(orm.ContentPiece.name).filter(
+            orm.ContentPiece.content_id == content_id).one()
+    except (NoResultFound, MultipleResultsFound) as e:
+        raise SelectError(str(e))
+    return name
 
 
 def get_alternate_names(content_id, session=None):
