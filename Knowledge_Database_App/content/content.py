@@ -340,7 +340,7 @@ class Content:
                 else:
                     citations_for_storage.append(citation)
             try:
-                self.storage_handler.call(
+                content_id = self.storage_handler.call(
                     action.store_content_piece,
                     self.first_author.user_id,
                     self.name.storage_object,
@@ -353,9 +353,19 @@ class Content:
                     alternate_names=[name.storage_object
                                      for name in self.alternate_names],
                 )
+                index.index_content_piece(
+                    content_id,
+                    self.name.name,
+                    [name.name for name in self.alternate_names],
+                    self.text.text,
+                    self.content_type,
+                    self.keywords,
+                    self.citations if self.citations is not None else []
+                )
             except:
                 raise
             else:
+                self.content_id = content_id
                 self.stored = True
 
     @classmethod
@@ -365,34 +375,96 @@ class Content:
         Args:
             content_id: Integer.
             content_part: String, orm.Name, orm.Keyword, orm.Citation,
-                or orm.ContentType. As a string, expects 'name', 'text',
-                'keyword', or 'citation'.
+                or orm.ContentType. As a string, expects 'name',
+                'alternate_name', 'text', 'keyword', or 'citation'.
             update_type: String, accepts 'modify', 'add', or 'remove'.
             part_text: String. Defaults to None.
             part_id: Integer. Defaults to None.
         """
-        if part_id is None and update_type == 'modify':
+        if part_id is None and update_type == "modify":
             try:
                 self.storage_handler.call(action.update_content_type,
                                           content_id, content_part)
+                index.update_content_piece(content_id, "content_type",
+                                           content_part.content_type)
             except:
                 raise
-        elif update_type == 'add':
+        elif update_type == "add":
             try:
                 self.storage_handler.call(action.store_content_part,
                                           content_part, content_id)
+                if isinstance(content_part, orm.Name):
+                    index.add_to_content_piece(content_id, "alternate_name",
+                                               content_part.name)
+                elif isinstance(content_part, orm.Keyword):
+                    index.add_to_content_piece(content_id, "keyword",
+                                               content_part.keyword)
+                elif isinstance(content_part, orm.Citation):
+                    index.add_to_content_piece(content_id, "citation",
+                                               content_part.citation_text)
+                else:
+                    raise action.InputError("Invalid argument!")
             except:
                 raise
-        elif part_id is not None and update_type == 'remove':
+        elif part_id is not None and update_type == "remove":
             try:
                 self.storage_handler.call(action.remove_content_part,
                                           content_id, part_id, content_part)
+                if content_part == "alternate_name":
+                    alternate_names = self.storage_handler.call(
+                        select.get_alternate_names, content_id)
+                    alternate_names = [name.name for name in alternate_names]
+                    index.update_content_piece(content_id, content_part,
+                                               part_strings=alternate_names)
+                elif content_part == "keyword":
+                    keywords = self.storage_handler.call(select.get_keywords,
+                                                         content_id)
+                    keywords = [keyword.keyword for keyword in keywords]
+                    index.update_content_piece(content_id, content_part,
+                                               part_strings=keywords)
+                elif content_part == "citation":
+                    citations = self.storage_handler.call(
+                        select.get_citations, content_id)
+                    citations = [citation.citation_text
+                                 for citation in citations]
+                    index.update_content_piece(content_id, content_part,
+                                               part_strings=citations)
+                else:
+                    raise action.InputError("Invalid argument!")
             except:
                 raise
-        elif part_id is not None and update_type == 'modify':
+        elif part_id is not None and update_type == "modify":
             try:
-                self.storage_handler.call(action.update_content_part, part_id,
-                                          content_part, part_text)
+                if content_part == "name" or content_part == "alternate_name":
+                    self.storage_handler.call(action.update_content_part,
+                                              part_id, "name", part_text)
+                else:
+                    self.storage_handler.call(action.update_content_part,
+                                              part_id, content_part, part_text)
+                if content_part == "name" or content_part == "text":
+                    index.update_content_piece(content_id, content_part,
+                                               part_string=part_text)
+                elif content_part == "alternate_name":
+                    alternate_names = self.storage_handler.call(
+                        select.get_alternate_names, content_id)
+                    alternate_names = [name.name for name in alternate_names]
+                    index.update_content_piece(content_id, content_part,
+                                               part_strings=alternate_names)
+                elif content_part == "keyword":
+                    keywords = self.storage_handler.call(select.get_keywords,
+                                                         content_id)
+                    keywords = [keyword.keyword for keyword in keywords]
+                    index.update_content_piece(content_id, content_part,
+                                               part_strings=keywords)
+                elif content_part == "citation":
+                    citations = self.storage_handler.call(
+                        select.get_citations, content_id)
+                    citations = [citation.citation_text
+                                 for citation in citations]
+                    index.update_content_piece(content_id, content_part,
+                                               part_strings=citations)
+                else:
+                    raise action.InputError("Invalid argument!")
             except:
                 raise
         else:
@@ -406,6 +478,7 @@ class Content:
             try:
                 self.storage_handler.call(action.delete_content_piece,
                                           self.content_id, deleted_timestamp)
+                index.remove_content_piece(self.content_id)
             except:
                 raise
             else:
