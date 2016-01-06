@@ -117,6 +117,36 @@ def get_alternate_names(content_id, session=None):
     return alternate_names
 
 
+def get_keywords(content_id, session=None):
+    """
+    Args:
+        content_id: Integer.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        list of Keywords.
+    """
+    if session is None:
+        session = orm.start_session()
+    keywords = session.query(orm.ContentPiece.keywords).filter(
+        orm.ContentPiece.content_id == content_id).all()
+    return keywords
+
+
+def get_citations(content_id, session=None):
+    """
+    Args:
+        content_id: Integer.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        list of Citations.
+    """
+    if session is None:
+        session = orm.start_session()
+    citations = session.query(orm.ContentPiece.citations).filter(
+        orm.ContentPiece.content_id == content_id).all()
+    return citations
+
+
 def get_keyword(keyword_string, session=None):
     """
     Args:
