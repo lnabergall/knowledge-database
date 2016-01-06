@@ -5,14 +5,11 @@ Content Piece API
 
 from datetime import datetime
 
-from Knowledge_Database_App import email
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select,
                                             action_queries as action)
 from Knowledge_Database_App import search as search_api
 from Knowledge_Database_App.search import index
-
-from .celery import celery_app
 
 
 class Name:
