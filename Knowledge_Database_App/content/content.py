@@ -246,6 +246,50 @@ class Content:
             return content_types
 
     @classmethod
+    def check_uniqueness(cls, content_id, part_string, content_part):
+        """
+        Args:
+            content_id: Integer.
+            part_string: String.
+            content_part: String, accepts 'name', 'keyword', or 'citation'.
+        Returns:
+            Boolean indicating whether the name, keyword, or citation is
+            unique among the content piece's (identified by content_id)
+            names (incl. alternate names), keywords, or citations,
+            respectively.
+        """
+        if content_part == "name":
+            try:
+                name = self.storage_handler.call(select.get_name, content_id)
+                alternate_names = self.storage_handler.call(
+                    select.get_alternate_names, content_id)
+            except:
+                raise
+            else:
+                return (part_string != name.name and part_string
+                        not in [name.name for name in alternate_names])
+        elif content_part == "keyword":
+            try:
+                keywords = self.storage_handler.call(select.get_keywords,
+                                                     content_id)
+            except:
+                raise
+            else:
+                return part_string not in [keyword.keyword
+                                           for keyword in keywords]
+        elif content_part == "citation":
+            try:
+                citations = self.storage_handler.call(select.get_citations,
+                                                      content_id)
+            except:
+                raise
+            else:
+                return part_string not in [citation.citation_text
+                                           for citation in citations]
+        else:
+            raise action.InputError("Invalid argument!")
+
+    @classmethod
     def filter_by(cls, keyword=None, content_type=None,
                   citation=None, page_num=1):
         """
