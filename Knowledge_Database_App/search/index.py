@@ -71,14 +71,14 @@ class SearchableContentPiece(DocType):
     keywords = String(
         multi=True,
         fields={"raw": String(multi=True, index="not_analyzed")},
-        properties={"suggest": Completion(multi=True, payloads=True,
+        properties={"suggest": Completion(multi=True,
                                           preserve_separators=False,
                                           preserve_position_increments=False)}
     )
     citations = String(
         multi=True,
         fields={"raw": String(multi=True, index="not_analyzed")},
-        properties={"suggest": Completion(multi=True, payloads=True,
+        properties={"suggest": Completion(multi=True,
                                           preserve_separators=False,
                                           preserve_position_increments=False)}
     )
@@ -122,15 +122,44 @@ def index_content_piece(content_id, name_string, alternate_name_strings,
     content_piece.save()
 
 
-def update_content_piece(content_id, content_part, part_string=None,
-                        part_strings=None):
+def add_to_content_piece(content_id, content_part, part_string):
     """
     Args:
         content_id: Integer.
-        content_part: String, accepts 'name', 'text', 'content_type',
-            'keyword', or 'citation'.
-        part_string: String. Defaults to None.
-        part_strings: List of strings. Defaults to None.
+        content_part: String, accepts 'alternate_name', 'keyword',
+            or 'citation'.
+        part_string: String.
+    """
+    try:
+        content_piece = SearchableContentPiece.get(id=content_id)
+    except NotFoundError as e:
+        raise IndexAccessError(str(e))
+    else:
+        if content_part == "alternate_name":
+            content_piece.alternate_names.append(part_string)
+            content_piece.alternate_names.suggest.append({
+                "input": part_string,
+                "payload": {"content_id": content_id}
+            })
+        elif content_part == "keyword":
+            content_piece.keywords.append(part_string)
+            content_piece.keywords.suggest.append({"input": part_string})
+        elif content_part == "citation":
+            content_piece.citations.append(part_string)
+            content_piece.citations.suggest.append({"input": part_string})
+        else:
+            raise InputError("Invalid arguments!")
+        content_piece.save()
+
+def update_content_piece(content_id, content_part, part_string=None,
+                         part_strings=None):
+    """
+    Args:
+        content_id: Integer.
+        content_part: String, accepts 'name', 'alternate_name', 'text',
+            'content_type', 'keyword', or 'citation'.
+        part_string: String.
+        part_strings: List of strings.
     """
     try:
         content_piece = SearchableContentPiece.get(id=content_id)
@@ -138,44 +167,30 @@ def update_content_piece(content_id, content_part, part_string=None,
         raise IndexAccessError(str(e))
     else:
         if content_part == "name":
-            if part_string is not None:
-                content_piece.name = part_string
-                content_piece.name.suggest = {
-                    "input": part_string,
-                    "payload": {"content_id": content_id}
-                }
-            elif part_strings is not None:
-                content_piece.alternate_names = part_strings
-                content_piece.alternate_names.suggest = {
-                    "input": part_strings,
-                    "payload": {"content_id": content_id}
-                }
-            else:
-                raise InputError("Invalid arguments!")
+            content_piece.name = part_string
+            content_piece.name.suggest = {
+                "input": part_string,
+                "payload": {"content_id": content_id}
+            }
+        elif content_part == "alternate_name":
+            content_piece.alternate_names = part_strings
+            content_piece.alternate_names.suggest = {
+                "input": part_strings,
+                "payload": {"content_id": content_id}
+            }
         elif content_part == "text":
-            if part_string is not None:
-                content_piece.text = part_string
-            else:
-                raise InputError("Invalid arguments!")
+            content_piece.text = part_string
         elif content_part == "content_type":
-            if part_string is not None:
-                content_piece.content_type = part_string
-            else:
-                raise InputError("Invalid arguments!")
+            content_piece.content_type = part_string
         elif content_part == "keyword":
-            if part_strings is not None:
-                content_piece.keywords = part_strings
-                content_piece.keywords.suggest = {"input": part_strings}
-            else:
-                raise InputError("Invalid arguments!")
+            content_piece.keywords = part_strings
+            content_piece.keywords.suggest = {"input": part_strings}
         elif content_part == "citation":
-            if part_strings is not None:
-                content_piece.citations = part_strings
-                content_piece.citations.suggest = {"input": part_strings}
-            else:
-                raise InputError("Invalid arguments!")
+            content_piece.citations = part_strings
+            content_piece.citations.suggest = {"input": part_strings}
         else:
             raise InputError("Invalid arguments!")
+        content_piece.save()
 
 
 def remove_content_piece(content_id):
