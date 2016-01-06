@@ -59,12 +59,13 @@ def store_content_piece(user_id, name, text, content_type, keywords, timestamp,
         content_piece.citations = citations
 
     session.add(content_piece)
-    if session is None:
-        try:
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            raise ActionError(str(e))
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise ActionError(str(e))
+
+    return content_piece.content_id
 
 
 def delete_content_piece(content_id, deleted_timestamp, session=None):
@@ -82,12 +83,11 @@ def delete_content_piece(content_id, deleted_timestamp, session=None):
         orm.ContentPiece.content_id == content_id).update(
         {orm.ContentPiece.deleted_timestamp: deleted_timestamp},
         synchronize_session=False)
-    if session is None:
-        try:
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            raise ActionError(str(e))
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise ActionError(str(e))
 
 
 def update_content_type(content_id, content_type, session=None):
@@ -103,12 +103,11 @@ def update_content_type(content_id, content_type, session=None):
         session = orm.start_session()
     content_piece = get_content_piece(content_id)
     content_piece.content_type = content_type
-    if session is None:
-        try:
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            raise ActionError(str(e))
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise ActionError(str(e))
 
 
 def store_content_part(content_part, content_id, session=None):
@@ -132,12 +131,11 @@ def store_content_part(content_part, content_id, session=None):
         content_piece.citations.append(content_part)
     else:
         raise InputError("Invalid argument!")
-    if session is None:
-        try:
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            raise ActionError(str(e))
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise ActionError(str(e))
 
 
 def remove_content_part(content_id, part_id, content_part, session=None):
@@ -167,12 +165,11 @@ def remove_content_part(content_id, part_id, content_part, session=None):
             synchronize_session=False)
     else:
         raise InputError("Invalid argument!")
-    if session is None:
-        try:
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            raise ActionError(str(e))
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise ActionError(str(e))
 
 
 def update_content_part(part_id, content_part, part_text, session=None):
@@ -196,12 +193,11 @@ def update_content_part(part_id, content_part, part_text, session=None):
             {orm.Text.text: part_text}, synchronize_session=False)
     else:
         raise InputError("Invalid argument!")
-    if session is None:
-        try:
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            raise ActionError(str(e))
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise ActionError(str(e))
 
 
 def store_accepted_edit(edit_text, edit_rationale, content_part, part_id,
@@ -256,12 +252,11 @@ def store_accepted_edit(edit_text, edit_rationale, content_part, part_id,
         raise InputError("Invalid argument!")
 
     session.add(edit)
-    if session is None:
-        try:
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            raise ActionError(str(e))
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise ActionError(str(e))
 
 
 def store_rejected_edit(edit_text, edit_rationale, content_part, part_id,
@@ -314,12 +309,11 @@ def store_rejected_edit(edit_text, edit_rationale, content_part, part_id,
         raise InputError("Invalid argument!")
 
     session.add(edit)
-    if session is None:
-        try:
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            raise ActionError(str(e))
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise ActionError(str(e))
 
 
 def store_new_user(user_type, user_name, email, pass_hash,
@@ -345,12 +339,11 @@ def store_new_user(user_type, user_name, email, pass_hash,
                     pass_salt=pass_salt, remember_id=remember_id,
                     timestamp=timestamp)
     session.add(user)
-    if session is None:
-        try:
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            raise ActionError(str(e))
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise ActionError(str(e))
 
 
 def update_user(user_id, new_user_name=None, new_email=None,
@@ -403,12 +396,11 @@ def update_user(user_id, new_user_name=None, new_email=None,
             synchronize_session=False)
     else:
         raise InputError("Invalid arguments!")
-    if session is None:
-        try:
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            raise ActionError(str(e))
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise ActionError(str(e))
 
 
 def store_user_report(content_id, report_text, report_type, admin_report,
@@ -439,9 +431,8 @@ def store_user_report(content_id, report_text, report_type, admin_report,
         user_report.author_id = user_id
 
     session.add(user_report)
-    if session is None:
-        try:
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            raise ActionError(str(e))
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise ActionError(str(e))
