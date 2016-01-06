@@ -10,7 +10,7 @@ Functions:
 """
 
 from elasticsearch_dsl import Search
-from elasticsearch_dsl.query import MultiMatch, Match, Term
+from elasticsearch_dsl.query import MultiMatch, Match, Term, F
 
 from Knowledge_Database_App.storage.select_queries import InputError
 from index import SearchableContentPiece
@@ -105,13 +105,12 @@ def search(query_string, page_num=1):
     return query_result
 
 
-def filter_by(keyword_string=None, content_type_string=None,
-              citation_string=None, page_num=1):
+def filter_by(content_part, part_string, page_num=1):
     """
     Args:
-        keyword_string: String.
-        content_type_string: String. Defaults to None.
-        citation_string: String. Defaults to None.
+        content_part: String, accepts 'keyword', 'content_type', 'name',
+            or 'citation'.
+        part_string: String.
         page_num: Positive integer. Defaults to 1.
     Returns:
         A dictionary of the form
@@ -131,12 +130,15 @@ def filter_by(keyword_string=None, content_type_string=None,
     """
     search = SearchableContentPiece.search()
     search = search[10*(page_num-1) : 10*page_num]
-    if keyword_string is not None:
-        query = Term(keywords=keyword_string)
-    elif content_type_string is not None:
-        query = Term(content_type=content_type_string)
-    elif citation_string is not None:
-        query = Term(citations=citation_string)
+    if content_part == "keyword":
+        query = F("term", keywords=part_string)
+    elif content_part == "content_type":
+        query = F("term", content_type=part_string)
+    elif content_part == "citation":
+        query = F("term", citations=part_string)
+    elif content_part == "name":
+        query = (F("term", name=part_string) |
+                 F("term", alternate_names=part_string))
     else:
         raise InputError("Missing arguments!")
     response = search.query(query).execute()
@@ -146,6 +148,7 @@ def filter_by(keyword_string=None, content_type_string=None,
             "score": hit.meta.score,
             "content_id": hit.meta.id,
             "name": hit.name,
+            "alternate_names": hit.alternate_names,
             "text_fragment": hit.text[:201],
         }
         results["results"].append(body)

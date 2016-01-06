@@ -290,33 +290,27 @@ class Content:
             raise action.InputError("Invalid argument!")
 
     @classmethod
-    def filter_by(cls, keyword=None, content_type=None,
-                  citation=None, page_num=1):
+    def filter_by(cls, content_part, part_string, page_num=1):
         """
         Args:
-            keyword: String. Defaults to None.
-            content_type: String. Defaults to None.
-            citation: String. Defaults to None.
+            content_part: String, accepts 'keyword', 'content_type',
+                'name', or 'citation'.
+            part_string: String.
+            page_num: Positive integer. Defaults to None.
         Returns:
             Dictionary of results.
         """
         try:
-            if keyword is not None:
-                results = search_api.filter_by(keyword_string=keyword,
-                                               page_num=page_num)
-            elif content_type is not None:
-                results = search_api.filter_by(content_type_string=content_type,
-                                               page_num=page_num)
-            elif citation is not None:
-                results = search_api.filter_by(citation_string=citation,
-                                               page_num=page_num)
-            else:
-                raise action.InputError("No arguments!")
+            results = search_api.filter_by(content_part, part_string,
+                                           page_num=page_num)
         except:
             raise
         else:
             for result in results["results"]:
-                del result["score"]
+                try:
+                    del result["score"]
+                except KeyError:
+                    pass
             return results
 
     @classmethod
@@ -552,6 +546,7 @@ class Content:
         }
 
 
+# EVENTUALLY:
 # Automatically parsing content piece text for matches to the
 # names (incl. alternate names) of other content pieces and
 # and then adding in a hyperlink (likely in some separate
