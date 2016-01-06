@@ -207,7 +207,8 @@ def store_accepted_edit(edit_text, edit_rationale, content_part, part_id,
     Args:
         edit_text: String.
         edit_rationale: String.
-        content_part: String, accepts 'name', 'text', 'keyword' or 'citation'.
+        content_part: String, accepts 'name', 'text', 'content_type',
+            'keyword' or 'citation'.
         part_id: Integer.
         content_id: Integer.
         vote_string: String.
@@ -244,6 +245,8 @@ def store_accepted_edit(edit_text, edit_rationale, content_part, part_id,
         edit.name_id = part_id
     elif content_part == "text":
         edit.text_id = part_id
+    elif content_part == "content_type":
+        edit.content_type_id = part_id
     elif content_part == "keyword":
         edit.keyword_id = part_id
     elif content_part == "citation":
@@ -266,7 +269,8 @@ def store_rejected_edit(edit_text, edit_rationale, content_part, part_id,
     Args:
         edit_text: String.
         edit_rationale: String.
-        content_part: String, accepts 'name', 'text', 'keyword' or 'citation'.
+        content_part: String, accepts 'name', 'text', 'content_type',
+            'keyword' or 'citation'.
         part_id: Integer.
         content_id: Integer.
         vote_string: String.
@@ -301,6 +305,8 @@ def store_rejected_edit(edit_text, edit_rationale, content_part, part_id,
         edit.name_id = part_id
     elif content_part == "text":
         edit.text_id = part_id
+    elif content_part == "content_type":
+        edit.content_type_id = part_id
     elif content_part == "keyword":
         edit.keyword_id = part_id
     elif content_part == "citation":
