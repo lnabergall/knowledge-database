@@ -33,7 +33,11 @@ CELERY_ROUTES = {
     "edit._notify": {
         "queue": "email_tasks",
         "routing_key": "email.edit._notify"
-    }
+    },
+    "edit.validate": {
+        "queue": "edit_tasks",
+        "routing_key": "edit.edit.validate"
+    },
 }
 
 # File to store worker state (e.g. revoked tasks).
