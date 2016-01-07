@@ -26,8 +26,8 @@ def _setup_id_base():
     redis.setnx("next_edit_id", 1)
 
 
-def store_edit(content_id, edit_text, edit_rationale, original_part_text,
-               content_part, part_id, timestamp, author_type, user_id=None):
+def store_edit(content_id, edit_text, edit_rationale, content_part,
+               part_id, timestamp, author_type, user_id=None):
     """
     Args:
         content_id: Integer.
@@ -60,6 +60,8 @@ def store_edit(content_id, edit_text, edit_rationale, original_part_text,
         # Now store the edit with the edit id
         pipe.lpush("content:" + str(content_id), edit_id)
         pipe.hmset("edit:" + str(edit_id), {
+            "edit_id": edit_id,
+            "content_id": content_id,
             "edit_text": edit_text,
             "edit_rationale": edit_rationale,
             "content_part": content_part,
