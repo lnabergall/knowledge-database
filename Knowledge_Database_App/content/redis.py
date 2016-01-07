@@ -64,7 +64,6 @@ def store_edit(content_id, edit_text, edit_rationale, original_part_text,
             "edit_rationale": edit_rationale,
             "content_part": content_part,
             "part_id": part_id,
-            "original_part_text": original_part_text,
             "timestamp": timestamp,
             "author_type": author_type,
         })
