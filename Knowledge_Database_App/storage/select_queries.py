@@ -297,7 +297,8 @@ def get_accepted_edits(content_id=None, edit_id=None, user_id=None,
             orm.AcceptedEdit.acc_timestamp).all()
     elif edit_id is not None:
         try:
-            accepted_edit = session.query(orm.AcceptedEdit).filter(
+            accepted_edit = session.query(orm.AcceptedEdit).options(
+                subqueryload(orm.AcceptedEdit.author)).filter(
                 orm.AcceptedEdit.edit_id == edit_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
             raise SelectError(str(e))
@@ -361,7 +362,8 @@ def get_rejected_edits(content_id=None, edit_id=None, user_id=None,
             orm.RejectedEdit.rej_timestamp).all()
     elif edit_id is not None:
         try:
-            rejected_edit = session.query(orm.RejectedEdit).filter(
+            rejected_edit = session.query(orm.RejectedEdit).options(
+                subqueryload(orm.RejectedEdit.author)).filter(
                 orm.RejectedEdit.edit_id == edit_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
             raise SelectError(str(e))
