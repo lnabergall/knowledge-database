@@ -14,6 +14,8 @@ Functions:
 
 from redis import StrictRedis, WatchError
 
+from Knowledge_Database_App.storage.action_queries import InputError
+
 
 class DuplicateVoteError(Exception):
     """Exception to raise when a vote already exists."""
@@ -54,10 +56,13 @@ def store_edit(content_id, edit_text, edit_rationale, content_part,
                 pipe.set("next_edit_id", next_edit_id).execute()
             except WatchError:
                 continue
+            except:
+                raise
             else:
                 break
 
         # Now store the edit with the edit id
+        pipe.lpush("user:" + str(user_id), edit_id)
         pipe.lpush("content:" + str(content_id), edit_id)
         pipe.hmset("edit:" + str(edit_id), {
             "edit_id": edit_id,
@@ -88,14 +93,20 @@ def store_vote(edit_id, voter_id, vote):
         raise DuplicateVoteError
 
 
-def get_edits(content_id, only_ids=False):
+def get_edits(content_id=None, user_id=None, only_ids=False):
     """
     Args:
-        content_id: Integer.
+        content_id: Integer. Defaults to None.
+        user_id: Integer. Defaults to None.
         only_ids: Boolean. Defaults to False. Determines whether to
             return edits or only edit ids.
     """
-    edit_ids = redis.lrange("content:" + str(content_id), 0, -1)
+    if content_id is not None:
+        edit_ids = redis.lrange("content:" + str(content_id), 0, -1)
+    elif user_id is not None:
+        edit_ids = redis.lrange("user:" + str(user_id), 0, -1)
+    else:
+        raise InputError("Missing arguments!")
     if only_ids:
         return edit_ids
     else:
@@ -119,13 +130,14 @@ def get_validation_data(edit_id):
     return {"edit": edit, "votes": votes}
 
 
-def delete_validation_data(content_id, edit_id):
+def delete_validation_data(content_id, edit_id, user_id):
     """
     Args:
         content_id: Integer.
         edit_id: Integer.
     """
     with redis.pipeline() as pipe:
+        pipe.lrem("user:" + str(user_id), 0, edit_id)
         pipe.lrem("content:" + str(content_id), 0, edit_id)
         pipe.delete("edit:" + str(edit_id))
         pipe.delete("votes:" + str(edit_id))
