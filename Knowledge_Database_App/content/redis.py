@@ -62,13 +62,14 @@ def store_edit(content_id, edit_text, edit_rationale, content_part,
                 break
 
         # Now store the edit with the edit id
-        pipe.lpush("user:" + str(user_id), edit_id)
+        if user_id is not None:
+            pipe.lpush("user:" + str(user_id), edit_id)
         pipe.lpush("content:" + str(content_id), edit_id)
         pipe.hmset("edit:" + str(edit_id), {
             "edit_id": edit_id,
             "content_id": content_id,
             "edit_text": edit_text,
-            "edit_rationale": edit_rationale,
+            "edit_rationale": edit_rationale if edit_rationale else "",
             "content_part": content_part,
             "part_id": part_id,
             "timestamp": timestamp,
