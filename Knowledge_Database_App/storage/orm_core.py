@@ -261,6 +261,7 @@ class AcceptedEdit(Base):
     """
     Attributes:
         edit_id: Integer, primary key.
+        redis_edit_id: Integer, constrained to be unique.
         edit_text: String.
         edit_rational: String.
         content_part: String, expects 'name', 'text', 'keyword',
@@ -289,6 +290,7 @@ class AcceptedEdit(Base):
     __tablename__ = "Accepted_Edit"
 
     edit_id = Column(Integer, primary_key=True)
+    redis_edit_id = Column(Integer, unique=True, index=True)
     edit_text = Column(Text_)
     edit_rationale = Column(Text_)
     content_part = Column(Text_)
@@ -367,6 +369,7 @@ class RejectedEdit(Base):
     """
     Attributes:
         edit_id: Integer, primary key.
+        redis_edit_id: Integer, constrained to be unique.
         edit_text: String.
         edit_rational: String.
         content_part: String, expects 'name', 'text', 'keyword',
@@ -395,6 +398,7 @@ class RejectedEdit(Base):
     __tablename__ = "Rejected_Edit"
 
     edit_id = Column(Integer, primary_key=True)
+    redis_edit_id = Column(Integer, unique=True, index=True)
     edit_text = Column(Text_)
     edit_rationale = Column(Text_)
     content_part = Column(Text_)

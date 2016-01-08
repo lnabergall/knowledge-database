@@ -330,7 +330,9 @@ One-to-Many & Rejected\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associa
 \multicolumn{4}{|c|}{Accepted\_Edit} \\ \hline
 Attribute Name & Type & Indexed & Required \\ \hline
 edit\_id & Integer & Yes, Primary Key & Yes \\ \hline
+redis\_edit\_id & Integer & Yes & Yes \\ \hline
 edit\_text & Text & No & Yes \\ \hline
+edit\_rationale & Text & No & No \\ \hline
 content\_part & Text & No & Yes \\ \hline
 author\_type & Text & No & Yes \\ \hline % "U" for registered users, IP address for anonymous users
 timestamp & Timestamp & No & Yes \\ \hline
@@ -396,7 +398,9 @@ deleted\_timestamp & Timestamp & No & No \\ \hline
 \multicolumn{4}{|c|}{Rejected\_Edit} \\ \hline
 Attribute Name & Type & Indexed & Required \\ \hline
 edit\_id & Integer & Yes, Primary Key & Yes \\ \hline
+redis\_edit\_id & Integer & Yes & Yes \\ \hline
 edit\_text & Text & No & Yes \\ \hline
+edit\_rationale & Text & No & No \\ \hline
 content\_part & Text & No & Yes \\ \hline
 author\_type & Text & No & Yes \\ \hline % "U" for registered users, IP address for anonymous users
 timestamp & Timestamp & No & Yes \\ \hline
