@@ -247,16 +247,14 @@ def get_content_types(session=None):
 
 
 def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
-                       time_range=None, user_id=None, text_id=None,
-                       name_id=None, citation_id=None, keyword_id=None,
-                       ip_address=None, session=None):
+                       user_id=None, text_id=None, name_id=None,
+                       citation_id=None, keyword_id=None, ip_address=None,
+                       session=None):
     """
     Args:
         content_id: Integer. Defaults to None.
         edit_id: Integer. Defaults to None.
         redis_edit_id: Integer. Defaults to None.
-        time_range: Tuple of the form (datetime1, datetime2).
-            Defaults to None.
         user_id: Integer. Defaults to None.
         text_id: Integer. Defaults to None.
         name_id: Integer. Defaults to None.
@@ -281,10 +279,6 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
         accepted_edits = session.query(orm.AcceptedEdit).join(
             orm.User).filter(orm.User.user_id == user_id).order_by(
             desc(orm.AcceptedEdit.acc_timestamp)).all()
-    elif time_range is not None:
-        accepted_edits = session.query(orm.AcceptedEdit).filter(
-            orm.AcceptedEdit.acc_timestamp.between(time_range[0], time_range[1])
-            ).order_by(desc(orm.AcceptedEdit.acc_timestamp)).all()
     elif ip_address is not None:
         accepted_edits = session.query(orm.AcceptedEdit).filter(
             orm.AcceptedEdit.author_type == ip_address).order_by(
@@ -330,16 +324,14 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
 
 
 def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
-                       time_range=None, user_id=None, text_id=None,
-                       name_id=None, citation_id=None, keyword_id=None,
-                       ip_address=None, session=None):
+                       user_id=None, text_id=None, name_id=None,
+                       citation_id=None, keyword_id=None, ip_address=None,
+                       session=None):
     """
     Args:
         content_id: Integer. Defaults to None.
         edit_id: Integer. Defaults to None.
         redis_edit_id: Integer. Defaults to None.
-        time_range: Tuple of the form (datetime1, datetime2).
-            Defaults to None.
         user_id: Integer. Defaults to None.
         text_id: Integer. Defaults to None.
         name_id: Integer. Defaults to None.
@@ -364,10 +356,6 @@ def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
         rejected_edits = session.query(orm.RejectedEdit).join(
             orm.User).filter(orm.User.user_id == user_id).order_by(
             desc(orm.RejectedEdit.rej_timestamp)).all()
-    elif time_range is not None:
-        rejected_edits = session.query(orm.RejectedEdit).filter(
-            orm.RejectedEdit.rej_timestamp.between(time_range[0], time_range[1])
-            ).order_by(desc(orm.RejectedEdit.rej_timestamp)).all()
     elif ip_address is not None:
         rejected_edits = session.query(orm.RejectedEdit).filter(
             orm.RejectedEdit.author_type == ip_address).order_by(
