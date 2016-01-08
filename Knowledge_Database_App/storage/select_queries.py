@@ -14,8 +14,8 @@ Functions:
     get_keywords, get_citations, get_keyword, get_citation,
     get_content_type, get_content_types, get_accepted_edits,
     get_rejected_edits, get_user_votes, get_accepted_votes,
-    get_rejected_votes, get_user_encrypt_info, get_user, get_user_emails,
-    get_user_reports
+    get_rejected_votes, get_user_encrypt_info, get_author_count, get_user,
+    get_user_emails, get_user_reports
 
     Note that all functions take a common 'session' keyword argument,
     which defaults to None.
