@@ -526,6 +526,18 @@ def get_user_encrypt_info(email=None, remember_id=None, session=None):
         return encrypt_info
 
 
+def get_author_count(content_id, session=None):
+    if session is None:
+        session = orm.start_session()
+    try:
+        author_count = session.query(orm.ContentPiece.authors).filter(
+            orm.ContentPiece.content_id == content_id).count()
+    except Exception as e:
+        raise SelectError(str(e))
+    else:
+        return author_count
+
+
 def get_user(user_id=None, email=None, pass_hash=None, remember_id=None,
              remember_token_hash=None, session=None):
     """
