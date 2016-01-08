@@ -262,6 +262,8 @@ def store_accepted_edit(redis_edit_id, edit_text, edit_rationale, content_part,
     except Exception as e:
         session.rollback()
         raise ActionError(str(e))
+    else:
+        return edit.edit_id
 
 
 def store_rejected_edit(redis_edit_id, edit_text, edit_rationale, content_part,
@@ -324,6 +326,8 @@ def store_rejected_edit(redis_edit_id, edit_text, edit_rationale, content_part,
     except Exception as e:
         session.rollback()
         raise ActionError(str(e))
+    else:
+        return edit.edit_id
 
 
 def store_new_user(user_type, user_name, email, pass_hash,
