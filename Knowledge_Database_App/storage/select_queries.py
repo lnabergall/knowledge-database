@@ -245,13 +245,15 @@ def get_content_types(session=None):
     return content_types
 
 
-def get_accepted_edits(content_id=None, edit_id=None, user_id=None,
-                       text_id=None, name_id=None, citation_id=None,
-                       keyword_id=None, ip_address=None, session=None):
+def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
+                       user_id=None, text_id=None, name_id=None,
+                       citation_id=None, keyword_id=None, ip_address=None,
+                       session=None):
     """
     Args:
         content_id: Integer. Defaults to None.
         edit_id: Integer. Defaults to None.
+        redis_edit_id: Integer. Defaults to None.
         user_id: Integer. Defaults to None.
         text_id: Integer. Defaults to None.
         name_id: Integer. Defaults to None.
@@ -304,19 +306,30 @@ def get_accepted_edits(content_id=None, edit_id=None, user_id=None,
             raise SelectError(str(e))
         else:
             return accepted_edit
+    elif redis_edit_id is not None:
+        try:
+            accepted_edit = session.query(orm.AcceptedEdit).options(
+                subqueryload(orm.AcceptedEdit.author)).filter(
+                orm.AcceptedEdit.redis_edit_id == redis_edit_id).one()
+        except (NoResultFound, MultipleResultsFound) as e:
+            raise SelectError(str(e))
+        else:
+            return accepted_edit
     else:
         InputError("No arguments!")
 
     return accepted_edits
 
 
-def get_rejected_edits(content_id=None, edit_id=None, user_id=None,
-                       text_id=None, name_id=None, citation_id=None,
-                       keyword_id=None, ip_address=None, session=None):
+def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
+                       user_id=None, text_id=None, name_id=None,
+                       citation_id=None, keyword_id=None, ip_address=None,
+                       session=None):
     """
     Args:
         content_id: Integer. Defaults to None.
         edit_id: Integer. Defaults to None.
+        redis_edit_id: Integer. Defaults to None.
         user_id: Integer. Defaults to None.
         text_id: Integer. Defaults to None.
         name_id: Integer. Defaults to None.
@@ -365,6 +378,15 @@ def get_rejected_edits(content_id=None, edit_id=None, user_id=None,
             rejected_edit = session.query(orm.RejectedEdit).options(
                 subqueryload(orm.RejectedEdit.author)).filter(
                 orm.RejectedEdit.edit_id == edit_id).one()
+        except (NoResultFound, MultipleResultsFound) as e:
+            raise SelectError(str(e))
+        else:
+            return rejected_edit
+    elif redis_edit_id is not None:
+        try:
+            rejected_edit = session.query(orm.RejectedEdit).options(
+                subqueryload(orm.RejectedEdit.author)).filter(
+                orm.RejectedEdit.redis_edit_id == redis_edit_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
             raise SelectError(str(e))
         else:
