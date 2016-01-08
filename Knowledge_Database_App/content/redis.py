@@ -131,14 +131,15 @@ def get_validation_data(edit_id):
     return {"edit": edit, "votes": votes}
 
 
-def delete_validation_data(content_id, edit_id, user_id):
+def delete_validation_data(content_id, edit_id, user_id=None):
     """
     Args:
         content_id: Integer.
         edit_id: Integer.
     """
     with redis.pipeline() as pipe:
-        pipe.lrem("user:" + str(user_id), 0, edit_id)
+        if user_id is not None:
+            pipe.lrem("user:" + str(user_id), 0, edit_id)
         pipe.lrem("content:" + str(content_id), 0, edit_id)
         pipe.delete("edit:" + str(edit_id))
         pipe.delete("votes:" + str(edit_id))
