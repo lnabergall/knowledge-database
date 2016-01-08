@@ -90,7 +90,8 @@ The validation process will proceed as follows. After a user submits an edit, al
 \item[2.] if there are $N \in \mathbb{N}$ authors, at least $\lceil N/2 \rceil$ authors have voted and at least $3/4$ of the votes are for acceptance of the edit,\footnote{Note that these details are not finalized, although currently $N/2$ and $3/4$ are chosen because at least $3/4$ of the remaining $N/2$ authors would have to vote against acceptance of the edit for there to be less than a majority for acceptance. This is in general very unlikely, assuming benevolent authors.} or
 \item[3.] at 5 days past modification, at least 2 votes have been submitted and at least $2/3$ of the votes are for acceptance of the edit, or
 \item[4.] at 10 days past modification, at least 1 vote has been submitted and a majority of the votes are for acceptance of the edit, or
-\item[5.] there are no authors.\footnote{Although it will likely be very rare, this could occur if all the authors delete their accounts.}
+\item[5.] there are no authors,\footnote{Although it will likely be very rare, this could occur if all the authors delete their accounts.} or
+\item[6.] no votes are submitted within 10 days.
 \end{enumerate}
 Otherwise, after 10 days, the edit is rejected and the voting process is closed. Upon acceptance of a logged in user's edit, the user\footnote{If they are not already an author.} is denoted an author of the piece of content and given the ability to participate in the edit validation process of that piece of content. In this way, there is an essentially \textit{viral authorship} system which ensures that those who validate edits have contributed useful, accurate, and appropriate edits in the past and therefore can be assumed to be relatively benevolent and have some knowledge of the content. 
 
