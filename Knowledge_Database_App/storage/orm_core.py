@@ -268,6 +268,7 @@ class AcceptedEdit(Base):
         edit_rational: String.
         content_part: String, expects 'name', 'text', 'keyword',
             or 'citation'.
+        start_timestamp: Datetime the author started writing the edit.
         timestamp: Datetime.
         acc_timestamp: Datetime of acceptance of the edit.
         author_type: String, expects 'U' for registered users, IP address
@@ -297,6 +298,7 @@ class AcceptedEdit(Base):
     applied_edit_text = Column(Text_)
     edit_rationale = Column(Text_)
     content_part = Column(Text_)
+    start_timestamp = Column(Text_)
     timestamp = Column(DateTime)
     acc_timestamp = Column(DateTime)
     author_type = Column(Text_)

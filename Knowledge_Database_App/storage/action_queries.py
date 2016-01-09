@@ -202,8 +202,8 @@ def update_content_part(part_id, content_part, part_text, session=None):
 
 def store_accepted_edit(redis_edit_id, edit_text, applied_edit_text,
                         edit_rationale, content_part, part_id, content_id,
-                        vote_string, voter_ids, timestamp, acc_timestamp,
-                        author_type, user_id=None, session=None):
+                        vote_string, voter_ids, start_timestamp, timestamp,
+                        acc_timestamp, author_type, user_id=None, session=None):
     """
     Args:
         redis_edit_id: Integer.
@@ -216,6 +216,7 @@ def store_accepted_edit(redis_edit_id, edit_text, applied_edit_text,
         content_id: Integer.
         vote_string: String.
         voter_ids: list of Integers.
+        start_timestamp: Datetime.
         timestamp: Datetime.
         acc_timestamp: Datetime.
         author_type: String, expects 'U' or an IP address.
@@ -238,9 +239,10 @@ def store_accepted_edit(redis_edit_id, edit_text, applied_edit_text,
     edit = orm.AcceptedEdit(redis_edit_id=redis_edit_id, edit_text=edit_text,
                             applied_edit_text=applied_edit_text,
                             edit_rationale=edit_rationale,
-                            content_part=content_part, timestamp=timestamp,
-                            acc_timestamp=acc_timestamp, content_id=content_id,
-                            author_type=author_type)
+                            content_part=content_part,
+                            start_timestamp=start_timestamp,
+                            timestamp=timestamp, acc_timestamp=acc_timestamp,
+                            content_id=content_id, author_type=author_type)
     edit.vote = vote
     if author_type == "U" and user_id is not None:
         edit.author_id = user_id
