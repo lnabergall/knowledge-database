@@ -398,7 +398,6 @@ class Edit:
         except:
             raise
         self._notify.apply_async()
-        # still need to modify content...and should before storing the edit
         # also need to take into account conflicts and merging
 
     def _compute_merging_diff(self):
@@ -418,7 +417,7 @@ class Edit:
         if len(accepted_edits) == len(prior_accepted_edits):
             return self.edit_text
         else:
-            accepted_edits_different_base = [
+            conflicting_edits = [
                 edit for edit in accepted_edits
                 if edit not in prior_accepted_edits
                 and diff.restore(edit) != self.original_part_text
@@ -426,34 +425,24 @@ class Edit:
             accepted_edits_same_base = [
                 edit for edit in accepted_edits
                 if edit not in prior_accepted_edits
-                and edit not in accepted_edits_different_base
+                and edit not in conflicting_edits
             ]
-            if not accepted_edits_different_base:
+            if not conflicting_edits:
                 reversed = accepted_edits_same_base.reverse()
                 return diff.merge(reversed)
             else:
-                conflicting_edits = accepted_edits_different_base
-                diff_leveler = prior_accepted_edits[0]
-                while conflicting_edits:
-                    new_diff = diff.merge(
-                        [diff_leveler.applied_edit_text, self.edit_text],
-                        base="first_diff")
-                    original_part_text = diff.restore(new_diff)
-                    original_edits = [
-                        [prior_edit for prior_edit in accepted_edits
-                         if prior_edit.validated_timestamp
-                         < edit.start_timestamp][0]
-                        for edit in conflicting_edits
-                    ]
-                    expanded_diffs = [
-                        diff.restore(diff.merge([prior_edit.applied_edit_text,
-                                                 edit.applied_edit_text],
-                                                base="first_diff"))
-                        for prior_edit, edit in
-                        zip(original_edits, conflicting_edits)
-                    ]
-                    conflicting_edits = [edit for edit in expanded_diffs
-                        if diff.restore(edit) != original_part_text]
+                new_diff = diff.merge(
+                    [prior_accepted_edits[0].applied_edit_text, self.edit_text],
+                    base="first_diff")
+                original_part_text = diff.restore(new_diff)
+                remaining_conflicts = [edit for edit in conflicting_edits
+                    if diff.restore(edit) != original_part_text]
+                if remaining_conflicts:
+                    raise diff.DiffComputationError(
+                        "Something went wrong, cannot compute a merge!")
+                else:
+                    reversed = conflicting_edits.reverse()
+                    return diff.merge(reversed+[new_diff])
 
     def apply_edit(self):
         if not self.edit_text:
@@ -464,16 +453,8 @@ class Edit:
             new_part_text = diff.restore(self.edit_text, version="edited")
         else:
             self.applied_edit_text = self._compute_merging_diff()
-            try:
-                edits = Edit.bulk_retrieve("accepted", ...)
-            except:
-                raise
-            else:
-                conflicting_edit_texts = [edit.edit_text for edit in conflicting_edits
-                    if ]
-            edit_texts = conflicting_edit_texts
-            edit_texts.insert(0, self.edit_text)
-            new_part_text = diff.merge(edit_texts)
+            new_part_text = diff.restore(self.applied_edit_text,
+                                         version="edited")
         if self.part_id is None:
             Content.update(self.content_id, self.content_part,
                            "add", part_text=new_part_text)
