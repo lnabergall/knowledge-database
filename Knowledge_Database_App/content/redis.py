@@ -29,7 +29,7 @@ def _setup_id_base():
 
 
 def store_edit(content_id, edit_text, edit_rationale, content_part,
-               part_id, timestamp, author_type, user_id=None):
+               part_id, timestamp, author_type, user_id, accepted_edit_ids):
     """
     Args:
         content_id: Integer.
@@ -41,7 +41,8 @@ def store_edit(content_id, edit_text, edit_rationale, content_part,
         part_id: Integer.
         timestamp: Datetime.
         author_type: String, expects 'U' or an IP address.
-        user_id: Integer. Defaults to None.
+        user_id: Integer.
+        accepted_edit_ids: List of integers.
     Returns:
         An integer, the id of the edit in Redis.
     """
@@ -69,6 +70,7 @@ def store_edit(content_id, edit_text, edit_rationale, content_part,
         elif content_part == "text":
             pipe.lpush("text:" + str(part_id), edit_id)
         pipe.lpush("content:" + str(content_id), edit_id)
+        pipe.lpush("accepted_edits_before:" + str(edit_id), *accepted_edit_ids)
         pipe.hmset("edit:" + str(edit_id), {
             "edit_id": edit_id,
             "content_id": content_id,
@@ -126,6 +128,12 @@ def get_edits(content_id=None, user_id=None, text_id=None,
             for edit_id in edit_ids:
                 pipe.hgetall("edit:" + str(edit_id))
             edits = pipe.execute()
+            for edit_id in edit_ids:
+                pipe.lrange("accepted_edits_before:" + str(edit_id), 0, -1)
+            accepted_edit_ids_list = pipe.execute()
+            for edit, accepted_edit_ids in zip(edits, accepted_edit_ids_list):
+                edit["accepted_edit_ids"] = accepted_edit_ids
+
         return {edit_id:edit for edit_id, edit in zip(edit_ids, edits)}
 
 
@@ -135,23 +143,34 @@ def get_validation_data(edit_id):
         edit_id: Integer.
     """
     with redis.pipeline() as pipe:
+        pipe.lrange("accepted_edits_before:" + str(edit_id), 0, -1)
         pipe.hgetall("edit:" + str(edit_id))
         pipe.hgetall("votes:" + str(edit_id))
-        edit, votes = pipe.execute()
+        accepted_edit_ids, edit, votes = pipe.execute()
+        edit["accepted_edit_ids"] = accepted_edit_ids
 
     return {"edit": edit, "votes": votes}
 
 
-def delete_validation_data(content_id, edit_id, user_id=None):
+def delete_validation_data(content_id, edit_id, user_id,
+                           part_id, content_part):
     """
     Args:
         content_id: Integer.
         edit_id: Integer.
+        user_id: Integer.
+        part_id: Integer.
+        content_part: String, expects 'text' or 'citation'.
     """
     with redis.pipeline() as pipe:
         if user_id is not None:
             pipe.lrem("user:" + str(user_id), 0, edit_id)
+        if content_part == "text":
+            pipe.lrem("text:" + str(part_id), 0, edit_id)
+        elif content_part == "citation":
+            pipe.lrem("citation:" + str(part_id), 0, edit_id)
         pipe.lrem("content:" + str(content_id), 0, edit_id)
+        pipe.delete("accepted_edits_before:" + str(edit_id))
         pipe.delete("edit:" + str(edit_id))
         pipe.delete("votes:" + str(edit_id))
         pipe.execute()
