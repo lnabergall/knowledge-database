@@ -358,22 +358,25 @@ def _compute_combined_diff(first_diff, later_diff, base="common"):
     return "\n".join(merged_diff_lines)
 
 
-def merge(chronologically_ascending_diffs):
+def merge(chronologically_ascending_diffs, base="common"):
     """
     Args:
         chronologically_ascending_diffs: List of diffs of edits of the
-            same original text sorted in ascending chronological order.
+            same original text, or, if base == "first_diff", with ith diff
+            specifying the original text of the (i+1)th diff, sorted in
+            ascending chronological order.
+        base: String, accepts 'common' and 'first_diff'.
     Returns:
-        The merged version string of the part text with all edits applied.
+        The merged diff string of the part text with all edits applied.
     """
     base_diff = chronologically_ascending_diffs[0]
     merged_diff = base_diff
     initial = True
     for diff in chronologically_ascending_diffs[1:]:
         if initial:
-            merged_diff = _compute_combined_diff(base_diff, diff)
+            merged_diff = _compute_combined_diff(base_diff, diff, base=base)
             initial = False
         else:
-            merged_diff = _compute_combined_diff(merged_diff, diff)
+            merged_diff = _compute_combined_diff(merged_diff, diff, base=base)
 
     return merged_diff
