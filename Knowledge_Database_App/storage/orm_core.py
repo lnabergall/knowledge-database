@@ -262,7 +262,9 @@ class AcceptedEdit(Base):
     Attributes:
         edit_id: Integer, primary key.
         redis_edit_id: Integer, constrained to be unique.
-        edit_text: String.
+        edit_text: String, contains the original diff of the edit.
+        applied_edit_text: String, contains the edit diff actually
+            applied on the new/updated/removed content part.
         edit_rational: String.
         content_part: String, expects 'name', 'text', 'keyword',
             or 'citation'.
@@ -292,6 +294,7 @@ class AcceptedEdit(Base):
     edit_id = Column(Integer, primary_key=True)
     redis_edit_id = Column(Integer, unique=True, index=True)
     edit_text = Column(Text_)
+    applied_edit_text = Column(Text_)
     edit_rationale = Column(Text_)
     content_part = Column(Text_)
     timestamp = Column(DateTime)

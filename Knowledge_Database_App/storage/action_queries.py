@@ -200,13 +200,15 @@ def update_content_part(part_id, content_part, part_text, session=None):
         raise ActionError(str(e))
 
 
-def store_accepted_edit(redis_edit_id, edit_text, edit_rationale, content_part,
-                        part_id, content_id, vote_string, voter_ids, timestamp,
-                        acc_timestamp, author_type, user_id=None, session=None):
+def store_accepted_edit(redis_edit_id, edit_text, applied_edit_text,
+                        edit_rationale, content_part, part_id, content_id,
+                        vote_string, voter_ids, timestamp, acc_timestamp,
+                        author_type, user_id=None, session=None):
     """
     Args:
         redis_edit_id: Integer.
         edit_text: String.
+        applied_edit_text: String.
         edit_rationale: String.
         content_part: String, accepts 'name', 'text', 'content_type',
             'keyword' or 'citation'.
@@ -234,6 +236,7 @@ def store_accepted_edit(redis_edit_id, edit_text, edit_rationale, content_part,
             params={"vote_id": vote.vote_id, "user_id": user_id})
 
     edit = orm.AcceptedEdit(redis_edit_id=redis_edit_id, edit_text=edit_text,
+                            applied_edit_text=applied_edit_text,
                             edit_rationale=edit_rationale,
                             content_part=content_part, timestamp=timestamp,
                             acc_timestamp=acc_timestamp, content_id=content_id,
