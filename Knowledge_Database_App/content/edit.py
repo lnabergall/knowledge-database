@@ -26,6 +26,7 @@ class Edit:
     validated_timestamp = None  # Datetime.
     validation_status = None    # String, 'pending', 'accepted', or 'rejected'.
     edit_text = None            # String.
+    applied_edit_text = None    # String.
     edit_rationale = None       # String.
     content_part = None         # String.
     part_id = None              # Integer.
@@ -172,9 +173,11 @@ class Edit:
             self.edit_text = edit.edit_text
             self.edit_rationale = edit.edit_rationale
             self.content_part = edit.content_part
+            self.start_timestamp = edit.start_timestamp
             self.timestamp = edit.timestamp
             if self.validation_status == "accepted":
                 self.validated_timestamp = edit.acc_timestamp
+                self.applied_edit_text = edit.applied_edit_text
             else:
                 self.validated_timestamp = edit.rej_timestamp
             self.author_type = edit.author_type
@@ -362,17 +365,20 @@ class Edit:
     def _accept(self, votes):
         accepted_timestamp = datetime.utcnow()
         vote_string = NotImplemented    # Vote API
+        self.apply_edit()
         try:
             edit_id = self.storage_handler.call(
                 action.store_accepted_edit,
                 self.edit_id,
                 self.edit_text,
+                self.applied_edit_text,
                 self.edit_rationale,
                 self.content_part,
                 self.part_id,
                 self.content_id,
                 vote_string,
                 votes.keys(),
+                self.start_timestamp,
                 self.timestamp,
                 accepted_timestamp,
                 self.author_type,
@@ -380,13 +386,13 @@ class Edit:
             )
         except:
             raise
+        redis_edit_id = self.edit_id
         self.edit_id = edit_id
         self.validation_status = "accepted"
         self.validated_timestamp = accepted_timestamp
-        self.apply_edit()
         try:
             redis.delete_validation_data(
-                self.content_id, self.edit_id,
+                self.content_id, redis_edit_id,
                 self.author.user_id if self.author else None,
                 self.part_id, self.content_part)
         except:
@@ -404,14 +410,50 @@ class Edit:
                 "accepted", citation_id=self.part_id)
         else:
             return self.edit_text
-        accepted_edits = [edit in accepted_edits
+        self.original_part_text = diff.restore(self.edit_text)
+        accepted_edits = [edit for edit in accepted_edits
                           if edit.edit_id != self.edit_id]
-        prior_accepted_edits = [edit in accepted_edits
+        prior_accepted_edits = [edit for edit in accepted_edits
             if edit.validated_timestamp < self.start_timestamp]
         if len(accepted_edits) == len(prior_accepted_edits):
             return self.edit_text
         else:
-            pass
+            accepted_edits_different_base = [
+                edit for edit in accepted_edits
+                if edit not in prior_accepted_edits
+                and diff.restore(edit) != self.original_part_text
+            ]
+            accepted_edits_same_base = [
+                edit for edit in accepted_edits
+                if edit not in prior_accepted_edits
+                and edit not in accepted_edits_different_base
+            ]
+            if not accepted_edits_different_base:
+                reversed = accepted_edits_same_base.reverse()
+                return diff.merge(reversed)
+            else:
+                conflicting_edits = accepted_edits_different_base
+                diff_leveler = prior_accepted_edits[0]
+                while conflicting_edits:
+                    new_diff = diff.merge(
+                        [diff_leveler.applied_edit_text, self.edit_text],
+                        base="first_diff")
+                    original_part_text = diff.restore(new_diff)
+                    original_edits = [
+                        [prior_edit for prior_edit in accepted_edits
+                         if prior_edit.validated_timestamp
+                         < edit.start_timestamp][0]
+                        for edit in conflicting_edits
+                    ]
+                    expanded_diffs = [
+                        diff.restore(diff.merge([prior_edit.applied_edit_text,
+                                                 edit.applied_edit_text],
+                                                base="first_diff"))
+                        for prior_edit, edit in
+                        zip(original_edits, conflicting_edits)
+                    ]
+                    conflicting_edits = [edit for edit in expanded_diffs
+                        if diff.restore(edit) != original_part_text]
 
     def apply_edit(self):
         if not self.edit_text:
@@ -421,13 +463,12 @@ class Edit:
                 self.content_part == "content_type" or self.part_id is None):
             new_part_text = diff.restore(self.edit_text, version="edited")
         else:
-            merging_edit_text = self._compute_merging_diff()
+            self.applied_edit_text = self._compute_merging_diff()
             try:
                 edits = Edit.bulk_retrieve("accepted", ...)
             except:
                 raise
             else:
-                self.original_part_text = restore(self.edit_text)
                 conflicting_edit_texts = [edit.edit_text for edit in conflicting_edits
                     if ]
             edit_texts = conflicting_edit_texts
