@@ -22,6 +22,7 @@ class Edit:
     edit_id = None              # Integer.
     content_id = None           # Integer.
     timestamp = None            # Datetime.
+    start_timestamp = None      # Datetime.
     validated_timestamp = None  # Datetime.
     validation_status = None    # String, 'pending', 'accepted', or 'rejected'.
     edit_text = None            # String.
@@ -34,7 +35,7 @@ class Edit:
     def __init__(self, edit_id=None, validation_status=None, content_id=None,
                  edit_text=None, edit_rationale=None, content_part=None,
                  part_id=None, original_part_text=None, author_type=None,
-                 author_id=None, edit=None):
+                 author_id=None, start_timestamp=None, edit=None):
         """
         Args:
             edit_id: Integer. Defaults to None.
@@ -51,6 +52,7 @@ class Edit:
             author_type: String, expects 'U' or an IP address.
                 Defaults to None.
             author_id: Integer. Defaults to None.
+            start_timestamp: Datetime. Defaults to None
             edit: AcceptedEdit or RejectedEdit object.
         """
         if (self.validation_status is not None and
@@ -59,54 +61,81 @@ class Edit:
                 self.validation_status != "pending") or (
                 author_type is not None and
                 not is_ip_address(author_type) and author_type != "U"):
-            raise action.InputError("Invalid argument!")
+            raise select.InputError("Invalid argument!")
 
         self.validation_status = validation_status
         if edit_id is not None and self.validation_status is not None:
             if self.validation_status == "pending":
-                edit = self._retrieve_from_redis(edit_id)
+                try:
+                    edit = self._retrieve_from_redis(edit_id)
+                except:
+                    raise
+                else:
+                    if edit is None:
+                        edit = self._retrieve_from_storage(
+                            redis_edit_id=edit_id)
                 self._transfer(edit)
             else:
-                edit = self._retrieve_from_storage(edit_id)
+                edit = self._retrieve_from_storage(edit_id=edit_id)
                 self._transfer(edit)
         elif edit is not None and self.validation_status is not None:
             self._transfer(edit)
         else:
-            if (not content_id or not edit_text or not content_part or
-                    not part_id or original_part_text is None or not author_type):
-                self.validation_status = "pending"
-                self.timestamp = datetime.utcnow()
-                self.author_type = author_type
-                if self.author_type == "U":
-                    self.author = UserData(user_id=author_id)
-                self.content_id = content_id
-                self.edit_text = diff.compute_diff(original_part_text, edit_text)
-                self.edit_rationale = edit_rationale
-                self.content_part = content_part
-                self.part_id = part_id
-                self.start_vote()
+            if (not content_id or edit_text is None or not content_part or
+                    original_part_text is None or not author_type or
+                    not start_timestamp):
+                raise select.InputError("Required arguments not provided!")
+            self.validation_status = "pending"
+            self.timestamp = datetime.utcnow()
+            self.start_timestamp = start_timestamp
+            self.author_type = author_type
+            if self.author_type == "U":
+                self.author = UserData(user_id=author_id)
+            self.content_id = content_id
+            self.content_part = content_part
+            self.part_id = part_id
+            self.edit_text = diff.compute_diff(original_part_text, edit_text)
+            self.edit_rationale = edit_rationale
+            self.start_vote()
 
-    def _retrieve_from_storage(self, edit_id):
+    def _retrieve_from_storage(self, edit_id=None, redis_edit_id=None):
         """
         Args:
             edit_id: Integer.
         Returns:
             AcceptedEdit or RejectedEdit object.
         """
-        if self.validation_status == "accepted":
+        if edit_id is not None:
+            if self.validation_status == "accepted":
+                if edit_id is not None:
+                    try:
+                        edit = self.storage_handler.call(
+                            select.get_accepted_edits, edit_id=edit_id)
+                    except:
+                        raise
+            elif self.validation_status == "rejected":
+
+                    try:
+                        edit = self.storage_handler.call(
+                            select.get_rejected_edits, edit_id=edit_id)
+                    except:
+                        raise
+        elif self.validation_status == "pending" and redis_edit_id is not None:
             try:
                 edit = self.storage_handler.call(
-                    select.get_accepted_edits, edit_id)
+                    select.get_accepted_edits, redis_edit_id=redis_edit_id)
             except:
-                raise
-        elif self.validation_status == "rejected":
-            try:
-                edit = self.storage_handler.call(
-                    select.get_rejected_edits, edit_id)
-            except:
-                raise
+                try:
+                    edit = self.storage_handler.call(
+                        select.get_rejected_edits, redis_edit_id=redis_edit_id)
+                except:
+                    raise
+                else:
+                    self.validation_status = "rejected"
+            else:
+                self.validation_status = "accepted"
         else:
-            raise action.InputError("Invalid argument!")
+            raise select.InputError("Invalid argument!")
 
         return edit
 
@@ -118,7 +147,10 @@ class Edit:
         except:
             raise
         else:
-            return validation_data["edit"]
+            if validation_data:
+                return validation_data["edit"]
+            else:
+                return
 
     def _transfer(self, edit):
         if self.validation_status == "pending":
@@ -133,6 +165,7 @@ class Edit:
             self.author_type = edit["author_type"]
             if self.author_type == "U":
                 self.author = UserData(user_id=edit.author.user_id)
+            self.start_timestamp = edit["start_timestamp"]
         else:
             self.content_id = edit.content_id
             self.edit_id = edit.edit_id
@@ -161,8 +194,8 @@ class Edit:
 
     @classmethod
     def bulk_retrieve(cls, validation_status, user_id=None,
-                      content_id=None, text_id=None, name_id=None,
-                      page_num=1):
+                      content_id=None, text_id=None, citation_id=None,
+                      name_id=None, page_num=0, ids_only=False):
         if user_id is not None:
             if validation_status == "pending":
                 try:
@@ -182,16 +215,13 @@ class Edit:
                 except:
                     raise
             else:
-                raise action.InputError("Invalid arguments!")
+                raise select.InputError("Invalid arguments!")
         elif content_id is not None:
             if validation_status == "pending":
                 try:
                     edits = redis.get_edits(content_id=content_id).values()
                 except:
                     raise
-                else:
-                    return [Edit(edit=edit, validation_status=validation_status)
-                            for edit in edits][10*(page_num-1) : 10*page_num]
             elif validation_status == "accepted":
                 try:
                     edits = self.storage_handler.call(select.get_accepted_edits,
@@ -205,9 +235,34 @@ class Edit:
                 except:
                     raise
             else:
-                raise action.InputError("Invalid arguments!")
+                raise select.InputError("Invalid arguments!")
+        elif citation_id is not None:
+            if validation_status == "pending":
+                try:
+                    edits = redis.get_edits(citation_id=citation_id).values()
+                except:
+                    raise
+            elif validation_status == "accepted":
+                try:
+                    edits = self.storage_handler.call(select.get_accepted_edits,
+                                                      citation_id=citation_id)
+                except:
+                    raise
+            elif validation_status == "rejected":
+                try:
+                    edits = self.storage_handler.call(select.get_rejected_edits,
+                                                      citation_id=citation_id)
+                except:
+                    raise
+            else:
+                raise select.InputError("Invalid arguments!")
         elif text_id is not None:
-            if validation_status == "accepted":
+            if validation_status == "pending":
+                try:
+                    edits = redis.get_edits(text_id=text_id).values()
+                except:
+                    raise
+            elif validation_status == "accepted":
                 try:
                     edits = self.storage_handler.call(select.get_accepted_edits,
                                                       text_id=text_id)
@@ -220,7 +275,7 @@ class Edit:
                 except:
                     raise
             else:
-                raise action.InputError("Invalid arguments!")
+                raise select.InputError("Invalid arguments!")
         elif name_id is not None:
             if validation_status == "accepted":
                 try:
@@ -235,12 +290,18 @@ class Edit:
                 except:
                     raise
             else:
-                raise action.InputError("Invalid arguments!")
+                raise select.InputError("Invalid arguments!")
         else:
             return []
 
-        return [Edit(edit=edit, validation_status=validation_status)
-                for edit in edits][10*(page_num-1) : 10*page_num]
+        edits = [Edit(edit=edit, validation_status=validation_status)
+                 for edit in edits]
+        if page_num != 0:
+            edits = edits[10*(page_num-1) : 10*page_num]
+        if ids_only:
+            return [edit.edit_id for edit in edits]
+        else:
+            return edits
 
     def start_vote(self):
         if not self.validate():
@@ -256,7 +317,8 @@ class Edit:
             edit_id = redis.store_edit(
                 self.content_id, self.edit_text, self.edit_rationale,
                 self.content_part, self.part_id, self.timestamp,
-                self.author_type, self.author.user_id if self.author else None)
+                self.start_timestamp, self.author_type,
+                self.author.user_id if self.author else None)
         except:
             raise
         else:
@@ -295,14 +357,15 @@ class Edit:
                 return
 
         if against_vote_count >= author_count/2 or days_since_creation >= 10:
-            self._reject()
+            self._reject(votes)
 
     def _accept(self, votes):
         accepted_timestamp = datetime.utcnow()
         vote_string = NotImplemented    # Vote API
         try:
-            self.storage_handler.call(
+            edit_id = self.storage_handler.call(
                 action.store_accepted_edit,
+                self.edit_id,
                 self.edit_text,
                 self.edit_rationale,
                 self.content_part,
@@ -317,22 +380,77 @@ class Edit:
             )
         except:
             raise
+        self.edit_id = edit_id
         self.validation_status = "accepted"
         self.validated_timestamp = accepted_timestamp
+        self.apply_edit()
         try:
             redis.delete_validation_data(
                 self.content_id, self.edit_id,
-                self.author.user_id if self.author else None)
+                self.author.user_id if self.author else None,
+                self.part_id, self.content_part)
         except:
             raise
         self._notify.apply_async()
+        # still need to modify content...and should before storing the edit
+        # also need to take into account conflicts and merging
+
+    def _compute_merging_diff(self):
+        if self.content_part == "text":
+            accepted_edits = Edit.bulk_retrieve(
+                "accepted", text_id=self.part_id)
+        elif self.content_part == "citation":
+            accepted_edits = Edit.bulk_retrieve(
+                "accepted", citation_id=self.part_id)
+        else:
+            return self.edit_text
+        accepted_edits = [edit in accepted_edits
+                          if edit.edit_id != self.edit_id]
+        prior_accepted_edits = [edit in accepted_edits
+            if edit.validated_timestamp < self.start_timestamp]
+        if len(accepted_edits) == len(prior_accepted_edits):
+            return self.edit_text
+        else:
+            pass
+
+    def apply_edit(self):
+        if not self.edit_text:
+            new_part_text = ""
+        elif (self.content_part == "keyword" or self.content_part == "name" or
+                self.content_part == "alternate_name" or
+                self.content_part == "content_type" or self.part_id is None):
+            new_part_text = diff.restore(self.edit_text, version="edited")
+        else:
+            merging_edit_text = self._compute_merging_diff()
+            try:
+                edits = Edit.bulk_retrieve("accepted", ...)
+            except:
+                raise
+            else:
+                self.original_part_text = restore(self.edit_text)
+                conflicting_edit_texts = [edit.edit_text for edit in conflicting_edits
+                    if ]
+            edit_texts = conflicting_edit_texts
+            edit_texts.insert(0, self.edit_text)
+            new_part_text = diff.merge(edit_texts)
+        if self.part_id is None:
+            Content.update(self.content_id, self.content_part,
+                           "add", part_text=new_part_text)
+        else:
+            if new_part_text:
+                Content.update(self.content_id, self.content_part, "modify",
+                               part_text=new_part_text, part_id=self.part_id)
+            else:
+                Content.update(self.content_id, self.content_part,
+                               "remove", part_id=self.part_id)
 
     def _reject(self, votes):
         rejected_timestamp = datetime.utcnow()
         vote_string = NotImplemented    # Vote API
         try:
-            self.storage_handler.call(
+            edit_id = self.storage_handler.call(
                 action.store_rejected_edit,
+                self.edit_id,
                 self.edit_text,
                 self.edit_rationale,
                 self.content_part,
@@ -347,6 +465,7 @@ class Edit:
             )
         except:
             raise
+        self.edit_id = edit_id
         self.validation_status = "rejected"
         self.validated_timestamp = rejected_timestamp
         try:
