@@ -373,10 +373,6 @@ def merge(chronologically_ascending_diffs, base="common"):
     merged_diff = base_diff
     initial = True
     for diff in chronologically_ascending_diffs[1:]:
-        if initial:
-            merged_diff = _compute_combined_diff(base_diff, diff, base=base)
-            initial = False
-        else:
-            merged_diff = _compute_combined_diff(merged_diff, diff, base=base)
+        merged_diff = _compute_combined_diff(base_diff, diff, base=base)
 
     return merged_diff
