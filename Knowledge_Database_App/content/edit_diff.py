@@ -376,4 +376,4 @@ def merge(chronologically_ascending_diffs):
         else:
             merged_diff = _compute_combined_diff(merged_diff, diff)
 
-    return restore(merged_diff, version="edited")
+    return merged_diff
