@@ -36,8 +36,8 @@ def store_edit(content_id, edit_text, edit_rationale, content_part,
         edit_text: String.
         edit_rationale: String.
         original_part_text: String.
-        content_part: String, expects 'text', 'name', 'keyword',
-            'content_type', or 'citation'.
+        content_part: String, expects 'text', 'name', 'alternate_name',
+            'keyword', 'content_type', or 'citation'.
         part_id: Integer.
         timestamp: Datetime.
         author_type: String, expects 'U' or an IP address.
@@ -64,6 +64,10 @@ def store_edit(content_id, edit_text, edit_rationale, content_part,
         # Now store the edit with the edit id
         if user_id is not None:
             pipe.lpush("user:" + str(user_id), edit_id)
+        if content_part == "citation":
+            pipe.lpush("citation:" + str(part_id), edit_id)
+        elif content_part == "text":
+            pipe.lpush("text:" + str(part_id), edit_id)
         pipe.lpush("content:" + str(content_id), edit_id)
         pipe.hmset("edit:" + str(edit_id), {
             "edit_id": edit_id,
@@ -94,11 +98,14 @@ def store_vote(edit_id, voter_id, vote):
         raise DuplicateVoteError
 
 
-def get_edits(content_id=None, user_id=None, only_ids=False):
+def get_edits(content_id=None, user_id=None, text_id=None,
+              citation_id=None, only_ids=False):
     """
     Args:
         content_id: Integer. Defaults to None.
         user_id: Integer. Defaults to None.
+        text_id: Integer. Defaults to None.
+        citation_id: Integer. Defaults to None.
         only_ids: Boolean. Defaults to False. Determines whether to
             return edits or only edit ids.
     """
@@ -106,6 +113,10 @@ def get_edits(content_id=None, user_id=None, only_ids=False):
         edit_ids = redis.lrange("content:" + str(content_id), 0, -1)
     elif user_id is not None:
         edit_ids = redis.lrange("user:" + str(user_id), 0, -1)
+    elif text_id is not None:
+        edit_ids = redis.lrange("text:" + str(text_id), 0, -1)
+    elif citation_id is not None:
+        edit_ids = redis.lrange("citation:" + str(citation_id), 0, -1)
     else:
         raise InputError("Missing arguments!")
     if only_ids:
