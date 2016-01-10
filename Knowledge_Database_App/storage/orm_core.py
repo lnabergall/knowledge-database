@@ -19,7 +19,7 @@ Classes:
 """
 
 from sqlalchemy import (create_engine, Column, Integer,
-                        DateTime, ForeignKey, Table)
+                        DateTime, ForeignKey, Table, UniqueConstraint)
 from sqlalchemy import Text as Text_
 from sqlalchemy.orm import sessionmaker, relationship, backref
 from sqlalchemy.orm.query import Query as _Query
@@ -201,6 +201,7 @@ class ContentType(Base):
 content_keywords = Table("content_keywords", Base.metadata,
     Column("keyword_id", Integer, ForeignKey("Keyword.keyword_id")),
     Column("content_id", Integer, ForeignKey("Content_Piece.content_id")),
+    UniqueConstraint("keyword_id", "content_id"),
 )
 
 
@@ -231,6 +232,7 @@ class Keyword(Base):
 content_citations = Table("content_citations", Base.metadata,
     Column("citation_id", Integer, ForeignKey("Citation.citation_id")),
     Column("content_id", Integer, ForeignKey("Content_Piece.content_id")),
+    UniqueConstraint("citation_id", "content_id"),
 )
 
 
