@@ -412,8 +412,7 @@ class Content:
             content_part: String, expects 'name', 'alternate_name',
                 'text', 'content_type', 'keyword', or 'citation'.
             update_type: String, accepts 'modify', 'add', or 'remove'.
-            part_text: String, orm.Name, orm.Keyword, orm.Citation,
-                or orm.ContentType. Defaults to None.
+            part_text: String or orm.Name. Defaults to None.
             part_id: Integer. Defaults to None.
         """
         if content_part == "content_type" and update_type == "modify":
