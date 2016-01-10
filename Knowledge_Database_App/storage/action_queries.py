@@ -18,10 +18,16 @@ Functions:
     Note that all functions take a common 'session' keyword argument,
     with default value None.
 """
+from sqlalchemy.orm.exc import (NoResultFound, ObjectDeletedError,
+                                StaleDataError)
 
 from . import orm_core as orm
 from .orm_core import ActionError
 from .select_queries import InputError, get_user, get_content_piece
+
+
+class MissingDataError(Exception):
+    """Exception raised when a query unexpectedly returns no results."""
 
 
 def store_content_piece(user_id, name, text, content_type, keywords, timestamp,
@@ -167,6 +173,8 @@ def remove_content_part(content_id, part_id, content_part, session=None):
         raise InputError("Invalid argument!")
     try:
         session.commit()
+    except (NoResultFound, StaleDataError, ObjectDeletedError) as e:
+        raise MissingDataError(str(e))
     except Exception as e:
         session.rollback()
         raise ActionError(str(e))

@@ -409,34 +409,43 @@ class Content:
         """
         Args:
             content_id: Integer.
-            content_part: String, orm.Name, orm.Keyword, orm.Citation,
-                or orm.ContentType. As a string, expects 'name',
-                'alternate_name', 'text', 'keyword', or 'citation'.
+            content_part: String, expects 'name', 'alternate_name',
+                'text', 'content_type', 'keyword', or 'citation'.
             update_type: String, accepts 'modify', 'add', or 'remove'.
-            part_text: String. Defaults to None.
+            part_text: String, orm.Name, orm.Keyword, orm.Citation,
+                or orm.ContentType. Defaults to None.
             part_id: Integer. Defaults to None.
         """
-        if part_id is None and update_type == "modify":
+        if content_part == "content_type" and update_type == "modify":
             try:
+                content_type = select.get_content_type(part_text)
                 self.storage_handler.call(action.update_content_type,
-                                          content_id, content_part)
-                index.update_content_piece(content_id, "content_type",
-                                           content_part.content_type)
+                                          content_id, content_type)
+                index.update_content_piece(content_id, content_part,
+                                           content_type.content_type)
             except:
                 raise
         elif update_type == "add":
             try:
-                self.storage_handler.call(action.store_content_part,
-                                          content_part, content_id)
-                if isinstance(content_part, orm.Name):
+                if isinstance(part_text, orm.Name):
+                    self.storage_handler.call(action.store_content_part,
+                                              part_text, content_id)
                     index.add_to_content_piece(content_id, "alternate_name",
                                                content_part.name)
-                elif isinstance(content_part, orm.Keyword):
-                    index.add_to_content_piece(content_id, "keyword",
-                                               content_part.keyword)
-                elif isinstance(content_part, orm.Citation):
-                    index.add_to_content_piece(content_id, "citation",
-                                               content_part.citation_text)
+                elif content_part == "keyword" and part_text is not None:
+                    keyword = self.storage_handler.call(
+                        select.get_keyword, part_text)
+                    self.storage_handler.call(action.store_content_part,
+                                              keyword, content_id)
+                    index.add_to_content_piece(content_id, content_part,
+                                               keyword.keyword)
+                elif content_part == "citation" and part_text is not None:
+                    citation = self.storage_handler.call(
+                        select.get_citation, part_text)
+                    self.storage_handler.call(action.store_content_part,
+                                              citation, content_id)
+                    index.add_to_content_piece(content_id, content_part,
+                                               citation.citation_text)
                 else:
                     raise action.InputError("Invalid argument!")
             except:
@@ -473,7 +482,7 @@ class Content:
                 if content_part == "name" or content_part == "alternate_name":
                     self.storage_handler.call(action.update_content_part,
                                               part_id, "name", part_text)
-                else:
+                elif content_part == "text":
                     self.storage_handler.call(action.update_content_part,
                                               part_id, content_part, part_text)
                 if content_part == "name" or content_part == "text":
@@ -486,12 +495,24 @@ class Content:
                     index.update_content_piece(content_id, content_part,
                                                part_strings=alternate_names)
                 elif content_part == "keyword":
+                    try:
+                        Content.update(content_id, content_part, "delete", part_id)
+                    except action.MissingDataError:
+                        pass
+                    Content.update(content_id, content_part,
+                                   "add", part_text=part_text)
                     keywords = self.storage_handler.call(select.get_keywords,
                                                          content_id)
                     keywords = [keyword.keyword for keyword in keywords]
                     index.update_content_piece(content_id, content_part,
                                                part_strings=keywords)
                 elif content_part == "citation":
+                    try:
+                        Content.update(content_id, content_part, "delete", part_id)
+                    except action.MissingDataError:
+                        pass
+                    Content.update(content_id, content_part,
+                                   "add", part_text=part_text)
                     citations = self.storage_handler.call(
                         select.get_citations, content_id)
                     citations = [citation.citation_text
