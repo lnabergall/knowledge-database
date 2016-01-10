@@ -69,6 +69,14 @@ def store_edit(content_id, edit_text, edit_rationale, content_part,
             pipe.lpush("citation:" + str(part_id), edit_id)
         elif content_part == "text":
             pipe.lpush("text:" + str(part_id), edit_id)
+        elif content_part == "name" or content_part == "alternate_name":
+            pipe.lpush("name:" + str(part_id), edit_id)
+        elif content_part == "keyword":
+            pipe.lpush("keyword:" + str(part_id), edit_id)
+        elif content_part == "content_type":
+            pipe.lpush("content_type:" + str(part_id), edit_id)
+        else:
+            raise InputError("Invalid argument!")
         pipe.lpush("content:" + str(content_id), edit_id)
         pipe.hmset("edit:" + str(edit_id), {
             "edit_id": edit_id,
@@ -101,7 +109,8 @@ def store_vote(edit_id, voter_id, vote):
 
 
 def get_edits(content_id=None, user_id=None, text_id=None,
-              citation_id=None, only_ids=False):
+              citation_id=None, name_id=None, keyword_id=None,
+              content_type_id=None, only_ids=False):
     """
     Args:
         content_id: Integer. Defaults to None.
@@ -119,6 +128,12 @@ def get_edits(content_id=None, user_id=None, text_id=None,
         edit_ids = redis.lrange("text:" + str(text_id), 0, -1)
     elif citation_id is not None:
         edit_ids = redis.lrange("citation:" + str(citation_id), 0, -1)
+    elif keyword_id is not None:
+        edit_ids = redis.lrange("keyword:" + str(keyword_id), 0, -1)
+    elif name_id is not None:
+        edit_ids = redis.lrange("name:" + str(name_id), 0, -1)
+    elif content_type_id is not None:
+        edit_ids = redis.lrange("content_type:" + str(content_type_id), 0, -1)
     else:
         raise InputError("Missing arguments!")
     if only_ids:
@@ -153,7 +168,8 @@ def delete_validation_data(content_id, edit_id, user_id,
         edit_id: Integer.
         user_id: Integer.
         part_id: Integer.
-        content_part: String, expects 'text' or 'citation'.
+        content_part: String, expects 'text', 'citation', 'keyword',
+            'name', 'alternate_name', or 'content_type'.
     """
     with redis.pipeline() as pipe:
         if user_id is not None:
@@ -162,6 +178,14 @@ def delete_validation_data(content_id, edit_id, user_id,
             pipe.lrem("text:" + str(part_id), 0, edit_id)
         elif content_part == "citation":
             pipe.lrem("citation:" + str(part_id), 0, edit_id)
+        elif content_part == "keyword":
+            pipe.lrem("keyword:" + str(part_id), 0, edit_id)
+        elif content_part == "name" or content_part == "alternate_name":
+            pipe.lrem("name:" + str(part_id), 0, edit_id)
+        elif content_part == "content_type":
+            pipe.lrem("content_type:" + str(part_id), 0, edit_id)
+        else:
+            raise InputError("Invalid argument!")
         pipe.lrem("content:" + str(content_id), 0, edit_id)
         pipe.delete("edit:" + str(edit_id))
         pipe.delete("votes:" + str(edit_id))
