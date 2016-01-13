@@ -12,6 +12,13 @@ from Knowledge_Database_App import search as search_api
 from Knowledge_Database_App.search import index
 
 
+class ApplicationError(Exception):
+    """
+    General exception raised when an unrecoverable error
+    in application logic occurs.
+    """
+
+
 class Name:
 
     def __init__(self, name_id=None, name=None,
@@ -404,8 +411,8 @@ class Content:
                 self.stored = True
 
     @classmethod
-    def update(cls, content_id, content_part, update_type,
-               part_text=None, part_id=None):
+    def update(cls, content_id, content_part, update_type, timestamp,
+               part_text=None, part_id=None, edited_citations=None):
         """
         Args:
             content_id: Integer.
@@ -414,6 +421,8 @@ class Content:
             update_type: String, accepts 'modify', 'add', or 'remove'.
             part_text: String or orm.Name. Defaults to None.
             part_id: Integer. Defaults to None.
+            edited_citations: List of orm.Citation objects.
+                Defaults to None.
         """
         if content_part == "content_type" and update_type == "modify":
             try:
@@ -432,17 +441,26 @@ class Content:
                     index.add_to_content_piece(content_id, "alternate_name",
                                                content_part.name)
                 elif content_part == "keyword" and part_text is not None:
-                    keyword = self.storage_handler.call(
-                        select.get_keyword, part_text)
+                    try:
+                        keyword = self.storage_handler.call(
+                            select.get_keyword, part_text)
+                    except select.SelectError:
+                        keyword = orm.Keyword(keyword=part_text,
+                                              timestamp=timestamp)
                     self.storage_handler.call(action.store_content_part,
                                               keyword, content_id)
                     index.add_to_content_piece(content_id, content_part,
                                                keyword.keyword)
                 elif content_part == "citation" and part_text is not None:
-                    citation = self.storage_handler.call(
-                        select.get_citation, part_text)
-                    self.storage_handler.call(action.store_content_part,
-                                              citation, content_id)
+                    try:
+                        citation = self.storage_handler.call(
+                            select.get_citation, part_text)
+                    except select.SelectError:
+                        citation = orm.Citation(citation_text=part_text,
+                                                timestamp=timestamp)
+                    self.storage_handler.call(
+                        action.store_content_part, citation, content_id,
+                        edited_citations=edited_citations)
                     index.add_to_content_piece(content_id, content_part,
                                                citation.citation_text)
                 else:
@@ -460,8 +478,8 @@ class Content:
                     index.update_content_piece(content_id, content_part,
                                                part_strings=alternate_names)
                 elif content_part == "keyword":
-                    keywords = self.storage_handler.call(select.get_keywords,
-                                                         content_id)
+                    keywords = self.storage_handler.call(
+                        select.get_keywords,content_id)
                     keywords = [keyword.keyword for keyword in keywords]
                     index.update_content_piece(content_id, content_part,
                                                part_strings=keywords)
@@ -495,23 +513,36 @@ class Content:
                                                part_strings=alternate_names)
                 elif content_part == "keyword":
                     try:
-                        Content.update(content_id, content_part, "delete", part_id)
+                        Content.update(content_id, content_part,
+                                       "remove", part_id)
                     except action.MissingDataError:
                         pass
                     Content.update(content_id, content_part,
                                    "add", part_text=part_text)
-                    keywords = self.storage_handler.call(select.get_keywords,
-                                                         content_id)
+                    keywords = self.storage_handler.call(
+                        select.get_keywords, content_id)
                     keywords = [keyword.keyword for keyword in keywords]
                     index.update_content_piece(content_id, content_part,
                                                part_strings=keywords)
                 elif content_part == "citation":
                     try:
-                        Content.update(content_id, content_part, "delete", part_id)
+                        Content.update(content_id, content_part,
+                                       "remove", part_id)
                     except action.MissingDataError:
-                        pass
-                    Content.update(content_id, content_part,
-                                   "add", part_text=part_text)
+                        other_edits = self.storage_handler.call(
+                            select.get_citations, content_id,
+                            edited_citation_id=part_id)
+                        if len(other_edits) != 1:
+                            raise ApplicationError(
+                                "Cannot resolve citation ambiguity!")
+                        else:
+                            previous_citation = other_edits[0]
+                            edited_citations = ([previous_citation] +
+                                previous_citation.edited_citations)
+                            Content.update(content_id, content_part, "remove",
+                                           previous_citation.citation_id)
+                    Content.update(content_id, content_part, "add",
+                        part_text=part_text, edited_citations=edited_citations)
                     citations = self.storage_handler.call(
                         select.get_citations, content_id)
                     citations = [citation.citation_text
