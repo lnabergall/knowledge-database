@@ -242,7 +242,11 @@ class Edit:
         elif citation_id is not None:
             if validation_status == "pending":
                 try:
-                    edits = redis.get_edits(citation_id=citation_id).values()
+                    citation_edits = set(redis.get_edits(
+                        citation_id=citation_id).values())
+                    content_edits = set(redis.get_edits(
+                        content_id=content_id).values())
+                    edits = list(citation_edits & content_edits)
                 except:
                     raise
             elif validation_status == "accepted":
@@ -283,13 +287,13 @@ class Edit:
             if validation_status == "accepted":
                 try:
                     edits = self.storage_handler.call(select.get_accepted_edits,
-                                                      name_id=text_id)
+                                                      name_id=name_id)
                 except:
                     raise
             elif validation_status == "rejected":
                 try:
                     edits = self.storage_handler.call(select.get_rejected_edits,
-                                                      name_id=text_id)
+                                                      name_id=name_id)
                 except:
                     raise
             else:
@@ -398,7 +402,6 @@ class Edit:
         except:
             raise
         self._notify.apply_async()
-        # also need to take into account conflicts and merging
 
     def _compute_merging_diff(self):
         if self.content_part == "text":
@@ -406,9 +409,132 @@ class Edit:
                 "accepted", text_id=self.part_id)
         elif self.content_part == "citation":
             accepted_edits = Edit.bulk_retrieve(
-                "accepted", citation_id=self.part_id)
+                "accepted", content_id=self.content_id,
+                citation_id=self.part_id)
         else:
             return self.edit_text
+        self.original_part_text = diff.restore(self.edit_text)
+        accepted_edits = [edit for edit in accepted_edits
+                          if edit.edit_id != self.edit_id]
+        prior_accepted_edits = [edit for edit in accepted_edits
+            if edit.validated_timestamp < self.start_timestamp]
+        if len(accepted_edits) == len(prior_accepted_edits):
+            return self.edit_text
+        else:
+            conflicting_edits = [
+                edit for edit in accepted_edits
+                if edit not in prior_accepted_edits
+                and diff.restore(edit) != self.original_part_text
+            ]
+            accepted_edits_same_base = [
+                edit for edit in accepted_edits
+                if edit not in prior_accepted_edits
+                and edit not in conflicting_edits
+            ]
+            if not conflicting_edits:
+                reordered = accepted_edits_same_base.reverse()
+                return diff.merge(reordered)
+            else:
+                new_diff = diff.merge(
+                    [prior_accepted_edits[0].applied_edit_text, self.edit_text],
+                    base="first_diff")
+                original_part_text = diff.restore(new_diff)
+                remaining_conflicts = [edit for edit in conflicting_edits
+                    if diff.restore(edit) != original_part_text]
+                if remaining_conflicts:
+                    raise diff.DiffComputationError(
+                        "Something went wrong, cannot compute a merge!")
+                else:
+                    reordered = conflicting_edits.reverse()
+                    return diff.merge(reordered+[new_diff])
+
+    def apply_edit(self):
+        if not self.edit_text:
+            new_part_text = ""
+        elif (self.content_part == "keyword" or self.content_part == "name" or
+                self.content_part == "alternate_name" or
+                self.content_part == "content_type" or self.part_id is None):
+            new_part_text = diff.restore(self.edit_text, version="edited")
+        else:
+            self.applied_edit_text = self._compute_merging_diff()
+            new_part_text = diff.restore(self.applied_edit_text,
+                                         version="edited")
+        if self.part_id is None:
+            if self.content_part == "alternate_name":
+                new_part_text = Name(name=new_part_text,
+                                     name_type="alternate_name",
+                                     timestamp=self.timestamp).storage_object
+            Content.update(self.content_id, self.content_part,
+                           "add", self.timestamp, part_text=new_part_text)
+        else:
+            if new_part_text:
+                Content.update(self.content_id, self.content_part, "modify",
+                               self.timestamp, part_text=new_part_text,
+                               part_id=self.part_id)
+            else:
+                Content.update(self.content_id, self.content_part,
+                               "remove", self.timestamp, part_id=self.part_id)
+
+    def _reject(self, votes):
+        rejected_timestamp = datetime.utcnow()
+        vote_string = NotImplemented    # Vote API
+        try:
+            edit_id = self.storage_handler.call(
+                action.store_rejected_edit,
+                self.edit_id,
+                self.edit_text,
+                self.edit_rationale,
+                self.content_part,
+                self.part_id,
+                self.content_id,
+                vote_string,
+                votes.keys(),
+                self.timestamp,
+                rejected_timestamp,
+                self.author_type,
+                self.author.user_id if self.author else None
+            )
+        except:
+            raise
+        self.edit_id = edit_id
+        self.validation_status = "rejected"
+        self.validated_timestamp = rejected_timestamp
+        try:
+            redis.delete_validation_data(
+                self.content_id, self.edit_id,
+                self.author.user_id if self.author else None,
+                self.part_id, self.content_part)
+        except:
+            raise
+        self._notify.apply_async()
+
+    @celery_app.task(name="edit._notify")
+    def _notify(self):
+        pass
+
+    @property
+    def conflict(self):
+        if self.content_part == "text":
+            accepted_edits = Edit.bulk_retrieve(
+                "accepted", text_id=self.part_id)
+            pending_edits = Edit.bulk_retrieve(
+                "pending", text_id=self.part_id)
+        elif self.content_part == "citation":
+            accepted_edits = Edit.bulk_retrieve(
+                "accepted", citation_id=self.part_id)
+            pending_edits = Edit.bulk_retrieve(
+                "pending", citation_id=self.part_id)
+        elif self.content_part == "content_type":
+            accepted_edits = Edit.bulk_retrieve(
+                "accepted", content_type_id=self.part_id)
+            pending_edits = Edit.bulk_retrieve(
+                "pending", content_type_id=self.part_id)
+        elif (self.content_part == "name" or
+                self.content_part == "alternate_name"):
+            accepted_edits = Edit.bulk_retrieve(
+                "accepted", name_id=self.part_id)
+            pending_edits = Edit.bulk_retrieve(
+                "pending", name_id=self.part_id)
         self.original_part_text = diff.restore(self.edit_text)
         accepted_edits = [edit for edit in accepted_edits
                           if edit.edit_id != self.edit_id]
@@ -443,64 +569,6 @@ class Edit:
                 else:
                     reversed = conflicting_edits.reverse()
                     return diff.merge(reversed+[new_diff])
-
-    def apply_edit(self):
-        if not self.edit_text:
-            new_part_text = ""
-        elif (self.content_part == "keyword" or self.content_part == "name" or
-                self.content_part == "alternate_name" or
-                self.content_part == "content_type" or self.part_id is None):
-            new_part_text = diff.restore(self.edit_text, version="edited")
-        else:
-            self.applied_edit_text = self._compute_merging_diff()
-            new_part_text = diff.restore(self.applied_edit_text,
-                                         version="edited")
-        if self.part_id is None:
-            Content.update(self.content_id, self.content_part,
-                           "add", part_text=new_part_text)
-        else:
-            if new_part_text:
-                Content.update(self.content_id, self.content_part, "modify",
-                               part_text=new_part_text, part_id=self.part_id)
-            else:
-                Content.update(self.content_id, self.content_part,
-                               "remove", part_id=self.part_id)
-
-    def _reject(self, votes):
-        rejected_timestamp = datetime.utcnow()
-        vote_string = NotImplemented    # Vote API
-        try:
-            edit_id = self.storage_handler.call(
-                action.store_rejected_edit,
-                self.edit_id,
-                self.edit_text,
-                self.edit_rationale,
-                self.content_part,
-                self.part_id,
-                self.content_id,
-                vote_string,
-                votes.keys(),
-                self.timestamp,
-                rejected_timestamp,
-                self.author_type,
-                self.author.user_id if self.author else None
-            )
-        except:
-            raise
-        self.edit_id = edit_id
-        self.validation_status = "rejected"
-        self.validated_timestamp = rejected_timestamp
-        try:
-            redis.delete_validation_data(
-                self.content_id, self.edit_id,
-                self.author.user_id if self.author else None)
-        except:
-            raise
-        self._notify.apply_async()
-
-    @celery_app.task(name="edit._notify")
-    def _notify(self):
-        pass
 
     @property
     def json_ready(self):
