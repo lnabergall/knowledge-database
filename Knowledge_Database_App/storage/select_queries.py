@@ -11,7 +11,7 @@ Exceptions:
 Functions:
 
     get_content_piece, get_content_pieces, get_name, get_alternate_names,
-    get_keywords, get_citations, get_keyword, get_citation,
+    get_keyword, get_keywords, get_citation, get_citations,
     get_content_type, get_content_types, get_accepted_edits,
     get_rejected_edits, get_user_votes, get_accepted_votes,
     get_rejected_votes, get_user_encrypt_info, get_author_count, get_user,
@@ -137,36 +137,6 @@ def get_alternate_names(content_id, session=None):
     return alternate_names
 
 
-def get_keywords(content_id, session=None):
-    """
-    Args:
-        content_id: Integer.
-        session: SQLAlchemy session. Defaults to None.
-    Returns:
-        list of Keywords.
-    """
-    if session is None:
-        session = orm.start_session()
-    keywords = session.query(orm.ContentPiece.keywords).filter(
-        orm.ContentPiece.content_id == content_id).all()
-    return keywords
-
-
-def get_citations(content_id, session=None):
-    """
-    Args:
-        content_id: Integer.
-        session: SQLAlchemy session. Defaults to None.
-    Returns:
-        list of Citations.
-    """
-    if session is None:
-        session = orm.start_session()
-    citations = session.query(orm.ContentPiece.citations).filter(
-        orm.ContentPiece.content_id == content_id).all()
-    return citations
-
-
 def get_keyword(keyword_string, session=None):
     """
     Args:
@@ -189,6 +159,21 @@ def get_keyword(keyword_string, session=None):
         return keyword
 
 
+def get_keywords(content_id, session=None):
+    """
+    Args:
+        content_id: Integer.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        list of Keywords.
+    """
+    if session is None:
+        session = orm.start_session()
+    keywords = session.query(orm.ContentPiece.keywords).filter(
+        orm.ContentPiece.content_id == content_id).all()
+    return keywords
+
+
 def get_citation(citation_string, session=None):
     """
     Args:
@@ -209,6 +194,36 @@ def get_citation(citation_string, session=None):
         raise SelectError(str(e))
     else:
         return citation
+
+
+def get_citations(content_id, citation_id=None,
+                  edited_citation_id=None, session=None):
+    """
+    Args:
+        content_id: Integer. Defaults to None.
+        citation_id: Integer. Defaults to None.
+        editing_citation_id: Integer. Defaults to None.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        list of Citations.
+    """
+    if session is None:
+        session = orm.start_session()
+    if citation_id is not None:
+        citations = session.query(orm.Citation.edited_citations).filter(
+            orm.Citation.citation_id == citation_id).filter(
+            orm.Citation.pieces.has(content_id=content_id)).all()
+    elif edited_citation_id is not None:
+        citations = session.query(orm.Citation.editing_citations).filter(
+            orm.Citation.citation_id == edited_citation_id).filter(
+            orm.Citation.pieces.has(content_id=content_id)).all()
+    elif content_id is not None:
+        citations = session.query(orm.ContentPiece.citations).filter(
+            orm.ContentPiece.content_id == content_id).all()
+    else:
+        raise InputError("Invalid argument!")
+
+    return citations
 
 
 def get_content_type(content_type_string, session=None):
