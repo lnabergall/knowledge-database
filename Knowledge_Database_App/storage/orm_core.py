@@ -24,6 +24,7 @@ from sqlalchemy import Text as Text_
 from sqlalchemy.orm import sessionmaker, relationship, backref
 from sqlalchemy.orm.query import Query as _Query
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.associationproxy import association_proxy
 
 
 KDB_url = "postgresql+psycopg2://postgres:Cetera4247@localhost/kdb_develop"
@@ -138,6 +139,8 @@ class ContentPiece(Base):
     # Many-to-Many relationships:
     authors = relationship("User", secondary=content_authors, backref="pieces")
 
+    citations = association_proxy("piece_citations", "citation")
+
 
 class Name(Base):
     """
@@ -229,11 +232,20 @@ class Keyword(Base):
 
 
 # Many-to-Many relationship between Citation and ContentPiece
-content_citations = Table("content_citations", Base.metadata,
-    Column("citation_id", Integer, ForeignKey("Citation.citation_id")),
-    Column("content_id", Integer, ForeignKey("Content_Piece.content_id")),
-    UniqueConstraint("citation_id", "content_id"),
-)
+class ContentPieceCitation(Base):
+    __tablename__ = "Content_Citation_Association"
+
+    citation_id = Column(Integer, ForeignKey("Citation.citation_id"),
+                         primary_key=True)
+    content_id = Column(Integer, ForeignKey("Content_Piece.content_id"),
+                        primary_key=True)
+    edited_citation_id = Column(Integer, ForeignKey("Citation.citation_id"),
+                                primary_key=True)
+    piece = relationship("ContentPiece", backref="piece_citations")
+    citation = relationship("Citation", backref="citation_content_pieces",
+                            foreign_keys=[citation_id])
+    edited_citation = relationship("Citation", backref="editing_citations",
+                                   foreign_keys=[edited_citation_id])
 
 
 class Citation(Base):
@@ -252,8 +264,12 @@ class Citation(Base):
     timestamp = Column(DateTime)
 
     # Many-to-Many relationships
-    pieces = relationship("ContentPiece", secondary=content_citations,
-                          backref="citations")
+    pieces = association_proxy("citation_content_pieces", "piece")
+
+    edited_citations = association_proxy("citation_content_pieces",
+                                         "edited_citation")
+
+    editing_citations = association_proxy("editing_citations", "citation")
 
     def __repr__(self):
         return "<Citation(citation_text={})>".format(self.citation_text)

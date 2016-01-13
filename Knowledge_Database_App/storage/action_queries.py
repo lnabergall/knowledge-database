@@ -116,7 +116,8 @@ def update_content_type(content_id, content_type, session=None):
         raise ActionError(str(e))
 
 
-def store_content_part(content_part, content_id, session=None):
+def store_content_part(content_part, content_id,
+                       edited_citations=None, session=None):
     """
     Args:
         content_part: Name, Keyword, or Citation.
@@ -134,6 +135,8 @@ def store_content_part(content_part, content_id, session=None):
     elif isinstance(content_part, orm.Keyword):
         content_piece.keywords.append(content_part)
     elif isinstance(content_part, orm.Citation):
+        if edited_citation_ids is not None:
+            content_part.edited_citations = edited_citations
         content_piece.citations.append(content_part)
     else:
         raise InputError("Invalid argument!")
@@ -164,8 +167,10 @@ def remove_content_part(content_id, part_id, content_part, session=None):
         session.execute(orm.content_keywords.delete(),
             params={"keyword_id": part_id, "content_id": content_id})
     elif content_part == "citation":
-        session.execute(orm.content_citations.delete(),
-            params={"citation_id": part_id, "content_id": content_id})
+        session.query(orm.ContentPieceCitation).filter(
+            orm.ContentPieceCitation.content_id == content_id).filter(
+            orm.ContentPieceCitation.citation_id == part_id).delete(
+            synchronize_session=False)
     elif content_part == "name":
         session.query(orm.Name).filter(orm.Name.name_id == part_id).delete(
             synchronize_session=False)
