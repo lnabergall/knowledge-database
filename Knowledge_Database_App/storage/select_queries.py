@@ -263,8 +263,8 @@ def get_content_types(session=None):
 
 def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
                        user_id=None, text_id=None, name_id=None,
-                       citation_id=None, keyword_id=None, ip_address=None,
-                       session=None):
+                       citation_id=None, keyword_id=None, content_type_id=None,
+                       ip_address=None, session=None):
     """
     Args:
         content_id: Integer. Defaults to None.
@@ -275,6 +275,7 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
         name_id: Integer. Defaults to None.
         citation_id: Integer. Defaults to None.
         keyword_id: Integer. Defaults to None.
+        content_type_id: Integer. Defaults to None.
         ip_address: String. Defaults to None.
         session: SQLAlchemy session. Defaults to None.
     Returns:
@@ -322,6 +323,17 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
         accepted_edits = session.query(orm.AcceptedEdit).join(
             orm.Keyword).filter(orm.Keyword.keyword_id == keyword_id).order_by(
             desc(orm.AcceptedEdit.acc_timestamp)).all()
+    elif content_type_id is not None and content_id is not None:
+        accepted_edits = session.query(orm.AcceptedEdit).join(
+            orm.ContentType).join(orm.ContentPiece).filter(
+            orm.ContentType.content_type_id == content_type_id).filter(
+            orm.ContentPiece.content_id == content_id).order_by(
+            desc(orm.AcceptedEdit.acc_timestamp)).all()
+    elif content_type_id is not None:
+        accepted_edits = session.query(orm.AcceptedEdit).join(
+            orm.ContentType).filter(orm.ContentType.content_type_id
+            == content_type_id).order_by(desc(
+            orm.AcceptedEdit.acc_timestamp)).all()
     elif content_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
             orm.ContentPiece).filter(orm.ContentPiece.content_id
@@ -352,8 +364,8 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
 
 def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
                        user_id=None, text_id=None, name_id=None,
-                       citation_id=None, keyword_id=None, ip_address=None,
-                       session=None):
+                       citation_id=None, keyword_id=None, content_type_id=None,
+                       ip_address=None, session=None):
     """
     Args:
         content_id: Integer. Defaults to None.
@@ -364,6 +376,7 @@ def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
         name_id: Integer. Defaults to None.
         citation_id: Integer. Defaults to None.
         keyword_id: Integer. Defaults to None.
+        content_type_id: Integer. Defaults to None.
         ip_address: String. Defaults to None.
         session: SQLAlchemy session. Defaults to None.
     Returns:
@@ -411,6 +424,17 @@ def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
         rejected_edits = session.query(orm.RejectedEdit).join(
             orm.Keyword).filter(orm.Keyword.keyword_id == keyword_id).order_by(
             desc(orm.RejectedEdit.rej_timestamp)).all()
+    elif content_type_id is not None and content_id is not None:
+        rejected_edits = session.query(orm.RejectedEdit).join(
+            orm.ContentType).join(orm.ContentPiece).filter(
+            orm.ContentType.content_type_id == content_type_id).filter(
+            orm.ContentPiece.content_id == content_id).order_by(
+            desc(orm.RejectedEdit.rej_timestamp)).all()
+    elif content_type_id is not None:
+        rejected_edits = session.query(orm.RejectedEdit).join(
+            orm.ContentType).filter(orm.ContentType.content_type_id
+            == content_type_id).order_by(desc(
+            orm.RejectedEdit.rej_timestamp)).all()
     elif content_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
             orm.ContentPiece).filter(orm.ContentPiece.content_id
