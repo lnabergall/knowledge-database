@@ -286,11 +286,7 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
     """
     if session is None:
         session = orm.start_session()
-    if content_id is not None:
-        accepted_edits = session.query(orm.AcceptedEdit).join(
-            orm.ContentPiece).filter(orm.ContentPiece.content_id
-            == content_id).order_by(desc(orm.AcceptedEdit.acc_timestamp)).all()
-    elif user_id is not None:
+    if user_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
             orm.User).filter(orm.User.user_id == user_id).order_by(
             desc(orm.AcceptedEdit.acc_timestamp)).all()
@@ -306,14 +302,30 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
         accepted_edits = session.query(orm.AcceptedEdit).join(
             orm.Name).filter(orm.Name.name_id == name_id).order_by(
             desc(orm.AcceptedEdit.acc_timestamp)).all()
+    elif citation_id is not None and content_id is not None:
+        accepted_edits = session.query(orm.AcceptedEdit).join(
+            orm.Citation).join(orm.ContentPiece).filter(
+            orm.Citation.citation_id == citation_id).filter(
+            orm.ContentPiece.content_id == content_id).order_by(
+            desc(orm.AcceptedEdit.acc_timestamp)).all()
     elif citation_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
             orm.Citation).filter(orm.Citation.citation_id
             == citation_id).order_by(desc(orm.AcceptedEdit.acc_timestamp)).all()
+    elif keyword_id is not None and content_id is not None:
+        accepted_edits = session.query(orm.AcceptedEdit).join(
+            orm.Keyword).join(orm.ContentPiece).filter(
+            orm.Keyword.keyword_id == keyword_id).filter(
+            orm.ContentPiece.content_id == content_id).order_by(
+            desc(orm.AcceptedEdit.acc_timestamp)).all()
     elif keyword_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
             orm.Keyword).filter(orm.Keyword.keyword_id == keyword_id).order_by(
             desc(orm.AcceptedEdit.acc_timestamp)).all()
+    elif content_id is not None:
+        accepted_edits = session.query(orm.AcceptedEdit).join(
+            orm.ContentPiece).filter(orm.ContentPiece.content_id
+            == content_id).order_by(desc(orm.AcceptedEdit.acc_timestamp)).all()
     elif edit_id is not None:
         try:
             accepted_edit = session.query(orm.AcceptedEdit).options(
@@ -363,11 +375,7 @@ def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
     """
     if session is None:
         session = orm.start_session()
-    if content_id is not None:
-        rejected_edits = session.query(orm.RejectedEdit).join(
-            orm.ContentPiece).filter(orm.ContentPiece.content_id
-            == content_id).order_by(desc(orm.RejectedEdit.rej_timestamp)).all()
-    elif user_id is not None:
+    if user_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
             orm.User).filter(orm.User.user_id == user_id).order_by(
             desc(orm.RejectedEdit.rej_timestamp)).all()
@@ -383,14 +391,30 @@ def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
         rejected_edits = session.query(orm.RejectedEdit).join(
             orm.Name).filter(orm.Name.name_id == name_id).order_by(
             desc(orm.RejectedEdit.rej_timestamp)).all()
+    elif citation_id is not None and content_id is not None:
+        rejected_edits = session.query(orm.RejectedEdit).join(
+            orm.Citation).join(orm.ContentPiece).filter(
+            orm.Citation.citation_id == citation_id).filter(
+            orm.ContentPiece.content_id == content_id).order_by(
+            desc(orm.RejectedEdit.rej_timestamp)).all()
     elif citation_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
             orm.Citation).filter(orm.Citation.citation_id
             == citation_id).order_by(desc(orm.RejectedEdit.rej_timestamp)).all()
+    elif keyword_id is not None and content_id is not None:
+        rejected_edits = session.query(orm.RejectedEdit).join(
+            orm.Keyword).join(orm.ContentPiece).filter(
+            orm.Keyword.keyword_id == keyword_id).filter(
+            orm.ContentPiece.content_id == content_id).order_by(
+            desc(orm.RejectedEdit.rej_timestamp)).all()
     elif keyword_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
             orm.Keyword).filter(orm.Keyword.keyword_id == keyword_id).order_by(
             desc(orm.RejectedEdit.rej_timestamp)).all()
+    elif content_id is not None:
+        rejected_edits = session.query(orm.RejectedEdit).join(
+            orm.ContentPiece).filter(orm.ContentPiece.content_id
+            == content_id).order_by(desc(orm.RejectedEdit.rej_timestamp)).all()
     elif edit_id is not None:
         try:
             rejected_edit = session.query(orm.RejectedEdit).options(
