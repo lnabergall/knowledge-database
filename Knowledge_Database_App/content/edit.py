@@ -656,36 +656,59 @@ class Edit:
         self.original_part_text = diff.restore(self.edit_text)
         prior_accepted_edits = [edit for edit in accepted_edits
             if edit.validated_timestamp < self.start_timestamp]
-        if len(accepted_edits) == len(prior_accepted_edits):
-            return self.edit_text
+        accepted_conflicting_edits = [
+            edit for edit in accepted_edits
+            if edit not in prior_accepted_edits
+            and diff.restore(edit.edit_text) != self.original_part_text
+        ]
+        validating_conflicting_edits = [
+            edit for edit in validating_edits
+            if diff.restore(edit.edit_text) != self.original_part_text
+        ]
+        accepted_edits_same_base = [
+            edit for edit in accepted_edits
+            if edit not in prior_accepted_edits
+            and edit not in accepted_conflicting_edits
+        ]
+        validating_edits_same_base = [
+            edit for edit in validating_edits
+            if edit not in validating_conflicting_edits
+        ]
+        new_diff = diff.merge(
+                [prior_accepted_edits[0].applied_edit_text, self.edit_text],
+                base="first_diff")
+        original_part_text = diff.restore(new_diff)
+        if not accepted_conflicting_edits:
+            acc_conflict = diff.conflict(
+                accepted_edits_same_base[0].applied_edit_text,
+                self.edit_text)
         else:
-            conflicting_edits = [
-                edit for edit in accepted_edits
-                if edit not in prior_accepted_edits
-                and diff.restore(edit.edit_text) != self.original_part_text
-            ]
-            accepted_edits_same_base = [
-                edit for edit in accepted_edits
-                if edit not in prior_accepted_edits
-                and edit not in conflicting_edits
-            ]
-            if not conflicting_edits:
-                acc_conflict = diff.conflict(
-                    accepted_edits_same_base[0].applied_edit_text,
-                    self.edit_text)
+            remaining_conflicts = [edit for edit in accepted_conflicting_edits
+                if diff.restore(edit.edit_text) != original_part_text]
+            if remaining_conflicts:
+                raise diff.DiffComputationError(
+                    "Something went wrong, cannot compute a merge!")
             else:
-                new_diff = diff.merge(
-                    [prior_accepted_edits[0].applied_edit_text, self.edit_text],
-                    base="first_diff")
-                original_part_text = diff.restore(new_diff)
-                remaining_conflicts = [edit for edit in conflicting_edits
-                    if diff.restore(edit.edit_text) != original_part_text]
-                if remaining_conflicts:
-                    raise diff.DiffComputationError(
-                        "Something went wrong, cannot compute a merge!")
-                else:
-                    acc_conflict = diff.conflict(
-                        conflicting_edits[0].applied_edit_text, new_diff)
+                acc_conflict = diff.conflict(
+                    accepted_conflicting_edits[0].applied_edit_text, new_diff)
+        if not validating_conflicting_edits:
+            val_conflict = any([
+                diff.conflict(edit.applied_edit_text, self.edit_text)
+                for edit in validating_edits_same_base
+            ])
+        else:
+            remaining_conflicts = [edit for edit in validating_conflicting_edits
+                if diff.restore(edit.edit_text) != original_part_text]
+            if remaining_conflicts:
+                raise diff.DiffComputationError(
+                    "Something went wrong, cannot compute a merge!")
+            else:
+                val_conflict = any([
+                    diff.conflict(edit.applied_edit_text, new_diff)
+                    for edit in validating_conflicting_edits
+                ])
+
+        return val_conflict or acc_conflict
 
     @property
     def json_ready(self):
