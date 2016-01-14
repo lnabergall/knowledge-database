@@ -24,7 +24,8 @@ class Edit:
     timestamp = None            # Datetime.
     start_timestamp = None      # Datetime.
     validated_timestamp = None  # Datetime.
-    validation_status = None    # String, 'pending', 'accepted', or 'rejected'.
+    validation_status = None    # String, 'pending', 'validating',
+                                # 'accepted', or 'rejected'.
     edit_text = None            # String.
     applied_edit_text = None    # String.
     edit_rationale = None       # String.
@@ -40,7 +41,7 @@ class Edit:
         """
         Args:
             edit_id: Integer. Defaults to None.
-            validation_status: String, accepts 'pending', 'accepted',
+            validation_status: String, accepts 'validating', 'accepted',
                 or 'rejected'. Defaults to None.
             content_id: Integer. Defaults to None.
             edit_text: String. Defaults to None.
@@ -59,14 +60,14 @@ class Edit:
         if (self.validation_status is not None and
                 self.validation_status != "accepted" and
                 self.validation_status != "rejected" and
-                self.validation_status != "pending") or (
+                self.validation_status != "validating") or (
                 author_type is not None and
                 not is_ip_address(author_type) and author_type != "U"):
             raise select.InputError("Invalid argument!")
 
         self.validation_status = validation_status
         if edit_id is not None and self.validation_status is not None:
-            if self.validation_status == "pending":
+            if self.validation_status == "validating":
                 try:
                     edit = self._retrieve_from_redis(edit_id)
                 except:
@@ -121,7 +122,7 @@ class Edit:
                             select.get_rejected_edits, edit_id=edit_id)
                     except:
                         raise
-        elif self.validation_status == "pending" and redis_edit_id is not None:
+        elif self.validation_status == "validating" and redis_edit_id is not None:
             try:
                 edit = self.storage_handler.call(
                     select.get_accepted_edits, redis_edit_id=redis_edit_id)
@@ -141,7 +142,7 @@ class Edit:
         return edit
 
     def _retrieve_from_redis(self, edit_id):
-        if self.validation_status != "pending":
+        if self.validation_status != "validating":
             return NotImplemented
         try:
             validation_data = redis.get_validation_data(edit_id)
@@ -154,7 +155,7 @@ class Edit:
                 return
 
     def _transfer(self, edit):
-        if self.validation_status == "pending":
+        if self.validation_status == "validating":
             self.edit_id = edit["edit_id"]
             self.content_id = edit["content_id"]
             self.edit_text = edit["edit_text"]
@@ -196,11 +197,12 @@ class Edit:
                 self.part_id = edit.citation_id
 
     @classmethod
-    def bulk_retrieve(cls, validation_status, user_id=None,
-                      content_id=None, text_id=None, citation_id=None,
-                      name_id=None, page_num=0, ids_only=False):
+    def bulk_retrieve(cls, validation_status, user_id=None, content_id=None,
+                      text_id=None, citation_id=None, name_id=None,
+                      keyword_id=None, content_type_id=None, page_num=0,
+                      ids_only=False):
         if user_id is not None:
-            if validation_status == "pending":
+            if validation_status == "validating":
                 try:
                     edits = redis.get_edits(user_id=user_id).values()
                 except:
@@ -219,8 +221,98 @@ class Edit:
                     raise
             else:
                 raise select.InputError("Invalid arguments!")
+        elif citation_id is not None:
+            if validation_status == "validating":
+                try:
+                    citation_edits = redis.get_edits(
+                        citation_id=citation_id).values()
+                    if content_id is not None:
+                        citation_edits = set(citation_edits)
+                        content_edits = set(redis.get_edits(
+                            content_id=content_id).values())
+                        edits = list(citation_edits & content_edits)
+                    else:
+                        edits = citation_edits
+                except:
+                    raise
+            elif validation_status == "accepted":
+                try:
+                    edits = self.storage_handler.call(
+                        select.get_accepted_edits, content_id=content_id,
+                        citation_id=citation_id)
+                except:
+                    raise
+            elif validation_status == "rejected":
+                try:
+                    edits = self.storage_handler.call(
+                        select.get_rejected_edits, content_id=content_id,
+                        citation_id=citation_id)
+                except:
+                    raise
+            else:
+                raise select.InputError("Invalid arguments!")
+        elif keyword_id is not None:
+            if validation_status == "validating":
+                try:
+                    keyword_edits = redis.get_edits(
+                        keyword_id=keyword_id).values()
+                    if content_id is not None:
+                        keyword_edits = set(keyword_edits)
+                        content_edits = set(redis.get_edits(
+                            content_id=content_id).values())
+                        edits = list(keyword_edits & content_edits)
+                    else:
+                        edits = keyword_edits
+                except:
+                    raise
+            elif validation_status == "accepted":
+                try:
+                    edits = self.storage_handler.call(
+                        select.get_accepted_edits, content_id=content_id,
+                        keyword_id=keyword_id)
+                except:
+                    raise
+            elif validation_status == "rejected":
+                try:
+                    edits = self.storage_handler.call(
+                        select.get_rejected_edits, content_id=content_id,
+                        keyword_id=keyword_id)
+                except:
+                    raise
+            else:
+                raise select.InputError("Invalid arguments!")
+        elif content_type_id is not None:
+            if validation_status == "validating":
+                try:
+                    content_type_edits = redis.get_edits(
+                        content_type_id=content_type_id).values()
+                    if content_id is not None:
+                        content_type_edits = set(content_type_edits)
+                        content_edits = set(redis.get_edits(
+                            content_id=content_id).values())
+                        edits = list(content_type_edits & content_edits)
+                    else:
+                        edits = content_type_edits
+                except:
+                    raise
+            elif validation_status == "accepted":
+                try:
+                    edits = self.storage_handler.call(
+                        select.get_accepted_edits, content_id=content_id,
+                        content_type_id=content_type_id)
+                except:
+                    raise
+            elif validation_status == "rejected":
+                try:
+                    edits = self.storage_handler.call(
+                        select.get_rejected_edits, content_id=content_id,
+                        content_type_id=content_type_id)
+                except:
+                    raise
+            else:
+                raise select.InputError("Invalid arguments!")
         elif content_id is not None:
-            if validation_status == "pending":
+            if validation_status == "validating":
                 try:
                     edits = redis.get_edits(content_id=content_id).values()
                 except:
@@ -239,32 +331,8 @@ class Edit:
                     raise
             else:
                 raise select.InputError("Invalid arguments!")
-        elif citation_id is not None:
-            if validation_status == "pending":
-                try:
-                    citation_edits = set(redis.get_edits(
-                        citation_id=citation_id).values())
-                    content_edits = set(redis.get_edits(
-                        content_id=content_id).values())
-                    edits = list(citation_edits & content_edits)
-                except:
-                    raise
-            elif validation_status == "accepted":
-                try:
-                    edits = self.storage_handler.call(select.get_accepted_edits,
-                                                      citation_id=citation_id)
-                except:
-                    raise
-            elif validation_status == "rejected":
-                try:
-                    edits = self.storage_handler.call(select.get_rejected_edits,
-                                                      citation_id=citation_id)
-                except:
-                    raise
-            else:
-                raise select.InputError("Invalid arguments!")
         elif text_id is not None:
-            if validation_status == "pending":
+            if validation_status == "validating":
                 try:
                     edits = redis.get_edits(text_id=text_id).values()
                 except:
@@ -284,6 +352,11 @@ class Edit:
             else:
                 raise select.InputError("Invalid arguments!")
         elif name_id is not None:
+            if validation_status == "validating":
+                try:
+                    edits = redis.get_edits(name_id=name_id).values()
+                except:
+                    raise
             if validation_status == "accepted":
                 try:
                     edits = self.storage_handler.call(select.get_accepted_edits,
@@ -329,6 +402,7 @@ class Edit:
         except:
             raise
         else:
+            self.validation_status = "validating"
             self.edit_id = edit_id
 
     @celery_app.task(name="edit.validate")
@@ -414,8 +488,6 @@ class Edit:
         else:
             return self.edit_text
         self.original_part_text = diff.restore(self.edit_text)
-        accepted_edits = [edit for edit in accepted_edits
-                          if edit.edit_id != self.edit_id]
         prior_accepted_edits = [edit for edit in accepted_edits
             if edit.validated_timestamp < self.start_timestamp]
         if len(accepted_edits) == len(prior_accepted_edits):
@@ -424,7 +496,7 @@ class Edit:
             conflicting_edits = [
                 edit for edit in accepted_edits
                 if edit not in prior_accepted_edits
-                and diff.restore(edit) != self.original_part_text
+                and diff.restore(edit.edit_text) != self.original_part_text
             ]
             accepted_edits_same_base = [
                 edit for edit in accepted_edits
@@ -432,21 +504,21 @@ class Edit:
                 and edit not in conflicting_edits
             ]
             if not conflicting_edits:
-                reordered = accepted_edits_same_base.reverse()
-                return diff.merge(reordered)
+                return diff.merge([accepted_edits_same_base[0].applied_edit_text,
+                                   self.edit_text])
             else:
                 new_diff = diff.merge(
                     [prior_accepted_edits[0].applied_edit_text, self.edit_text],
                     base="first_diff")
                 original_part_text = diff.restore(new_diff)
                 remaining_conflicts = [edit for edit in conflicting_edits
-                    if diff.restore(edit) != original_part_text]
+                    if diff.restore(edit.edit_text) != original_part_text]
                 if remaining_conflicts:
                     raise diff.DiffComputationError(
                         "Something went wrong, cannot compute a merge!")
                 else:
-                    reordered = conflicting_edits.reverse()
-                    return diff.merge(reordered+[new_diff])
+                    return diff.merge(
+                        [conflicting_edits[0].applied_edit_text, new_diff])
 
     def apply_edit(self):
         if not self.edit_text:
@@ -454,11 +526,11 @@ class Edit:
         elif (self.content_part == "keyword" or self.content_part == "name" or
                 self.content_part == "alternate_name" or
                 self.content_part == "content_type" or self.part_id is None):
-            new_part_text = diff.restore(self.edit_text, version="edited")
+            new_part_text = diff.restore(self.edit_text, version="edit")
         else:
             self.applied_edit_text = self._compute_merging_diff()
             new_part_text = diff.restore(self.applied_edit_text,
-                                         version="edited")
+                                         version="edit")
         if self.part_id is None:
             if self.content_part == "alternate_name":
                 new_part_text = Name(name=new_part_text,
@@ -514,30 +586,74 @@ class Edit:
 
     @property
     def conflict(self):
-        if self.content_part == "text":
+        if not self.original_part_text:
+            return False
+        if (self.validation_status == "accepted" or
+                self.validation_status == "rejected"):
+            return NotImplemented
+        if self.content_part == "content_type":
             accepted_edits = Edit.bulk_retrieve(
-                "accepted", text_id=self.part_id)
-            pending_edits = Edit.bulk_retrieve(
-                "pending", text_id=self.part_id)
-        elif self.content_part == "citation":
-            accepted_edits = Edit.bulk_retrieve(
-                "accepted", citation_id=self.part_id)
-            pending_edits = Edit.bulk_retrieve(
-                "pending", citation_id=self.part_id)
-        elif self.content_part == "content_type":
-            accepted_edits = Edit.bulk_retrieve(
-                "accepted", content_type_id=self.part_id)
-            pending_edits = Edit.bulk_retrieve(
-                "pending", content_type_id=self.part_id)
+                "accepted", content_id=self.content_id,
+                content_type_id=self.part_id)
+            validating_edits = Edit.bulk_retrieve(
+                "validating", content_id=self.content_id,
+                content_type_id=self.part_id)
+            if not accepted_edits and not validating_edits:
+                return False
+            acc_match = any([edit for edit in accepted_edits
+                if edit.validated_timestamp > self.start_timestamp and
+                diff.restore(edit.applied_edit_text, version="edit")
+                != diff.restore(self.edit_text, version="edit")])
+            val_match = (True if len(validating_edits) > 2 or
+                         (self.validation_status == "pending" and
+                         len(validating_edits) == 1) else False)
+            return acc_match or val_match
         elif (self.content_part == "name" or
                 self.content_part == "alternate_name"):
             accepted_edits = Edit.bulk_retrieve(
                 "accepted", name_id=self.part_id)
-            pending_edits = Edit.bulk_retrieve(
-                "pending", name_id=self.part_id)
+            validating_edits = Edit.bulk_retrieve(
+                "validating", name_id=self.part_id)
+            if not accepted_edits and not validating_edits:
+                return False
+            acc_match = any([edit for edit in accepted_edits
+                if edit.validated_timestamp > self.start_timestamp and
+                diff.restore(edit.applied_edit_text, version="edit")
+                != diff.restore(self.edit_text, version="edit")])
+            val_match = (True if len(validating_edits) > 2 or
+                         (self.validation_status == "pending" and
+                         len(validating_edits) == 1) else False)
+            return acc_match or val_match
+        elif self.content_part == "keyword":
+            accepted_edits = Edit.bulk_retrieve(
+                "accepted", content_id=self.content_id,
+                keyword_id=self.part_id)
+            validating_edits = Edit.bulk_retrieve(
+                "validating", content_id=self.content_id,
+                keyword_id=self.part_id)
+            if not accepted_edits and not validating_edits:
+                return False
+            acc_match = any([edit for edit in accepted_edits
+                if edit.validated_timestamp > self.start_timestamp and
+                diff.restore(edit.applied_edit_text, version="edit")
+                != diff.restore(self.edit_text, version="edit")])
+            val_match = (True if len(validating_edits) > 2 or
+                         (self.validation_status == "pending" and
+                         len(validating_edits) == 1) else False)
+            return acc_match or val_match
+        elif self.content_part == "text":
+            accepted_edits = Edit.bulk_retrieve(
+                "accepted", text_id=self.part_id)
+            validating_edits = Edit.bulk_retrieve(
+                "validating", text_id=self.part_id)
+        elif self.content_part == "citation":
+            accepted_edits = Edit.bulk_retrieve(
+                "accepted", content_id=self.content_id,
+                citation_id=self.part_id)
+            validating_edits = Edit.bulk_retrieve(
+                "validating", content_id=self.content_id,
+                citation_id=self.part_id)
         self.original_part_text = diff.restore(self.edit_text)
-        accepted_edits = [edit for edit in accepted_edits
-                          if edit.edit_id != self.edit_id]
         prior_accepted_edits = [edit for edit in accepted_edits
             if edit.validated_timestamp < self.start_timestamp]
         if len(accepted_edits) == len(prior_accepted_edits):
@@ -546,7 +662,7 @@ class Edit:
             conflicting_edits = [
                 edit for edit in accepted_edits
                 if edit not in prior_accepted_edits
-                and diff.restore(edit) != self.original_part_text
+                and diff.restore(edit.edit_text) != self.original_part_text
             ]
             accepted_edits_same_base = [
                 edit for edit in accepted_edits
@@ -554,21 +670,22 @@ class Edit:
                 and edit not in conflicting_edits
             ]
             if not conflicting_edits:
-                reversed = accepted_edits_same_base.reverse()
-                return diff.merge(reversed)
+                acc_conflict = diff.conflict(
+                    accepted_edits_same_base[0].applied_edit_text,
+                    self.edit_text)
             else:
                 new_diff = diff.merge(
                     [prior_accepted_edits[0].applied_edit_text, self.edit_text],
                     base="first_diff")
                 original_part_text = diff.restore(new_diff)
                 remaining_conflicts = [edit for edit in conflicting_edits
-                    if diff.restore(edit) != original_part_text]
+                    if diff.restore(edit.edit_text) != original_part_text]
                 if remaining_conflicts:
                     raise diff.DiffComputationError(
                         "Something went wrong, cannot compute a merge!")
                 else:
-                    reversed = conflicting_edits.reverse()
-                    return diff.merge(reversed+[new_diff])
+                    acc_conflict = diff.conflict(
+                        conflicting_edits[0].applied_edit_text, new_diff)
 
     @property
     def json_ready(self):
