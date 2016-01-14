@@ -209,11 +209,11 @@ def get_citations(content_id, citation_id=None,
     """
     if session is None:
         session = orm.start_session()
-    if citation_id is not None:
+    if citation_id is not None and content_id is not None:
         citations = session.query(orm.Citation.edited_citations).filter(
             orm.Citation.citation_id == citation_id).filter(
             orm.Citation.pieces.has(content_id=content_id)).all()
-    elif edited_citation_id is not None:
+    elif edited_citation_id is not None and content_id is not None:
         citations = session.query(orm.Citation.editing_citations).filter(
             orm.Citation.citation_id == edited_citation_id).filter(
             orm.Citation.pieces.has(content_id=content_id)).all()
