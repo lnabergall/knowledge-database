@@ -10,12 +10,20 @@ from Knowledge_Database_App.storage import (orm_core as orm,
                                             action_queries as action)
 from Knowledge_Database_App import search as search_api
 from Knowledge_Database_App.search import index
+from . import content_config as config
 
 
 class ApplicationError(Exception):
     """
     General exception raised when an unrecoverable error
     in application logic occurs.
+    """
+
+
+class ContentError(Exception):
+    """
+    General exception raised when a content piece or part
+    violates content standards.
     """
 
 
@@ -31,6 +39,10 @@ class Name:
                      isinstance(timestamp, datetime))):
             raise TypeError("Argument of invalid type given!")
         else:
+            char_count = len(text) - text.count(" ")
+            if (char_count < config.SMALL_PART_MIN_CHARS or
+                    char_count > config.SMALL_PART_MAX_CHARS):
+                raise ContentError("Name out of allowed character count range!")
             self.name_id = name_id
             self.name = name
             self.name_type = name_type
@@ -69,6 +81,10 @@ class Text:
                      isinstance(timestamp, datetime))):
             raise TypeError("Argument of invalid type given!")
         else:
+            char_count = len(text) - text.count(" ")
+            if (char_count < config.LARGE_PART_MIN_CHARS or
+                    char_count > config.LARGE_PART_MAX_CHARS):
+                raise ContentError("Text out of allowed character count range!")
             self.text_id = text_id
             self.text = text
             self.timestamp = timestamp
@@ -177,8 +193,22 @@ class Content:
                                          timestamp=self.timestamp)
                                     for name in alternate_names]
             self.text = Text(text=text, timestamp=self.timestamp)
-            self.keywords = keywords
-            self.citations = citations
+            if any([config.SMALL_PART_MAX_CHARS <
+                    len(keyword) - keyword.count(" ") or
+                    config.SMALL_PART_MIN_CHARS >
+                    len(keyword) - keyword.count(" ")
+                    for keyword in keywords]):
+                raise ContentError("Keyword out of allowed character count range!")
+            else:
+                self.keywords = keywords
+            if any([config.LARGE_PART_MAX_CHARS <
+                    len(citation) - citation.count(" ") or
+                    config.SMALL_PART_MIN_CHARS >
+                    len(citation) - citation.count(" ")
+                    for citation in citations]):
+                raise ContentError("Keyword out of allowed character count range!")
+            else:
+                self.citations = citations
             self.stored = False
 
     def _transfer(self, content_piece):
