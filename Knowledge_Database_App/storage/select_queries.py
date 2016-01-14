@@ -678,11 +678,12 @@ def get_user(user_id=None, email=None, pass_hash=None, remember_id=None,
     return user
 
 
-def get_user_emails(content_id=None, accepted_edit_id=None,
+def get_user_emails(content_id=None, user_id=None, accepted_edit_id=None,
                     rejected_edit_id=None, session=None):
     """
     Args:
         contend_id: Integer. Defaults to None.
+        user_id: Integer. Defaults to None.
         accepted_edit_id: Integer. Defaults to None.
         rejected_edit_id: Integer. Defaults to None.
         session: SQLAlchemy session. Defaults to None.
@@ -706,6 +707,14 @@ def get_user_emails(content_id=None, accepted_edit_id=None,
             raise SelectError(str(e))
         else:
             return emails
+    elif user_id is not None:
+        try:
+            email = session.query(orm.User.email).filter(
+                orm.User.user_id == user_id).one()
+        except (NoResultFound, MultipleResultsFound) as e:
+            raise SelectError(str(e))
+        else:
+            return email
     elif accepted_edit_id is not None:
         try:
             email = session.query(orm.User.email).join(

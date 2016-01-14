@@ -128,6 +128,13 @@ class UserData:
             user_name=self.user_name,
         )
 
+    def load_email(self):
+        try:
+            self.email = orm.StorageHandler().call(select.get_user_emails,
+                                                   user_id=self.user_id)
+        except:
+            raise
+
     @property
     def json_ready(self):
         return {"user_id": self.user_id, "user_name": self.user_name}
