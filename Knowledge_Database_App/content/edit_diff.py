@@ -94,7 +94,7 @@ def compute_diff(original_part_text, edit_text):
 def restore(diff, version="original"):
     """
     Args:
-        version: String, accepts 'original' and 'edited'.
+        version: String, accepts 'original' and 'edit'.
             Defaults to 'original'.
     Returns:
         Non-diffed part text string, either the original or edited version.
