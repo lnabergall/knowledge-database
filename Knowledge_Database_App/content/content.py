@@ -195,9 +195,10 @@ class Content:
             self.content_type = content_type
             self.name = Name(name=name, name_type="primary",
                              timestamp=self.timestamp)
-            self.alternate_names = [Name(name=name, name_type="alternate",
+            self.alternate_names = [Name(name=alt_name, name_type="alternate",
                                          timestamp=self.timestamp)
-                                    for name in alternate_names]
+                                    for alt_name in list(set(alternate_names))
+                                    if alt_name != self.name.name]
             self.text = Text(text=text, timestamp=self.timestamp)
             if any([config.SMALL_PART_MAX_CHARS <
                     len(keyword) - keyword.count(" ") or
@@ -206,7 +207,7 @@ class Content:
                     for keyword in keywords]):
                 raise ContentError("Keyword out of allowed character count range!")
             else:
-                self.keywords = keywords
+                self.keywords = list(set(keywords))
             if any([config.LARGE_PART_MAX_CHARS <
                     len(citation) - citation.count(" ") or
                     config.SMALL_PART_MIN_CHARS >
@@ -214,7 +215,7 @@ class Content:
                     for citation in citations]):
                 raise ContentError("Keyword out of allowed character count range!")
             else:
-                self.citations = citations
+                self.citations = list(set(citations))
             self.stored = False
 
     def _transfer(self, content_piece):

@@ -15,6 +15,10 @@ from .celery import celery_app
 from .content import Content, Name, Text, UserData
 
 
+class DuplicateError(Exception):
+    """Exception raised when a content part is a duplicate of another."""
+
+
 class Edit:
 
     storage_handler = orm.StorageHandler()
@@ -88,6 +92,8 @@ class Edit:
                     original_part_text is None or not author_type or
                     not start_timestamp):
                 raise select.InputError("Required arguments not provided!")
+            if not Content.check_uniqueness(content_id, edit_text, content_part):
+                raise DuplicateError("Edit duplicates another content part!")
             self.validation_status = "pending"
             self.timestamp = datetime.utcnow()
             self.start_timestamp = start_timestamp
