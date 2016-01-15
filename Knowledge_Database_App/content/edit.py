@@ -516,8 +516,14 @@ class Edit:
                 and edit not in conflicting_edits
             ]
             if not conflicting_edits:
-                return diff.merge([accepted_edits_same_base[0].applied_edit_text,
-                                   self.edit_text])
+                if (accepted_edits_same_base[0].applied_edit_text
+                        == self.edit_text):
+                    return self.edit_text
+                else:
+                    return diff.merge([
+                        accepted_edits_same_base[0].applied_edit_text,
+                        self.edit_text
+                    ])
             else:
                 new_diff = diff.merge(
                     [prior_accepted_edits[0].applied_edit_text, self.edit_text],
@@ -529,8 +535,11 @@ class Edit:
                     raise diff.DiffComputationError(
                         "Something went wrong, cannot compute a merge!")
                 else:
-                    return diff.merge(
-                        [conflicting_edits[0].applied_edit_text, new_diff])
+                    if conflicting_edits[0].applied_edit_text == new_diff:
+                        return new_diff
+                    else:
+                        return diff.merge(
+                            [conflicting_edits[0].applied_edit_text, new_diff])
 
     def apply_edit(self):
         if not self.edit_text:
@@ -764,9 +773,12 @@ class Edit:
                 base="first_diff")
         original_part_text = diff.restore(new_diff)
         if not accepted_conflicting_edits:
-            acc_conflict = diff.conflict(
-                accepted_edits_same_base[0].applied_edit_text,
-                self.edit_text)
+            if accepted_edits_same_base[0].applied_edit_text == self.edit_text:
+                acc_conflict = False
+            else:
+                acc_conflict = diff.conflict(
+                    accepted_edits_same_base[0].applied_edit_text,
+                    self.edit_text)
         else:
             remaining_conflicts = [edit for edit in accepted_conflicting_edits
                 if diff.restore(edit.edit_text) != original_part_text]
@@ -774,11 +786,16 @@ class Edit:
                 raise diff.DiffComputationError(
                     "Something went wrong, cannot compute a merge!")
             else:
-                acc_conflict = diff.conflict(
-                    accepted_conflicting_edits[0].applied_edit_text, new_diff)
+                if accepted_conflicting_edits[0].applied_edit_text == new_diff:
+                    acc_conflict = False
+                else:
+                    acc_conflict = diff.conflict(
+                        accepted_conflicting_edits[0].applied_edit_text,
+                        new_diff)
         if not validating_conflicting_edits:
             val_conflict = any([
                 diff.conflict(edit.applied_edit_text, self.edit_text)
+                if edit.applied_edit_text != self.edit_text else False
                 for edit in validating_edits_same_base
             ])
         else:
@@ -790,6 +807,7 @@ class Edit:
             else:
                 val_conflict = any([
                     diff.conflict(edit.applied_edit_text, new_diff)
+                    if edit.applied_edit_text != new_diff else False
                     for edit in validating_conflicting_edits
                 ])
 
