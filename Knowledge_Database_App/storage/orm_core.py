@@ -12,7 +12,8 @@ Functions:
 Classes:
 
     Query, StorageHandler, Content, Name, Text, ContentType, Keyword,
-    Citation, Edit, Vote, RejectedEdit, User, UserReport
+    ContentPieceCitation, Citation, Edit, Vote, RejectedEdit, User,
+    UserReport
 
     For all classes X, the attribute 'timestamp' holds the datetime
     of creation.
