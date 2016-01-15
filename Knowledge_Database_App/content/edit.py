@@ -12,7 +12,7 @@ from Knowledge_Database_App.storage import (orm_core as orm,
 from . import redis
 from . import edit_diff as diff
 from .celery import celery_app
-from .content import Content, Name, Text, UserData
+from .content import Content, Name, UserData
 
 
 class DuplicateError(Exception):
