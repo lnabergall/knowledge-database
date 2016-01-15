@@ -1,2 +1,2 @@
-from compose import *
-from send import *
+from .compose import *
+from .send import *
