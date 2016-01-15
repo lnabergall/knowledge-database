@@ -2,7 +2,6 @@
 Content Piece API
 """
 
-
 from datetime import datetime
 
 from Knowledge_Database_App.storage import (orm_core as orm,
