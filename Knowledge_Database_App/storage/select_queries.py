@@ -15,7 +15,7 @@ Functions:
     get_content_type, get_content_types, get_accepted_edits,
     get_rejected_edits, get_user_votes, get_accepted_votes,
     get_rejected_votes, get_user_encrypt_info, get_author_count, get_user,
-    get_user_emails, get_user_reports
+    get_user_info, get_user_reports
 
     Note that all functions take a common 'session' keyword argument,
     which defaults to None.
@@ -678,8 +678,8 @@ def get_user(user_id=None, email=None, pass_hash=None, remember_id=None,
     return user
 
 
-def get_user_emails(content_id=None, user_id=None, accepted_edit_id=None,
-                    rejected_edit_id=None, session=None):
+def get_user_info(content_id=None, user_id=None, accepted_edit_id=None,
+                  rejected_edit_id=None, session=None):
     """
     Args:
         contend_id: Integer. Defaults to None.
@@ -688,7 +688,7 @@ def get_user_emails(content_id=None, user_id=None, accepted_edit_id=None,
         rejected_edit_id: Integer. Defaults to None.
         session: SQLAlchemy session. Defaults to None.
     Returns:
-        email or list of emails.
+        Tuple or List of Tuples of the form (user_name, email).
     Raises:
         SelectError: if content_id matches multiple values in one row,
             or accepted_edit_id does not match any row in the
@@ -700,39 +700,39 @@ def get_user_emails(content_id=None, user_id=None, accepted_edit_id=None,
         session = orm.start_session()
     if content_id is not None:
         try:
-            emails = session.query(orm.User.email).join(
+            info_tuples = session.query(orm.User.user_name, orm.User.email).join(
                 orm.ContentPiece, orm.User.pieces).filter(
-                orm.ContentPiece.content_id == content_id).values()
+                orm.ContentPiece.content_id == content_id).all()
         except MultipleValuesFound as e:
             raise SelectError(str(e))
         else:
-            return emails
+            return info_tuples
     elif user_id is not None:
         try:
-            email = session.query(orm.User.email).filter(
+            info = session.query(orm.User.user_name, orm.User.email).filter(
                 orm.User.user_id == user_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
             raise SelectError(str(e))
         else:
-            return email
+            return info
     elif accepted_edit_id is not None:
         try:
-            email = session.query(orm.User.email).join(
+            info = session.query(orm.User.user_name, orm.User.email).join(
                 orm.AcceptedEdit).filter(orm.AcceptedEdit.edit_id
                                          == accepted_edit_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
             raise SelectError(str(e))
         else:
-            return email
+            return info
     elif rejected_edit_id is not None:
         try:
-            email = session.query(orm.User.email).join(
+            info = session.query(orm.User.user_name, orm.User.email).join(
                 orm.RejectedEdit).filter(orm.RejectedEdit.edit_id
                                          == rejected_edit_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
             raise SelectError(str(e))
         else:
-            return email
+            return info
     else:
         raise InputError("No arguments!")
 
