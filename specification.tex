@@ -542,39 +542,61 @@ Asynchronous processing will almost exclusively\footnote{It will also be used fo
 The following roughly documents the layout of the client-facing Content API; we denote class and static methods by ``class" and ``static", respectively.
 
 \begin{enumerate}
+\item[] ContentError
+\item[] ApplicationError
 \item[] Name
+\begin{enumerate}
+\item[] json\_ready (property) - JSON serializable dictionary for transmission over HTTP.
+\item[] storage\_object (property)
+\end{enumerate}
 \item[] Text
+\begin{enumerate}
+\item[] json\_ready (property) - JSON serializable dictionary for transmission over HTTP.
+\item[] storage\_object (property)
+\end{enumerate}
 \item[] UserData
+\begin{enumerate}
+\item[] load\_email
+\item[] json\_ready (property) - JSON serializable dictionary for transmission over HTTP.
+\end{enumerate}
 \item[] Content - instantiation of a Content object can create a new content piece or retrieve an existing content piece. 
 \begin{enumerate}
 \item[] \_transfer
 \item[] bulk\_retrieve (class)
 \item[] get\_content\_types (class)
+\item[] check\_uniqueness (class)
+\item[] filter\_by (class)
 \item[] search (class)
 \item[] autocomplete (class)
 \item[] store
 \item[] update (class)
-\item[] json\_ready - to JSON serializable dictionary for transmission over HTTP.
 \item[] \_delete
+\item[] json\_ready (property) - JSON serializable dictionary for transmission over HTTP.
 \end{enumerate}
+\item[] DuplicateError
 \item[] Edit - instantiation of an Edit object can create a new edit or retrieve an existing edit.\footnote{From Redis or the database.}
 \begin{enumerate}
+\item[] \_retrieve\_from\_storage
+\item[] \_retrieve\_from\_redis
 \item[] \_transfer
 \item[] bulk\_retrieve (class)
 \item[] start\_vote
 \item[] save
 \item[] validate
-\item[] accept
-\item[] reject
+\item[] \_accept
+\item[] \_compute\_merging\_diff
+\item[] apply\_edit
+\item[] \_reject
 \item[] \_notify
-\item[] json\_ready - to JSON serializable dictionary for transmission over HTTP.
+\item[] conflict (property)
+\item[] json\_ready (property) - JSON serializable dictionary for transmission over HTTP.
 \end{enumerate}
 \item[] AuthorVote - instantiation of an AuthorVote object can create a new author vote or retrieve an existing author vote.
 \begin{enumerate}
 \item[] \_transfer
 \item[] get\_vote\_summary (class)
 \item[] save
-\item[] json\_ready - to JSON serializable dictionary for transmission over HTTP.
+\item[] json\_ready (property) - JSON serializable dictionary for transmission over HTTP.
 \end{enumerate}
 \end{enumerate}
 
