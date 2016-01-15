@@ -5,7 +5,7 @@ Content Edit API
 import re
 from datetime import datetime, timedelta
 
-from Knowledge_Database_App import email
+from Knowledge_Database_App import _email as mail
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select,
                                             action_queries as action)
@@ -26,6 +26,7 @@ class Edit:
     validated_timestamp = None  # Datetime.
     validation_status = None    # String, 'pending', 'validating',
                                 # 'accepted', or 'rejected'.
+    original_part_text = None   # String.
     edit_text = None            # String.
     applied_edit_text = None    # String.
     edit_rationale = None       # String.
@@ -96,6 +97,7 @@ class Edit:
             self.content_id = content_id
             self.content_part = content_part
             self.part_id = part_id
+            self.original_part_text = original_part_text
             self.edit_text = diff.compute_diff(original_part_text, edit_text)
             self.edit_rationale = edit_rationale
             self.start_vote()
@@ -357,7 +359,7 @@ class Edit:
                     edits = redis.get_edits(name_id=name_id).values()
                 except:
                     raise
-            if validation_status == "accepted":
+            elif validation_status == "accepted":
                 try:
                     edits = self.storage_handler.call(select.get_accepted_edits,
                                                       name_id=name_id)
@@ -388,9 +390,16 @@ class Edit:
             self.save()
             self.validate.apply_async(eta=self.timestamp+timedelta(days=5))
             self.validate.apply_async(eta=self.timestamp+timedelta(days=10))
-            self._notify.apply_async()
-            self._notify.apply_async(eta=self.timestamp+timedelta(days=4))
-            self._notify.apply_async(eta=self.timestamp+timedelta(days=8))
+            author_info = self.storage_handler.call(
+                select.get_user_info, content_id=content_id)
+            self._notify.apply_async(args=["edit_submitted"],
+                kwargs={"author_info": author_info})
+            self._notify.apply_async(args=["vote_reminder"],
+                kwargs={"author_info": author_info, "days_remaining": 6},
+                eta=self.timestamp+timedelta(days=4))
+            self._notify.apply_async(args=["vote_reminder"],
+                kwargs={"author_info": author_info, "days_remaining": 2},
+                eta=self.timestamp+timedelta(days=8))
 
     def save(self):
         try:
@@ -475,7 +484,11 @@ class Edit:
                 self.part_id, self.content_part)
         except:
             raise
-        self._notify.apply_async()
+        author_info = self.storage_handler.call(
+            select.get_user_info, content_id=content_id)
+        self._notify.apply_async(args=["edit_accepted"])
+        self._notify.apply_async(args=["author_acceptance"],
+                                 kwargs={"author_info": author_info})
 
     def _compute_merging_diff(self):
         if self.content_part == "text":
@@ -487,7 +500,6 @@ class Edit:
                 citation_id=self.part_id)
         else:
             return self.edit_text
-        self.original_part_text = diff.restore(self.edit_text)
         prior_accepted_edits = [edit for edit in accepted_edits
             if edit.validated_timestamp < self.start_timestamp]
         if len(accepted_edits) == len(prior_accepted_edits):
@@ -578,11 +590,85 @@ class Edit:
                 self.part_id, self.content_part)
         except:
             raise
-        self._notify.apply_async()
+        author_info = self.storage_handler.call(
+            select.get_user_info, content_id=content_id)
+        self._notify.apply_async(args=["edit_rejected"])
+        self._notify.apply_async(args=["author_rejection"],
+                                 kwargs={"author_info": author_info})
 
     @celery_app.task(name="edit._notify")
-    def _notify(self):
-        pass
+    def _notify(self, email_type, days_remaining=None, author_info=None):
+        """
+        Args:
+            email_type: String, accepts 'edit_submitted', 'vote_reminder',
+                'edit_accepted', 'author_acceptance', 'edit_rejected', or
+                'author_rejection'.
+            days_remaining: Integer.
+            author_info: List of Tuples of the form (user_name, email).
+        """
+        content_name = self.storage_handler.call(
+            select.get_name, self.content_id)
+        if email_type == "edit_submitted":
+            if author_info is None:
+                raise select.InputError("Invalid argument!")
+            else:
+                emails = [mail.Email(info_tuple[1], info_tuple[0],
+                                       content_name,
+                                       edit_text=self.edit_text)
+                          for info_tuple in author_info]
+                for email, info_tuple in zip(emails, author_info):
+                    try:
+                        mail.send_email(email, info_tuple[1])
+                    except mail.EmailSendError:
+                        continue
+                    except:
+                        raise
+        elif email_type == "vote_reminder":
+            if author_info is None or days_remaining is None:
+                raise select.InputError("Invalid argument!")
+            else:
+                emails = [mail.Email(info_tuple[1], info_tuple[0],
+                                     content_name,
+                                     days_remaining=days_remaining,
+                                     edit_text=self.edit_text)
+                          for info_tuple in author_info]
+                for email, info_tuple in zip(emails, author_info):
+                    try:
+                        mail.send_email(email, info_tuple[1])
+                    except mail.EmailSendError:
+                        continue
+                    except:
+                        raise
+        elif email_type == "edit_accepted" or email_type == "edit_rejected":
+            self.author.load_email()
+            vote_result = True if self.validation_status == "accepted" else False
+            email = mail.Email(self.author.email, self.author.user_name,
+                               content_name, vote_result=vote_result)
+            try:
+                mail.send_email(email, self.author.email)
+            except mail.EmailSendError:
+                raise
+        elif (email_type == "author_acceptance" or
+                email_type == "author_rejection"):
+            if author_info is None:
+                raise select.InputError("Invalid argument!")
+            else:
+                vote_result = (True if self.validation_status == "accepted"
+                               else False)
+                emails = [mail.Email(info_tuple[1], info_tuple[0],
+                                     content_name,
+                                     edit_text=self.edit_text,
+                                     vote_result=vote_result)
+                          for info_tuple in author_info]
+                for email, info_tuple in zip(emails, author_info):
+                    try:
+                        mail.send_email(email, info_tuple[1])
+                    except mail.EmailSendError:
+                        continue
+                    except:
+                        raise
+        else:
+            raise select.InputError("Invalid argument!")
 
     @property
     def conflict(self):
@@ -653,7 +739,6 @@ class Edit:
             validating_edits = Edit.bulk_retrieve(
                 "validating", content_id=self.content_id,
                 citation_id=self.part_id)
-        self.original_part_text = diff.restore(self.edit_text)
         prior_accepted_edits = [edit for edit in accepted_edits
             if edit.validated_timestamp < self.start_timestamp]
         accepted_conflicting_edits = [
