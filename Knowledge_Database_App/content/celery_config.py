@@ -41,4 +41,4 @@ CELERY_ROUTES = {
 }
 
 # File to store worker state (e.g. revoked tasks).
-CELERYD_STATE_DB = "celery_worker_state.txt"
+CELERYD_STATE_DB = "celery_worker_state"
