@@ -747,7 +747,7 @@ class Edit:
                     except:
                         raise
         elif email_type == "edit_accepted" or email_type == "edit_rejected":
-            self.author.load_email()
+            self.author.load_info()
             vote_result = True if self.validation_status == "accepted" else False
             email = mail.Email(self.author.email, self.author.user_name,
                                content_name, vote_result=vote_result)

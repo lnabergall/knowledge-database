@@ -163,10 +163,10 @@ class UserData:
             user_name=self.user_name,
         )
 
-    def load_email(self):
+    def load_info(self):
         try:
-            self.email = orm.StorageHandler().call(select.get_user_emails,
-                                                   user_id=self.user_id)
+            self.user_name, self.email = orm.StorageHandler().call(
+                select.get_user_emails, user_id=self.user_id)
         except:
             raise
 
