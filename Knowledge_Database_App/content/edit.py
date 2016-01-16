@@ -86,7 +86,7 @@ class Edit:
     def __init__(self, edit_id=None, validation_status=None, content_id=None,
                  edit_text=None, edit_rationale=None, content_part=None,
                  part_id=None, original_part_text=None, author_type=None,
-                 author_id=None, start_timestamp=None, edit=None):
+                 author_id=None, start_timestamp=None, edit_object=None):
         """
         Args:
             edit_id: Integer. Defaults to None.
@@ -118,19 +118,19 @@ class Edit:
         if edit_id is not None and self.validation_status is not None:
             if self.validation_status == "validating":
                 try:
-                    edit = self._retrieve_from_redis(edit_id)
+                    edit_object = self._retrieve_from_redis(edit_id)
                 except:
                     raise
                 else:
-                    if edit is None:
-                        edit = self._retrieve_from_storage(
+                    if edit_object is None:
+                        edit_object = self._retrieve_from_storage(
                             redis_edit_id=edit_id)
-                self._transfer(edit)
+                self._transfer(edit_object)
             else:
-                edit = self._retrieve_from_storage(edit_id=edit_id)
-                self._transfer(edit)
-        elif edit is not None and self.validation_status is not None:
-            self._transfer(edit)
+                edit_object = self._retrieve_from_storage(edit_id=edit_id)
+                self._transfer(edit_object)
+        elif edit_object is not None and self.validation_status is not None:
+            self._transfer(edit_object)
         else:
             if (not content_id or edit_text is None or not content_part or
                     original_part_text is None or not author_type or
@@ -212,47 +212,47 @@ class Edit:
             else:
                 return
 
-    def _transfer(self, edit):
+    def _transfer(self, edit_object):
         if self.validation_status == "validating":
-            self.edit_id = edit["edit_id"]
-            self.content_id = edit["content_id"]
-            self.edit_text = edit["edit_text"]
-            self.edit_rationale = (edit["edit_rationale"]
-                                   if edit["edit_rationale"] else None)
-            self.content_part = edit["content_part"]
-            self.part_id = edit["part_id"]
-            self.timestamp = edit["timestamp"]
-            self.author_type = edit["author_type"]
+            self.edit_id = edit_object["edit_id"]
+            self.content_id = edit_object["content_id"]
+            self.edit_text = edit_object["edit_text"]
+            self.edit_rationale = (edit_object["edit_rationale"]
+                                   if edit_object["edit_rationale"] else None)
+            self.content_part = edit_object["content_part"]
+            self.part_id = edit_object["part_id"]
+            self.timestamp = edit_object["timestamp"]
+            self.author_type = edit_object["author_type"]
             if self.author_type == "U":
-                self.author = UserData(user_id=edit.author.user_id)
-            self.start_timestamp = edit["start_timestamp"]
+                self.author = UserData(user_id=edit_object.author.user_id)
+            self.start_timestamp = edit_object["start_timestamp"]
         else:
-            self.content_id = edit.content_id
-            self.edit_id = edit.edit_id
-            self.edit_text = edit.edit_text
-            self.edit_rationale = edit.edit_rationale
-            self.content_part = edit.content_part
-            self.start_timestamp = edit.start_timestamp
-            self.timestamp = edit.timestamp
+            self.content_id = edit_object.content_id
+            self.edit_id = edit_object.edit_id
+            self.edit_text = edit_object.edit_text
+            self.edit_rationale = edit_object.edit_rationale
+            self.content_part = edit_object.content_part
+            self.start_timestamp = edit_object.start_timestamp
+            self.timestamp = edit_object.timestamp
             if self.validation_status == "accepted":
-                self.validated_timestamp = edit.acc_timestamp
-                self.applied_edit_text = edit.applied_edit_text
+                self.validated_timestamp = edit_object.acc_timestamp
+                self.applied_edit_text = edit_object.applied_edit_text
             else:
-                self.validated_timestamp = edit.rej_timestamp
-            self.author_type = edit.author_type
+                self.validated_timestamp = edit_object.rej_timestamp
+            self.author_type = edit_object.author_type
             if self.author_type == "U":
-                self.author = UserData(user_id=edit.author.user_id,
-                                       user_name=edit.author.user_name)
-            if edit.name_id:
-                self.part_id = edit.name_id
-            elif edit.text_id:
-                self.part_id = edit.text_id
-            elif edit.content_type_id:
-                self.part_id = edit.content_type_id
-            elif edit.keyword_id:
-                self.part_id = edit.keyword_id
+                self.author = UserData(user_id=edit_object.author.user_id,
+                                       user_name=edit_object.author.user_name)
+            if edit_object.name_id:
+                self.part_id = edit_object.name_id
+            elif edit_object.text_id:
+                self.part_id = edit_object.text_id
+            elif edit_object.content_type_id:
+                self.part_id = edit_object.content_type_id
+            elif edit_object.keyword_id:
+                self.part_id = edit_object.keyword_id
             else:
-                self.part_id = edit.citation_id
+                self.part_id = edit_object.citation_id
 
     @classmethod
     def bulk_retrieve(cls, validation_status, user_id=None, content_id=None,
