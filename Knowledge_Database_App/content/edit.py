@@ -118,17 +118,17 @@ class Edit:
         if edit_id is not None and self.validation_status is not None:
             if self.validation_status == "validating":
                 try:
-                    edit_object = self._retrieve_from_redis(edit_id)
+                    stored_edit = self._retrieve_from_redis(edit_id)
                 except:
                     raise
                 else:
-                    if edit_object is None:
-                        edit_object = self._retrieve_from_storage(
+                    if stored_edit is None:
+                        stored_edit = self._retrieve_from_storage(
                             redis_edit_id=edit_id)
-                self._transfer(edit_object)
+                self._transfer(stored_edit)
             else:
-                edit_object = self._retrieve_from_storage(edit_id=edit_id)
-                self._transfer(edit_object)
+                stored_edit = self._retrieve_from_storage(edit_id=edit_id)
+                self._transfer(stored_edit)
         elif edit_object is not None and self.validation_status is not None:
             self._transfer(edit_object)
         else:
