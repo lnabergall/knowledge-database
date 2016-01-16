@@ -577,8 +577,11 @@ class Edit:
                 self.part_id, self.content_part)
         except:
             raise
-        author_info = self.storage_handler.call(
-            select.get_user_info, content_id=content_id)
+        try:
+            author_info = self.storage_handler.call(
+                select.get_user_info, content_id=content_id)
+        except:
+            raise
         self._notify.apply_async(args=["edit_accepted"])
         self._notify.apply_async(args=["author_acceptance"],
                                  kwargs={"author_info": author_info})
@@ -697,8 +700,11 @@ class Edit:
                 self.part_id, self.content_part)
         except:
             raise
-        author_info = self.storage_handler.call(
-            select.get_user_info, content_id=content_id)
+        try:
+            author_info = self.storage_handler.call(
+                select.get_user_info, content_id=content_id)
+        except:
+            raise
         self._notify.apply_async(args=["edit_rejected"])
         self._notify.apply_async(args=["author_rejection"],
                                  kwargs={"author_info": author_info})
