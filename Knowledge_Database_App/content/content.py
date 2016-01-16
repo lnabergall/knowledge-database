@@ -1,5 +1,13 @@
 """
 Content Piece API
+
+Classes:
+
+    Name, Text, UserData, Content
+
+Exceptions:
+
+    ApplicationError, ContentError
 """
 
 from datetime import datetime
@@ -27,6 +35,16 @@ class ContentError(Exception):
 
 
 class Name:
+    """
+    Attributes:
+        name_id: Integer.
+        name: String.
+        name_type: String, expects 'primary' or 'alternate'.
+        timestamp: Datetime.
+    Properties:
+        json_ready: Dictionary.
+        storage_object: orm.Name object.
+    """
 
     def __init__(self, name_id=None, name=None,
                  name_type=None, timestamp=None):
@@ -72,6 +90,15 @@ class Name:
 
 
 class Text:
+    """
+    Attributes:
+        text_id: Integer.
+        text: String.
+        timestamp: Datetime.
+    Properties:
+        json_ready: Dictionary.
+        storage_object: orm.Name object.
+    """
 
     def __init__(self, text_id=None, text=None, timestamp=None):
         if (not (isinstance(text_id, None) or isinstance(text_id, int)) or
@@ -111,6 +138,15 @@ class Text:
 
 
 class UserData:
+    """
+    Attributes:
+        user_id: Integer.
+        user_name: String.
+    Properties:
+        json_ready: Dictionary.
+    Instance Methods:
+        load_email
+    """
 
     def __init__(self, user_id=None, user_name=None):
         if (not (isinstance(user_id, None) or isinstance(user_id, int)) or
@@ -140,6 +176,31 @@ class UserData:
 
 
 class Content:
+    """
+    Attributes:
+        content_id: Integer. Defaults to None.
+        timestamp: Datetime. Defaults to None.
+        deleted_timestamp: Datetime. Defaults to None.
+        first_author: UserData object. Defaults to None.
+        authors: List of UserData objects. Defaults to None.
+        content_type: String. Defaults to None.
+        name: Name object. Defaults to None.
+        alternate_names: List of Name objects. Defaults to None.
+        text: Text object. Defaults to None.
+        keywords: List of Strings. Defaults to None.
+        citations: List of Strings. Defaults to None.
+        notification: String. Defaults to None.
+
+    Properties:
+        json_ready: Dictionary.
+
+    Instance Methods:
+        _transfer, store, _delete
+
+    Class Methods:
+        bulk_retrieve, get_content_types, check_uniqueness, filter_by,
+        search, autocomplete, update
+    """
 
     storage_handler = orm.StorageHandler()
 
@@ -152,8 +213,8 @@ class Content:
     name = None                 # Name object.
     alternate_names = None      # List of Name objects.
     text = None                 # Text object.
-    keywords = None             # String.
-    citations = None            # String.
+    keywords = None             # List of Strings.
+    citations = None            # List of Strings.
     notification = None
 
     def __init__(self, content_id=None, first_author_name=None,

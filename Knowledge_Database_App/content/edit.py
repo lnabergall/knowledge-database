@@ -1,5 +1,17 @@
 """
 Content Edit API
+
+Classes:
+
+    Edit
+
+Exceptions:
+
+    DuplicateError
+
+Functions:
+
+    is_ip_address
 """
 
 import re
@@ -20,6 +32,38 @@ class DuplicateError(Exception):
 
 
 class Edit:
+    """
+    Attributes:
+        edit_id: Integer. Defaults to None.
+        content_id: Integer. Defaults to None.
+        timestamp: Datetime. Defaults to None.
+        start_timestamp: Datetime. Defaults to None.
+        validated_timestamp: Datetime. Defaults to None.
+        validation_status: String, expects 'pending', 'validating',
+            'accepted', or 'rejected'. Defaults to None.
+        original_part_text: String. Defaults to None.
+        edit_text: String. Defaults to None.
+        applied_edit_text: String. Defaults to None.
+        edit_rationale: String. Defaults to None.
+        content_part: String, expects 'text', 'name', 'alternate_name',
+            'keyword', 'content_type', or 'citation'.
+        part_id: Integer.
+        author_type: String, 'admin' or 'standard'.
+        author: UserData object. Defaults to None.
+
+    Properties:
+        json_ready: Dictionary.
+        conflict: Boolean, indicates whether this edit likely semantically
+            conflicts with another edit.
+
+    Instance Methods:
+        _retrieve_from_storage, _retrieve_from_redis, _transfer,
+        start_vote, save, validate, _accept, _compute_merging_diff,
+        apply_edit, reject, _notify
+
+    Class Methods:
+        bulk_retrieve
+    """
 
     storage_handler = orm.StorageHandler()
 
@@ -37,7 +81,7 @@ class Edit:
     content_part = None         # String.
     part_id = None              # Integer.
     author_type = None          # String.
-    author = None               # Integer.
+    author = None               # UserData object.
 
     def __init__(self, edit_id=None, validation_status=None, content_id=None,
                  edit_text=None, edit_rationale=None, content_part=None,
@@ -150,6 +194,12 @@ class Edit:
         return edit
 
     def _retrieve_from_redis(self, edit_id):
+        """
+        Args:
+            edit_id: Integer.
+        Returns:
+            Dictionary.
+        """
         if self.validation_status != "validating":
             return NotImplemented
         try:
@@ -209,6 +259,23 @@ class Edit:
                       text_id=None, citation_id=None, name_id=None,
                       keyword_id=None, content_type_id=None, page_num=0,
                       ids_only=False):
+        """
+        Args:
+            validation_status: String, expects 'validating', 'accepted',
+                or 'rejected'.
+            user_id: Integer. Defaults to None.
+            content_id: Integer. Defaults to None.
+            text_id: Integer. Defaults to None.
+            citation_id: Integer. Defaults to None.
+            name_id: Integer. Defaults to None.
+            keyword_id: Integer. Defaults to None.
+            content_type_id: Integer. Defaults to None.
+            page_num: Integer. Defaults to 0.
+            ids_only: Boolean. Defaults to False.
+        Returns:
+            If ids_only == True, returns list of Integers, otherwise returns
+            list of Edits.
+        """
         if user_id is not None:
             if validation_status == "validating":
                 try:
@@ -392,6 +459,11 @@ class Edit:
             return edits
 
     def start_vote(self):
+        """
+        Saves the edit, notifies all authors of the submission of
+        the edit, and schedules periodic validation and additional
+        notifications.
+        """
         if not self.validate():
             self.save()
             self.validate.apply_async(eta=self.timestamp+timedelta(days=5))
@@ -408,6 +480,9 @@ class Edit:
                 eta=self.timestamp+timedelta(days=8))
 
     def save(self):
+        """
+        Saves the edit to Redis for storage until validation completes.
+        """
         try:
             edit_id = redis.store_edit(
                 self.content_id, self.edit_text, self.edit_rationale,
@@ -421,7 +496,14 @@ class Edit:
             self.edit_id = edit_id
 
     @celery_app.task(name="edit.validate")
-    def validate(self):  # async task, called each vote
+    def validate(self):
+        """
+        Validates the edit based on the distribution of author votes
+        and the number of days from submission.
+
+        See the specifications for an explanation of the
+        validation criteria.
+        """
         try:
             author_count = self.storage_handler.call(select.get_author_count,
                                                      self.content_id)
@@ -456,6 +538,11 @@ class Edit:
             self._reject(votes)
 
     def _accept(self, votes):
+        """
+        Updates the corresponding content part, stores the edit,
+        deletes the edit from Redis, and notifies the author and other
+        content authors of the edit's acceptance.
+        """
         accepted_timestamp = datetime.utcnow()
         vote_string = NotImplemented    # Vote API
         self.apply_edit()
@@ -575,6 +662,10 @@ class Edit:
                                "remove", self.timestamp, part_id=self.part_id)
 
     def _reject(self, votes):
+        """
+        Stores the edit, deletes the edit from Redis, and notifies
+        the author and other content authors of the edit's rejection.
+        """
         rejected_timestamp = datetime.utcnow()
         vote_string = NotImplemented    # Vote API
         try:
