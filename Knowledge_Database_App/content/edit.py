@@ -592,10 +592,11 @@ class Edit:
                 "accepted", content_id=self.content_id,
                 citation_id=self.part_id)
         else:
-            return self.edit_text
+            return self.edit_text   # No merging keywords, names, content types
         prior_accepted_edits = [edit for edit in accepted_edits
             if edit.validated_timestamp < self.start_timestamp]
         if len(accepted_edits) == len(prior_accepted_edits):
+            # All accepted edits already in original part text
             return self.edit_text
         else:
             conflicting_edits = [
