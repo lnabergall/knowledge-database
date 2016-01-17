@@ -611,11 +611,11 @@ class Content:
                                                part_strings=alternate_names)
                 elif content_part == "keyword":
                     try:
-                        Content.update(content_id, content_part,
+                        cls.update(content_id, content_part,
                                        "remove", part_id)
                     except action.MissingDataError:
                         pass
-                    Content.update(content_id, content_part,
+                    cls.update(content_id, content_part,
                                    "add", part_text=part_text)
                     keywords = cls.storage_handler.call(
                         select.get_keywords, content_id)
@@ -624,7 +624,7 @@ class Content:
                                                part_strings=keywords)
                 elif content_part == "citation":
                     try:
-                        Content.update(content_id, content_part,
+                        cls.update(content_id, content_part,
                                        "remove", part_id)
                     except action.MissingDataError:
                         other_edits = cls.storage_handler.call(
@@ -637,9 +637,9 @@ class Content:
                             previous_citation = other_edits[0]
                             edited_citations = ([previous_citation] +
                                 previous_citation.edited_citations)
-                            Content.update(content_id, content_part, "remove",
+                            cls.update(content_id, content_part, "remove",
                                            previous_citation.citation_id)
-                    Content.update(content_id, content_part, "add",
+                    cls.update(content_id, content_part, "add",
                         part_text=part_text, edited_citations=edited_citations)
                     citations = cls.storage_handler.call(
                         select.get_citations, content_id)
