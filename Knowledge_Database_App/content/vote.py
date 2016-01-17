@@ -29,6 +29,25 @@ class VoteStatusError(Exception):
 
 
 class AuthorVote:
+    """
+    Attributes:
+        edit_id: Integer. Defaults to None.
+        vote_status: String, expects 'in-progress' or 'ended'.
+            Defaults to None.
+        vote: String, expects 'Y' or 'N'. Defaults to None.
+        timestamp: Datetime. Defaults to None.
+        author: UserData object. Defaults to None.
+
+    Properties:
+        json_ready: Dictionary.
+
+    Instance Methods:
+        save
+
+    Class Methods:
+        unpack_vote_summary, _retrieve_from_storage,
+        _retrieve_from_redis, bulk_retrieve, get_vote_summary
+    """
 
     storage_handler = orm.StorageHandler()
 
@@ -107,6 +126,17 @@ class AuthorVote:
     @classmethod
     def bulk_retrieve(cls, edit_id=None, vote_id=None,
                       vote_status=None, validation_status=None):
+        """
+        Args:
+            edit_id: Integer. Defaults to None.
+            vote_id: Integer. Defaults to None.
+            vote_status: String, expects 'in-progress' or 'ended'.
+                Defaults to None.
+            validation_status: String, expects 'accepted' or 'rejected'.
+                Defaults to None.
+        Returns:
+            List of AuthorVotes.
+        """
         if vote_status == "in-progress":
             if edit_id is None:
                 raise select.InputError("Invalid argument!")
