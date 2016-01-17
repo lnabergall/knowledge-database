@@ -25,6 +25,7 @@ from . import redis
 from . import edit_diff as diff
 from .celery import celery_app
 from .content import Content, Name, UserData
+from .vote import AuthorVote
 
 
 class DuplicateError(Exception):
@@ -510,18 +511,18 @@ class Edit:
         except:
             raise
         try:
-            votes = redis.get_validation_data(self.edit_id)["votes"]
+            votes = AuthorVote.bulk_retrieve(vote_status="in-progress",
+                                             edit_id=self.edit_id)
         except:
             raise
         vote_count = len(votes)
-        for_vote_count = len([True for vote in votes.items()
-                              if vote[1] == "Y"])
+        for_vote_count = len([True for vote in votes
+                              if vote.vote == "Y"])
         against_vote_count = vote_count - for_vote_count
         days_since_creation = (datetime.utcnow() - self.timestamp).days
         if not votes:
             if author_count == 0 or days_since_creation >= 10:
-                self._accept(votes)
-                return
+                return self._accept(votes)
         else:
             if ((author_count == vote_count and
                     for_vote_count/vote_count >= 0.5) or
@@ -531,8 +532,7 @@ class Edit:
                      for_vote_count/vote_count >= .66) or
                     (days_since_creation >= 10 and
                      for_vote_count/vote_count >= 0.5)):
-                self._accept(votes)
-                return
+                return self._accept(votes)
 
         if against_vote_count >= author_count/2 or days_since_creation >= 10:
             self._reject(votes)
@@ -544,7 +544,7 @@ class Edit:
         content authors of the edit's acceptance.
         """
         accepted_timestamp = datetime.utcnow()
-        vote_string = NotImplemented    # Vote API
+        vote_string = AuthorVote.get_vote_summary(votes)
         self.apply_edit()
         try:
             edit_id = self.storage_handler.call(
@@ -557,7 +557,7 @@ class Edit:
                 self.part_id,
                 self.content_id,
                 vote_string,
-                votes.keys(),
+                [vote.author.user_id for vote in votes],
                 self.start_timestamp,
                 self.timestamp,
                 accepted_timestamp,
@@ -671,7 +671,7 @@ class Edit:
         the author and other content authors of the edit's rejection.
         """
         rejected_timestamp = datetime.utcnow()
-        vote_string = NotImplemented    # Vote API
+        vote_string = AuthorVote.get_vote_summary(votes)
         try:
             edit_id = self.storage_handler.call(
                 action.store_rejected_edit,
@@ -682,7 +682,7 @@ class Edit:
                 self.part_id,
                 self.content_id,
                 vote_string,
-                votes.keys(),
+                [vote.author.user_id for vote in votes],
                 self.timestamp,
                 rejected_timestamp,
                 self.author_type,
