@@ -284,13 +284,13 @@ class Edit:
                     raise
             elif validation_status == "accepted":
                 try:
-                    edits = self.storage_handler.call(select.get_accepted_edits,
+                    edits = cls.storage_handler.call(select.get_accepted_edits,
                                                       user_id=user_id)
                 except:
                     raise
             elif validation_status == "rejected":
                 try:
-                    edits = self.storage_handler.call(select.get_rejected_edits,
+                    edits = cls.storage_handler.call(select.get_rejected_edits,
                                                       user_id=user_id)
                 except:
                     raise
@@ -312,14 +312,14 @@ class Edit:
                     raise
             elif validation_status == "accepted":
                 try:
-                    edits = self.storage_handler.call(
+                    edits = cls.storage_handler.call(
                         select.get_accepted_edits, content_id=content_id,
                         citation_id=citation_id)
                 except:
                     raise
             elif validation_status == "rejected":
                 try:
-                    edits = self.storage_handler.call(
+                    edits = cls.storage_handler.call(
                         select.get_rejected_edits, content_id=content_id,
                         citation_id=citation_id)
                 except:
@@ -342,14 +342,14 @@ class Edit:
                     raise
             elif validation_status == "accepted":
                 try:
-                    edits = self.storage_handler.call(
+                    edits = cls.storage_handler.call(
                         select.get_accepted_edits, content_id=content_id,
                         keyword_id=keyword_id)
                 except:
                     raise
             elif validation_status == "rejected":
                 try:
-                    edits = self.storage_handler.call(
+                    edits = cls.storage_handler.call(
                         select.get_rejected_edits, content_id=content_id,
                         keyword_id=keyword_id)
                 except:
@@ -372,14 +372,14 @@ class Edit:
                     raise
             elif validation_status == "accepted":
                 try:
-                    edits = self.storage_handler.call(
+                    edits = cls.storage_handler.call(
                         select.get_accepted_edits, content_id=content_id,
                         content_type_id=content_type_id)
                 except:
                     raise
             elif validation_status == "rejected":
                 try:
-                    edits = self.storage_handler.call(
+                    edits = cls.storage_handler.call(
                         select.get_rejected_edits, content_id=content_id,
                         content_type_id=content_type_id)
                 except:
@@ -394,13 +394,13 @@ class Edit:
                     raise
             elif validation_status == "accepted":
                 try:
-                    edits = self.storage_handler.call(select.get_accepted_edits,
+                    edits = cls.storage_handler.call(select.get_accepted_edits,
                                                       content_id=content_id)
                 except:
                     raise
             elif validation_status == "rejected":
                 try:
-                    edits = self.storage_handler.call(select.get_rejected_edits,
+                    edits = cls.storage_handler.call(select.get_rejected_edits,
                                                       content_id=content_id)
                 except:
                     raise
@@ -414,13 +414,13 @@ class Edit:
                     raise
             elif validation_status == "accepted":
                 try:
-                    edits = self.storage_handler.call(select.get_accepted_edits,
+                    edits = cls.storage_handler.call(select.get_accepted_edits,
                                                       text_id=text_id)
                 except:
                     raise
             elif validation_status == "rejected":
                 try:
-                    edits = self.storage_handler.call(select.get_rejected_edits,
+                    edits = cls.storage_handler.call(select.get_rejected_edits,
                                                       text_id=text_id)
                 except:
                     raise
@@ -434,13 +434,13 @@ class Edit:
                     raise
             elif validation_status == "accepted":
                 try:
-                    edits = self.storage_handler.call(select.get_accepted_edits,
+                    edits = cls.storage_handler.call(select.get_accepted_edits,
                                                       name_id=name_id)
                 except:
                     raise
             elif validation_status == "rejected":
                 try:
-                    edits = self.storage_handler.call(select.get_rejected_edits,
+                    edits = cls.storage_handler.call(select.get_rejected_edits,
                                                       name_id=name_id)
                 except:
                     raise

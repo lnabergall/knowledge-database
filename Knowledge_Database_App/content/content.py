@@ -321,7 +321,7 @@ class Content:
         """
         if user_id is not None:
             try:
-                content_pieces = self.storage_handler.call(
+                content_pieces = cls.storage_handler.call(
                     select.get_content_pieces, user_id=user_id)
             except:
                 raise
@@ -339,7 +339,7 @@ class Content:
             List of content type strings.
         """
         try:
-            content_types = self.storage_handler.call(select.get_content_types)
+            content_types = cls.storage_handler.call(select.get_content_types)
             content_types = [content_type.content_type
                              for content_type in content_types]
         except:
@@ -362,8 +362,8 @@ class Content:
         """
         if content_part == "name":
             try:
-                name = self.storage_handler.call(select.get_name, content_id)
-                alternate_names = self.storage_handler.call(
+                name = cls.storage_handler.call(select.get_name, content_id)
+                alternate_names = cls.storage_handler.call(
                     select.get_alternate_names, content_id)
             except:
                 raise
@@ -372,7 +372,7 @@ class Content:
                         not in [name.name for name in alternate_names])
         elif content_part == "keyword":
             try:
-                keywords = self.storage_handler.call(select.get_keywords,
+                keywords = cls.storage_handler.call(select.get_keywords,
                                                      content_id)
             except:
                 raise
@@ -381,7 +381,7 @@ class Content:
                                            for keyword in keywords]
         elif content_part == "citation":
             try:
-                citations = self.storage_handler.call(select.get_citations,
+                citations = cls.storage_handler.call(select.get_citations,
                                                       content_id)
             except:
                 raise
@@ -525,7 +525,7 @@ class Content:
         if content_part == "content_type" and update_type == "modify":
             try:
                 content_type = select.get_content_type(part_text)
-                self.storage_handler.call(action.update_content_type,
+                cls.storage_handler.call(action.update_content_type,
                                           content_id, content_type)
                 index.update_content_piece(content_id, content_part,
                                            content_type.content_type)
@@ -534,29 +534,29 @@ class Content:
         elif update_type == "add":
             try:
                 if isinstance(part_text, orm.Name):
-                    self.storage_handler.call(action.store_content_part,
+                    cls.storage_handler.call(action.store_content_part,
                                               part_text, content_id)
                     index.add_to_content_piece(content_id, "alternate_name",
                                                content_part.name)
                 elif content_part == "keyword" and part_text is not None:
                     try:
-                        keyword = self.storage_handler.call(
+                        keyword = cls.storage_handler.call(
                             select.get_keyword, part_text)
                     except select.SelectError:
                         keyword = orm.Keyword(keyword=part_text,
                                               timestamp=timestamp)
-                    self.storage_handler.call(action.store_content_part,
+                    cls.storage_handler.call(action.store_content_part,
                                               keyword, content_id)
                     index.add_to_content_piece(content_id, content_part,
                                                keyword.keyword)
                 elif content_part == "citation" and part_text is not None:
                     try:
-                        citation = self.storage_handler.call(
+                        citation = cls.storage_handler.call(
                             select.get_citation, part_text)
                     except select.SelectError:
                         citation = orm.Citation(citation_text=part_text,
                                                 timestamp=timestamp)
-                    self.storage_handler.call(
+                    cls.storage_handler.call(
                         action.store_content_part, citation, content_id,
                         edited_citations=edited_citations)
                     index.add_to_content_piece(content_id, content_part,
@@ -567,22 +567,22 @@ class Content:
                 raise
         elif part_id is not None and update_type == "remove":
             try:
-                self.storage_handler.call(action.remove_content_part,
+                cls.storage_handler.call(action.remove_content_part,
                                           content_id, part_id, content_part)
                 if content_part == "alternate_name":
-                    alternate_names = self.storage_handler.call(
+                    alternate_names = cls.storage_handler.call(
                         select.get_alternate_names, content_id)
                     alternate_names = [name.name for name in alternate_names]
                     index.update_content_piece(content_id, content_part,
                                                part_strings=alternate_names)
                 elif content_part == "keyword":
-                    keywords = self.storage_handler.call(
+                    keywords = cls.storage_handler.call(
                         select.get_keywords,content_id)
                     keywords = [keyword.keyword for keyword in keywords]
                     index.update_content_piece(content_id, content_part,
                                                part_strings=keywords)
                 elif content_part == "citation":
-                    citations = self.storage_handler.call(
+                    citations = cls.storage_handler.call(
                         select.get_citations, content_id)
                     citations = [citation.citation_text
                                  for citation in citations]
@@ -595,16 +595,16 @@ class Content:
         elif part_id is not None and update_type == "modify":
             try:
                 if content_part == "name" or content_part == "alternate_name":
-                    self.storage_handler.call(action.update_content_part,
+                    cls.storage_handler.call(action.update_content_part,
                                               part_id, "name", part_text)
                 elif content_part == "text":
-                    self.storage_handler.call(action.update_content_part,
+                    cls.storage_handler.call(action.update_content_part,
                                               part_id, content_part, part_text)
                 if content_part == "name" or content_part == "text":
                     index.update_content_piece(content_id, content_part,
                                                part_string=part_text)
                 elif content_part == "alternate_name":
-                    alternate_names = self.storage_handler.call(
+                    alternate_names = cls.storage_handler.call(
                         select.get_alternate_names, content_id)
                     alternate_names = [name.name for name in alternate_names]
                     index.update_content_piece(content_id, content_part,
@@ -617,7 +617,7 @@ class Content:
                         pass
                     Content.update(content_id, content_part,
                                    "add", part_text=part_text)
-                    keywords = self.storage_handler.call(
+                    keywords = cls.storage_handler.call(
                         select.get_keywords, content_id)
                     keywords = [keyword.keyword for keyword in keywords]
                     index.update_content_piece(content_id, content_part,
@@ -627,7 +627,7 @@ class Content:
                         Content.update(content_id, content_part,
                                        "remove", part_id)
                     except action.MissingDataError:
-                        other_edits = self.storage_handler.call(
+                        other_edits = cls.storage_handler.call(
                             select.get_citations, content_id,
                             edited_citation_id=part_id)
                         if len(other_edits) != 1:
@@ -641,7 +641,7 @@ class Content:
                                            previous_citation.citation_id)
                     Content.update(content_id, content_part, "add",
                         part_text=part_text, edited_citations=edited_citations)
-                    citations = self.storage_handler.call(
+                    citations = cls.storage_handler.call(
                         select.get_citations, content_id)
                     citations = [citation.citation_text
                                  for citation in citations]
