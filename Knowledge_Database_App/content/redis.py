@@ -21,6 +21,10 @@ class DuplicateVoteError(Exception):
     """Exception to raise when a vote already exists."""
 
 
+class MissingKeyError(Exception):
+    """Exception to raise when a key is missing."""
+
+
 redis = StrictRedis()
 
 
@@ -103,6 +107,9 @@ def store_vote(edit_id, voter_id, vote):
         voter_id: Integer.
         vote: String, expects 'Y' or 'N'.
     """
+    exists = redis.exists("votes:" + str(edit_id))
+    if not exists:
+        raise MissingKeyError("Key '" + str(edit_id) + "' not found!")
     response = redis.hsetnx("votes:" + str(edit_id), voter_id, vote)
     if response == 0:
         raise DuplicateVoteError
