@@ -100,19 +100,21 @@ def store_edit(content_id, edit_text, edit_rationale, content_part,
     return edit_id
 
 
-def store_vote(edit_id, voter_id, vote):
+def store_vote(edit_id, voter_id, vote_and_time):
     """
     Args:
         edit_id: Integer.
         voter_id: Integer.
-        vote: String, expects 'Y' or 'N'.
+        vote_and_time: String.
     """
-    exists = redis.exists("votes:" + str(edit_id))
+    exists = redis.exists("edit:" + str(edit_id))
     if not exists:
         raise MissingKeyError("Key '" + str(edit_id) + "' not found!")
-    response = redis.hsetnx("votes:" + str(edit_id), voter_id, vote)
-    if response == 0:
-        raise DuplicateVoteError
+    else:
+        response = redis.hsetnx("votes:" + str(edit_id),
+                                voter_id, vote_and_time)
+        if response == 0:
+            raise DuplicateVoteError
 
 
 def get_edits(content_id=None, user_id=None, text_id=None,
