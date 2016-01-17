@@ -124,14 +124,13 @@ class AuthorVote:
             return vote_dict
 
     @classmethod
-    def bulk_retrieve(cls, edit_id=None, vote_id=None,
-                      vote_status=None, validation_status=None):
+    def bulk_retrieve(cls, vote_status, edit_id=None, vote_id=None,
+                      validation_status=None):
         """
         Args:
+            vote_status: String, expects 'in-progress' or 'ended'.
             edit_id: Integer. Defaults to None.
             vote_id: Integer. Defaults to None.
-            vote_status: String, expects 'in-progress' or 'ended'.
-                Defaults to None.
             validation_status: String, expects 'accepted' or 'rejected'.
                 Defaults to None.
         Returns:
