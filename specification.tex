@@ -537,9 +537,9 @@ Asynchronous processing will almost exclusively\footnote{It will also be used fo
 
 
 
-\subsubsection{API Layout}
+\subsubsection{Backend-linking API Layout}
 
-The following roughly documents the layout of the client-facing Content API; we denote class and static methods by ``class" and ``static", respectively.
+The following roughly documents the layout of the backend-linking Content API; we denote class and static methods by ``class" and ``static", respectively.
 
 \begin{enumerate}
 \item[] ContentError
@@ -606,6 +606,16 @@ The following roughly documents the layout of the client-facing Content API; we 
 An email package separate from the Content API will provide email notification functionality and a diff module will provide for the calculation of edit diffs and the merging of edits with existing content parts to produce new versions. A Redis module will also provide for the storage, retrieval, and deletion of edits and votes from Redis.
 
 
+
+\subsubsection{Client-facing API Layout}
+
+The following roughly documents the layout of the client-facing Content View API. Whereas the backend-linking Content API provided classes and methods closely mapping application objects and their related functions, properties, and operations, the Content View API will essentially map to the ``pages" actually requested by clients; in other words, it will provide a ``view" of the backend for the client-communicating RESTful Pyramid API to consume. 
+
+\begin{enumerate}
+\item[] ContentView
+\item[] EditView
+\item[] VoteView
+\end{enumerate}
 
 
 
