@@ -1,0 +1,3 @@
+"""
+Content Vote View API
+"""

@@ -1,0 +1,3 @@
+"""
+Content Edit View API
+"""
