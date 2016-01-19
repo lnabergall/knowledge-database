@@ -612,9 +612,23 @@ An email package separate from the Content API will provide email notification f
 The following roughly documents the layout of the client-facing Content View API. Whereas the backend-linking Content API provided classes and methods closely mapping application objects and their related functions, properties, and operations, the Content View API will essentially map to the ``pages" actually requested by clients; in other words, it will provide a ``view" of the backend for the client-communicating RESTful Pyramid API to consume. 
 
 \begin{enumerate}
-\item[] ContentView
-\item[] EditView
-\item[] VoteView
+\item[] ContentView - instantiation creates a new content piece or retrieves an existing content piece.
+\begin{enumerate}
+\item[] bulk\_retrieve (class)
+\item[] get\_content\_types (class)
+\item[] search (class)
+\item[] filter\_by (class)
+\item[] autocomplete (class)
+\end{enumerate}
+\item[] EditView - instantiation creates a new edit or retrieves an existing edit.
+\begin{enumerate}
+\item[] bulk\_retrieve (class)
+\item[] conflict (property)
+\end{enumerate}
+\item[] VoteView - instantiation creates a new vote or retrieves an existing vote.
+\begin{enumerate}
+\item[] bulk\_retrieve (class)
+\end{enumerate}
 \end{enumerate}
 
 
