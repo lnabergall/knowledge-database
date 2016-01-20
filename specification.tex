@@ -109,23 +109,45 @@ The above procedure covers all cases except when a user has submitted a piece of
 
 \section{Application Map}
 
-The following is a list of each of the (functional) pages\footnote{Or areas/features.} in the knowledge database and, for each page, a list of linking pages, that is, the pages that a user can navigate to from that page. Note that these pages are only defined functionally and may not correspond to separate HTML pages or any page-like interface elements. Furthermore, linked pages may not correspond to a unique button (i.e. they may be dependent on previous navigation history). This generates a corresponding ``application graph" or map, although it is too intricate to be effectively visualized. 
+The following is a list of each of the (functional) pages\footnote{Or areas/features.} in the knowledge database and, for each page, a list of linking pages, that is, the pages that a user can navigate to from that page. Note that these pages are only defined functionally and may not correspond to separate HTML pages or any page-like interface elements. Furthermore, linked pages may not correspond to a unique button (i.e. they may be dependent on previous navigation history). This generates a corresponding ``application graph" or map, although it is too intricate to be effectively visualized. Each page (if applicable) contains a list of contained content.
 
 \begin{enumerate}
 \item[1.] Home --- 2\textsuperscript{*}, 3, 4, 6, 7, 12
 \item[2.] Search Results --- 3, 4, 5\textsuperscript{*}, 6, 7, 12, 1
+\begin{enumerate}
+\item[] 10 content pieces matching the search criteria arranged in descending order.
+\item[] For each content piece: Best matching name, content type, snippet(s) of text with matches highlighted, and all keywords.
+\end{enumerate}
 \item[3.] Sign-Up --- 1\textsuperscript{*}, 5
 \item[4.] Login --- 1\textsuperscript{*}, 5
 \item[5.] Content Page --- 8, 6, 4, 3, 2, 1, 7, 9, 11, 12, 13, 14
-\item[6.] Account Page  --- 1, 2, 7, 11
+\begin{enumerate}
+\item[] Name, alternate names, content type, text, citation, keywords, author user names, links to edits page and, if applicable, content author pages.
+\end{enumerate}
+\item[6.] User Page  --- 1, 2, 7, 11
+\begin{enumerate}
+\item[] Four separate ``tabbed" subpages: recent activity, authored content pieces, edit history, and settings. 
+\item[] Recent activity: All activity on authored edits and content pieces. If there is a vote, a notification will urge the user to vote and link to the authored content pieces tab or directly to the edit depending on whether there is a single or multiple validating edits.
+\item[] Authored content pieces: Name, content type, last modified date, notification icon indicating whether a validating edit exists or not and, if so, a ``vote" button.
+\item[] Edit history: List of authored accepted/rejected edits with the content piece name, content part, submission timestamp, acceptance/rejection timestamp, and a quantitative summary of net modifications.\footnote{e.g. number of characters/words added/removed, total formatting modifications made, and images added/removed.}
+\end{enumerate}
 \item[7.] Content Submission Page --- 1, 5\textsuperscript{*}, 4
 \item[8.] Content Editing Page --- 5\textsuperscript{*}, 1, 2, 3, 4, 6, 9, 12
 \item[9.] Report Content Page --- 5\textsuperscript{*}
 \item[10.] Report Authors Page --- 11\textsuperscript{*}
 \item[11.] Content Authors Page\footnote{Or content validation page.} --- 5\textsuperscript{*}, 6, 1, 2, 9, 10, 12, 14
+\begin{enumerate}
+\item[] A list of author user names, a list of validating proposed edits and corresponding current vote results,\footnote{Still need to decide the level of information released prior to closure of the vote.}, a list of recently accepted/rejected edits with corresponding vote results, and a list of older accepted/rejected edits with links to the corresponding vote results.
+\item[] For each validating edit: a ``vote" button or ``vote submitted" icon will be displayed depending on whether the user has voted or not.
+\end{enumerate}
 \item[12.] Admin Account Page --- 5\textsuperscript{*}, 13, 1, 2
 \item[13.] Admin Action Page --- 5, 12
 \item[14.] Edits Page --- 5\textsuperscript{*}, 11
+\begin{enumerate}
+\item[] Two lists:\footnote{Paginated with 20 edits displayed per page.} the first contains currently validating proposed edits and the second contains accepted/rejected edits.
+\item[] For each validating edit: content part, creation timestamp, user name or IP address, a quantitative summary of net modifications,\footnote{e.g. number of characters/words added/removed, total formatting modifications made, and images added/removed.} and, if applicable, the edit rationale.
+\item[] For each accepted/rejected edit: content part, acceptance/rejection timestamp, user name or IP address, a quantitative summary of net modifications,\footnote{See previous footnote.} and, if applicable, the edit rationale.
+\end{enumerate}
 \end{enumerate}
 
 An asterisk indicates that this is the primary page to which a user will next navigate. 
