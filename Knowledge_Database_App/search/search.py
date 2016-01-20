@@ -36,6 +36,8 @@ def search(query_string, page_num=1):
             "content_id": int,
             "name": string,
             "alternate_names": list of strings,
+            "content_part": string,
+            "keywords": list of strings,
             "highlights": {
                 "name": string or None,
                 "alternate_names": list of strings and Nones,
@@ -127,6 +129,7 @@ def filter_by(content_part, part_string, page_num=1):
             "score": float,
             "content_id": int,
             "name": string,
+            "alternate_names": list of strings,
             "text_fragment": 200 character string fragment,
         }
     """
