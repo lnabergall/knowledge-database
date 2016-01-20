@@ -408,9 +408,9 @@ class Content:
         except:
             raise
         else:
-            for result in results["results"]:
+            for i in range(len(results["results"])):
                 try:
-                    del result["score"]
+                    del results["results"][i]["score"]
                 except KeyError:
                     pass
             return results
@@ -429,8 +429,8 @@ class Content:
         except:
             raise
         else:
-            for result in results["results"]:
-                del result["score"]
+            for i in range(len(results["results"])):
+                del results["results"][i]["score"]
             return results
 
     @classmethod

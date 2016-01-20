@@ -94,6 +94,8 @@ def search(query_string, page_num=1):
             "content_id": hit.meta.id,
             "name": hit.name,
             "alternate_names": hit.alternate_names,
+            "content_part": hit.content_type,
+            "keywords": hit.keywords,
             "highlights": {
                 "name": hit.meta.highlight.name,
                 "alternate_names": hit.meta.highlight.alternate_names,
