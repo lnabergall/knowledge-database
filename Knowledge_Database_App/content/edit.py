@@ -968,11 +968,13 @@ class Edit:
             "edit_id": self.edit_id,
             "timestamp": (str(self.timestamp)
                           if self.timestamp is not None else None),
+            "start_timestamp": str(self.start_timestamp),
             "validated_timestamp": (str(self.validated_timestamp)
                                     if self.validated_timestamp is not None
                                     else None),
             "validation_status": self.validation_status,
             "edit_text": self.edit_text,
+            "applied_edit_text": self.applied_edit_text,
             "edit_rationale": self.edit_rationale,
             "content_part": self.content_part,
             "part_id": self.part_id,
