@@ -259,25 +259,47 @@ class Content:
             self.alternate_names = [Name(name=alt_name, name_type="alternate",
                                          timestamp=self.timestamp)
                                     for alt_name in list(set(alternate_names))
-                                    if alt_name != self.name.name]
+                                    if alt_name and alt_name != self.name.name]
             self.text = Text(text=text, timestamp=self.timestamp)
-            if any([config.SMALL_PART_MAX_CHARS <
-                    len(keyword) - keyword.count(" ") or
-                    config.SMALL_PART_MIN_CHARS >
-                    len(keyword) - keyword.count(" ")
-                    for keyword in keywords]):
-                raise ContentError("Keyword out of allowed character count range!")
-            else:
-                self.keywords = list(set(keywords))
-            if any([config.LARGE_PART_MAX_CHARS <
-                    len(citation) - citation.count(" ") or
-                    config.SMALL_PART_MIN_CHARS >
-                    len(citation) - citation.count(" ")
-                    for citation in citations]):
-                raise ContentError("Keyword out of allowed character count range!")
-            else:
-                self.citations = list(set(citations))
+            self.keywords = list(set(keywords))
+            self.citations = list(set(citations))
+            self._check_legal(name, alternate_names, text, keywords, citations)
             self.stored = False
+
+    def _check_legal(self, name, alternate_names, text, keywords, citations):
+        """
+        Checks that all content parts are legal, that is, satisfy
+        the content requirements.
+
+        Args:
+            name: String.
+            alternate_names: List of strings.
+            text: String.
+            keywords: List of strings.
+            citations: List of strings.
+        """
+        names = [name] + alternate_names
+        if any([config.SMALL_PART_MAX_CHARS <
+                len(alt_name) - alt_name.count(" ") or
+                config.SMALL_PART_MIN_CHARS >
+                len(alt_name) - alt_name.count(" ")
+                for alt_name in names]):
+            raise ContentError("Name out of allowed character count range!")
+        if (config.LARGE_PART_MAX_CHARS < len(text) - text.count(" ") or
+                config.LARGE_PART_MIN_CHARS > len(text) - text.count(" ")):
+            raise ContentError("Text out of allowed character count range!")
+        if any([config.LARGE_PART_MAX_CHARS <
+                len(citation) - citation.count(" ") or
+                config.SMALL_PART_MIN_CHARS >
+                len(citation) - citation.count(" ")
+                for citation in citations]):
+            raise ContentError("Citation out of allowed character count range!")
+        if any([config.SMALL_PART_MAX_CHARS <
+                len(keyword) - keyword.count(" ") or
+                config.SMALL_PART_MIN_CHARS >
+                len(keyword) - keyword.count(" ")
+                for keyword in keywords]):
+            raise ContentError("Keyword out of allowed character count range!")
 
     def _transfer(self, content_piece):
         """

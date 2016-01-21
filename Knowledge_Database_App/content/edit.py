@@ -149,9 +149,36 @@ class Edit:
             self.content_part = content_part
             self.part_id = part_id
             self.original_part_text = original_part_text
+            self._check_legal(content_part, edit_text)
             self.edit_text = diff.compute_diff(original_part_text, edit_text)
             self.edit_rationale = edit_rationale
             self.start_vote()
+
+    def _check_legal(self, content_part, edit_text):
+        if ((content_part == "name" or content_part == "alternate_name") and
+                (config.SMALL_PART_MAX_CHARS <
+                len(edit_text) - edit_text.count(" ") or
+                config.SMALL_PART_MIN_CHARS >
+                len(edit_text) - edit_text.count(" "))):
+            raise ContentError("Name out of allowed character count range!")
+        elif (content_part == "text" and
+                (config.LARGE_PART_MAX_CHARS <
+                 len(edit_text) - edit_text.count(" ") or
+                 config.LARGE_PART_MIN_CHARS >
+                 len(edit_text) - edit_text.count(" "))):
+            raise ContentError("Text out of allowed character count range!")
+        elif (content_part == "citation" and
+                (config.LARGE_PART_MAX_CHARS <
+                len(edit_text) - edit_text.count(" ") or
+                config.SMALL_PART_MIN_CHARS >
+                len(edit_text) - edit_text.count(" "))):
+            raise ContentError("Citation out of allowed character count range!")
+        elif (content_part == "keyword" and
+                (config.SMALL_PART_MAX_CHARS <
+                len(edit_text) - edit_text.count(" ") or
+                config.SMALL_PART_MIN_CHARS >
+                len(edit_text) - edit_text.count(" "))):
+            raise ContentError("Keyword out of allowed character count range!")
 
     def _retrieve_from_storage(self, edit_id=None, redis_edit_id=None):
         """
