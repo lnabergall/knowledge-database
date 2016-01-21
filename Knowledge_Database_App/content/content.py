@@ -263,10 +263,11 @@ class Content:
             self.text = Text(text=text, timestamp=self.timestamp)
             self.keywords = list(set(keywords))
             self.citations = list(set(citations))
-            self._check_legal(name, alternate_names, text, keywords, citations)
+            _check_legal(name, alternate_names, text, keywords, citations)
             self.stored = False
 
-    def _check_legal(self, name, alternate_names, text, keywords, citations):
+    @staticmethod
+    def _check_legal(name, alternate_names, text, keywords, citations):
         """
         Checks that all content parts are legal, that is, satisfy
         the content requirements.
@@ -602,7 +603,7 @@ class Content:
                                                part_strings=alternate_names)
                 elif content_part == "keyword":
                     keywords = cls.storage_handler.call(
-                        select.get_keywords,content_id)
+                        select.get_keywords, content_id)
                     keywords = [keyword.keyword for keyword in keywords]
                     index.update_content_piece(content_id, content_part,
                                                part_strings=keywords)
@@ -641,7 +642,7 @@ class Content:
                     except action.MissingDataError:
                         pass
                     cls.update(content_id, content_part,
-                                   "add", part_text=part_text)
+                                   "add", timestamp, part_text=part_text)
                     keywords = cls.storage_handler.call(
                         select.get_keywords, content_id)
                     keywords = [keyword.keyword for keyword in keywords]
@@ -664,7 +665,7 @@ class Content:
                                 previous_citation.edited_citations)
                             cls.update(content_id, content_part, "remove",
                                            previous_citation.citation_id)
-                    cls.update(content_id, content_part, "add",
+                    cls.update(content_id, content_part, "add", timestamp,
                         part_text=part_text, edited_citations=edited_citations)
                     citations = cls.storage_handler.call(
                         select.get_citations, content_id)

@@ -149,12 +149,13 @@ class Edit:
             self.content_part = content_part
             self.part_id = part_id
             self.original_part_text = original_part_text
-            self._check_legal(content_part, edit_text)
+            _check_legal(content_part, edit_text)
             self.edit_text = diff.compute_diff(original_part_text, edit_text)
             self.edit_rationale = edit_rationale
             self.start_vote()
 
-    def _check_legal(self, content_part, edit_text):
+    @staticmethod
+    def _check_legal(content_part, edit_text):
         if ((content_part == "name" or content_part == "alternate_name") and
                 (config.SMALL_PART_MAX_CHARS <
                 len(edit_text) - edit_text.count(" ") or
@@ -477,7 +478,7 @@ class Edit:
         else:
             return []
 
-        edits = [Edit(edit=edit, validation_status=validation_status)
+        edits = [Edit(edit_object=edit, validation_status=validation_status)
                  for edit in edits]
         if page_num != 0:
             edits = edits[10*(page_num-1) : 10*page_num]
