@@ -745,7 +745,8 @@ class Edit:
                 'edit_accepted', 'author_acceptance', 'edit_rejected', or
                 'author_rejection'.
             days_remaining: Integer.
-            author_info: List of Tuples of the form (user_name, email).
+            author_info: List of Tuples of the form
+                (user_id, user_name, email).
         """
         content_name = self.storage_handler.call(
             select.get_name, self.content_id)
@@ -753,13 +754,13 @@ class Edit:
             if author_info is None:
                 raise select.InputError("Invalid argument!")
             else:
-                emails = [mail.Email(info_tuple[1], info_tuple[0],
+                emails = [mail.Email(info_tuple[2], info_tuple[1],
                                        content_name,
                                        edit_text=self.edit_text)
                           for info_tuple in author_info]
                 for email, info_tuple in zip(emails, author_info):
                     try:
-                        mail.send_email(email, info_tuple[1])
+                        mail.send_email(email, info_tuple[2])
                     except mail.EmailSendError:
                         continue
                     except:
@@ -768,14 +769,14 @@ class Edit:
             if author_info is None or days_remaining is None:
                 raise select.InputError("Invalid argument!")
             else:
-                emails = [mail.Email(info_tuple[1], info_tuple[0],
+                emails = [mail.Email(info_tuple[2], info_tuple[1],
                                      content_name,
                                      days_remaining=days_remaining,
                                      edit_text=self.edit_text)
                           for info_tuple in author_info]
                 for email, info_tuple in zip(emails, author_info):
                     try:
-                        mail.send_email(email, info_tuple[1])
+                        mail.send_email(email, info_tuple[2])
                     except mail.EmailSendError:
                         continue
                     except:
@@ -796,14 +797,14 @@ class Edit:
             else:
                 vote_result = (True if self.validation_status == "accepted"
                                else False)
-                emails = [mail.Email(info_tuple[1], info_tuple[0],
+                emails = [mail.Email(info_tuple[2], info_tuple[1],
                                      content_name,
                                      edit_text=self.edit_text,
                                      vote_result=vote_result)
                           for info_tuple in author_info]
                 for email, info_tuple in zip(emails, author_info):
                     try:
-                        mail.send_email(email, info_tuple[1])
+                        mail.send_email(email, info_tuple[2])
                     except mail.EmailSendError:
                         continue
                     except:
