@@ -679,16 +679,17 @@ def get_user(user_id=None, email=None, pass_hash=None, remember_id=None,
 
 
 def get_user_info(content_id=None, user_id=None, accepted_edit_id=None,
-                  rejected_edit_id=None, session=None):
+                  rejected_edit_id=None, user_ids=None, session=None):
     """
     Args:
         contend_id: Integer. Defaults to None.
         user_id: Integer. Defaults to None.
         accepted_edit_id: Integer. Defaults to None.
         rejected_edit_id: Integer. Defaults to None.
+        user_ids: List of Integers. Defaults to None.
         session: SQLAlchemy session. Defaults to None.
     Returns:
-        Tuple or List of Tuples of the form (user_name, email).
+        Tuple or List of Tuples of the form (user_id, user_name, email).
     Raises:
         SelectError: if content_id matches multiple values in one row,
             or accepted_edit_id does not match any row in the
@@ -700,16 +701,27 @@ def get_user_info(content_id=None, user_id=None, accepted_edit_id=None,
         session = orm.start_session()
     if content_id is not None:
         try:
-            info_tuples = session.query(orm.User.user_name, orm.User.email).join(
+            info_tuples = session.query(orm.User.user_id,
+                orm.User.user_name, orm.User.email).join(
                 orm.ContentPiece, orm.User.pieces).filter(
                 orm.ContentPiece.content_id == content_id).all()
         except MultipleValuesFound as e:
             raise SelectError(str(e))
         else:
             return info_tuples
+    elif user_ids is not None:
+        try:
+            info_tuples = session.query(orm.User.user_id,
+                orm.User.user_name, orm.User.email).filter(
+                orm.User.user_id.in_(user_ids)).all()
+        except MultipleValuesFound as e:
+            raise SelectError(str(e))
+        else:
+            return info_tuples
     elif user_id is not None:
         try:
-            info = session.query(orm.User.user_name, orm.User.email).filter(
+            info = session.query(orm.User.user_id,
+                orm.User.user_name, orm.User.email).filter(
                 orm.User.user_id == user_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
             raise SelectError(str(e))
@@ -717,7 +729,8 @@ def get_user_info(content_id=None, user_id=None, accepted_edit_id=None,
             return info
     elif accepted_edit_id is not None:
         try:
-            info = session.query(orm.User.user_name, orm.User.email).join(
+            info = session.query(orm.User.user_id,
+                orm.User.user_name, orm.User.email).join(
                 orm.AcceptedEdit).filter(orm.AcceptedEdit.edit_id
                                          == accepted_edit_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
@@ -726,7 +739,8 @@ def get_user_info(content_id=None, user_id=None, accepted_edit_id=None,
             return info
     elif rejected_edit_id is not None:
         try:
-            info = session.query(orm.User.user_name, orm.User.email).join(
+            info = session.query(orm.User.user_id,
+                orm.User.user_name, orm.User.email).join(
                 orm.RejectedEdit).filter(orm.RejectedEdit.edit_id
                                          == rejected_edit_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
