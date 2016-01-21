@@ -1008,6 +1008,8 @@ class Edit:
                 "insertions": self.edit_metrics.insertions,
                 "deletions": self.edit_metrics.deletions,
             },
+            "conflict": (self.conflict if self.validation_status == "pending" or
+                         self.validation_status == "validating" else None),
         }
 
 
