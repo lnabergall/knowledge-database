@@ -254,6 +254,7 @@ class Edit:
             self.author_type = edit_object["author_type"]
             if self.author_type == "U":
                 self.author = UserData(user_id=edit_object.author.user_id)
+                self.author.load_info()
             self.start_timestamp = edit_object["start_timestamp"]
         else:
             self.content_id = edit_object.content_id
@@ -270,8 +271,8 @@ class Edit:
                 self.validated_timestamp = edit_object.rej_timestamp
             self.author_type = edit_object.author_type
             if self.author_type == "U":
-                self.author = UserData(user_id=edit_object.author.user_id,
-                                       user_name=edit_object.author.user_name)
+                self.author = UserData(user_id=edit_object.author.user_id)
+                self.author.load_info()
             if edit_object.name_id:
                 self.part_id = edit_object.name_id
             elif edit_object.text_id:
@@ -485,6 +486,20 @@ class Edit:
         if ids_only:
             return [edit.edit_id for edit in edits]
         else:
+            edits = sorted(edits, key=lambda edit: edit.author.user_id)
+            authors = [edit.author for edit in edits]
+            try:
+                loaded_authors = UserData.bulk_load(authors)
+            except:
+                raise
+            loaded_authors = sorted(loaded_authors,
+                                    key=lambda user: user.user_id)
+            for i in range(len(edits)):
+                edits[i].author = loaded_authors[i]
+            if validation_status == "validating":
+                edits = sorted(edits, key=lambda edit: edit.timestamp)
+            else:
+                edits = sorted(edits, key=lambda edit: edit.validated_timestamp)
             return edits
 
     def start_vote(self):
