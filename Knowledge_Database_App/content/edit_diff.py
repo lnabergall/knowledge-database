@@ -115,6 +115,25 @@ def restore(diff, version="original"):
     return part_text
 
 
+def calculate_metrics(diff):
+    """
+    Args:
+        diff: String, specifically expects an edit diff.
+    Returns:
+        2-tuple containing the number of characters inserted
+        and characters deleted, not including whitespace.
+    """
+    insertions = 0
+    deletions = 0
+    for line in diff:
+        if line.startswith("+"):
+            insertions += len(line) - 1 - line.count(" ")
+        elif line.startswith("-"):
+            deletions += len(line) - 1 - line.count(" ")
+
+    return insertions, deletions
+
+
 def conflict(diff1, diff2):
     """
     Args:

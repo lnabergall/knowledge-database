@@ -16,6 +16,7 @@ Functions:
 
 import re
 from datetime import datetime, timedelta
+from collections import namedtuple
 
 from Knowledge_Database_App import _email as mail
 from Knowledge_Database_App.storage import (orm_core as orm,
@@ -30,6 +31,10 @@ from .vote import AuthorVote
 
 class DuplicateError(Exception):
     """Exception raised when a content part is a duplicate of another."""
+
+
+EditMetrics = namedtuple("EditMetrics",
+    ["original_chars", "applied_chars", "insertions", "deletions"])
 
 
 class Edit:
@@ -153,6 +158,22 @@ class Edit:
             self.edit_text = diff.compute_diff(original_part_text, edit_text)
             self.edit_rationale = edit_rationale
             self.start_vote()
+
+        if validation_status != "pending":
+            insertions, deletions = diff.calculate_metrics(edit_text)
+            original_text = diff.restore(self.edit_text)
+            original_chars = len(original_text) - original_text.count(" ")
+            applied_chars = None
+            if self.applied_edit_text is not None:
+                applied_text = diff.restore(
+                    self.applied_edit_text, version="edited")
+                applied_chars = len(applied_text) - applied_text.count(" ")
+            self.edit_metrics = EditMetrics(
+                original_chars=original_chars,
+                applied_chars=applied_chars,
+                insertions=insertions,
+                deletions=deletions,
+            )
 
     @staticmethod
     def _check_legal(content_part, edit_text):
@@ -981,6 +1002,12 @@ class Edit:
             "author_type": self.author_type,
             "author": (self.author.json_ready
                        if self.author is not None else None),
+            "edit_metrics": {
+                "original_chars": self.edit_metrics.original_chars,
+                "applied_chars": self.edit_metrics.applied_chars,
+                "insertions": self.edit_metrics.insertions,
+                "deletions": self.edit_metrics.deletions,
+            },
         }
 
 
