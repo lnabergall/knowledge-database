@@ -148,7 +148,7 @@ class UserData:
         load_email
     """
 
-    def __init__(self, user_id=None, user_name=None):
+    def __init__(self, user_id=None, user_name=None, email=None):
         if (not (isinstance(user_id, None) or isinstance(user_id, int)) or
                 not (isinstance(user_name, None) or
                      isinstance(user_name, str))):
@@ -156,6 +156,7 @@ class UserData:
         else:
             self.user_id = user_id
             self.user_name = user_name
+            self.email = email
 
     def __repr__(self):
         return ">UserData(user_id={user_id}, user_name={user_name})<".format(
@@ -165,10 +166,23 @@ class UserData:
 
     def load_info(self):
         try:
-            self.user_name, self.email = orm.StorageHandler().call(
-                select.get_user_emails, user_id=self.user_id)
+            user_id, self.user_name, self.email = orm.StorageHandler().call(
+                select.get_user_info, user_id=self.user_id)
         except:
             raise
+
+    @classmethod
+    def bulk_load(cls, user_data_objects):
+        storage_handler = orm.StorageHandler()
+        user_ids = [user.user_id for user in user_data_objects]
+        try:
+            info_tuples = storage_handler.call(
+                select.get_user_info, user_ids=user_ids)
+        except:
+            raise
+        else:
+            return [UserData(user_id=tup[0], user_name=tup[1], email=tup[2])
+                    for tup in info_tuples]
 
     @property
     def json_ready(self):
