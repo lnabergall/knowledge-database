@@ -107,19 +107,27 @@ def store_vote(edit_id, voter_id, vote_and_time):
         voter_id: Integer.
         vote_and_time: String.
     """
-    exists = redis.exists("edit:" + str(edit_id))
+    with redis.pipeline() as pipe:
+        pipe.exists("edit:" + str(edit_id))
+        pipe.lrange("voter:" + str(), 0, -1)
+        exists, user_votes = pipe.execute()
     if not exists:
         raise MissingKeyError("Key '" + str(edit_id) + "' not found!")
+    if edit_id in user_votes:
+        raise DuplicateVoteError
     else:
-        response = redis.hsetnx("votes:" + str(edit_id),
-                                voter_id, vote_and_time)
-        if response == 0:
+        with redis.pipeline() as pipe:
+            pipe.hsetnx("votes:" + str(edit_id),
+                        voter_id, vote_and_time)
+            pipe.lpush("voter:" + str(voter_id), edit_id)
+            response_list = pipe.execute()
+        if response_list[0] == 0:
             raise DuplicateVoteError
 
 
-def get_edits(content_id=None, user_id=None, text_id=None,
-              citation_id=None, keyword_id=None, name_id=None,
-              content_type_id=None, only_ids=False):
+def get_edits(content_id=None, user_id=None, voter_id=None,
+              text_id=None, citation_id=None, keyword_id=None,
+              name_id=None, content_type_id=None, only_ids=False):
     """
     Args:
         content_id: Integer. Defaults to None.
@@ -139,6 +147,8 @@ def get_edits(content_id=None, user_id=None, text_id=None,
         edit_ids = redis.lrange("content:" + str(content_id), 0, -1)
     elif user_id is not None:
         edit_ids = redis.lrange("user:" + str(user_id), 0, -1)
+    elif voter_id is not None:
+        edit_ids = redis.lrange("voter:" + str(voter_id), 0, -1)
     elif text_id is not None:
         edit_ids = redis.lrange("text:" + str(text_id), 0, -1)
     elif citation_id is not None:
@@ -206,8 +216,8 @@ def delete_validation_data(content_id, edit_id, user_id,
             'name', 'alternate_name', or 'content_type'.
     """
     with redis.pipeline() as pipe:
-        if user_id is not None:
-            pipe.lrem("user:" + str(user_id), 0, edit_id)
+        pipe.lrem("user:" + str(user_id), 0, edit_id)
+        pipe.lrem("voter:" + str(user_id), 0, edit_id)
         if content_part == "text":
             pipe.lrem("text:" + str(part_id), 0, edit_id)
         elif content_part == "citation":
