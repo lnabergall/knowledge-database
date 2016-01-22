@@ -349,7 +349,7 @@ class Content:
         self.citations = content_piece.citations
 
     @classmethod
-    def bulk_retrieve(cls, user_id=None, page_num=0):
+    def bulk_retrieve(cls, user_id=None, page_num=0, ids_only=False):
         """
         Args:
             user_id: Integer. Defaults to None.
@@ -365,6 +365,9 @@ class Content:
             else:
                 content = [Content(content_piece=content_piece)
                            for content_piece in content_pieces]
+                if ids_only:
+                    content = [content_piece.content_id
+                               for content_piece in content]
                 if page_num != 0:
                     return content[10*(page_num-1) : 10*page_num]
                 else:
