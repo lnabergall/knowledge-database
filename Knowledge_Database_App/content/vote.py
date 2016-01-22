@@ -15,10 +15,9 @@ from datetime import datetime
 import dateutil.parser as dateparse
 
 from Knowledge_Database_App.storage import (orm_core as orm,
-                                            select_queries as select,
-                                            action_queries as action)
+                                            select_queries as select)
 from . import redis
-from .content import UserData
+from .content import Content
 
 
 class VoteStatusError(Exception):
@@ -231,6 +230,20 @@ class AuthorVote:
                 raise VoteStatusError(str(e))
             except:
                 raise
+
+    @classmethod
+    def votes_needed(cls, user_id):
+        authored_content_ids = Content.bulk_retrieve(
+            user_id=user_id, ids_only=True)
+        try:
+            edit_ids = redis.get_edits(content_ids=authored_content_ids)
+            edits_voted_on = redis.get_edits(voter_id=user_id)
+        except:
+            raise
+        else:
+            return {content_id: [edit_id for edit_id in edit_ids[content_id]
+                                 if edit_id not in edits_voted_on]
+                    for content_id in edit_ids}
 
     @property
     def json_ready(self):
