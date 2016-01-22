@@ -125,7 +125,7 @@ class AuthorVote:
 
     @classmethod
     def bulk_retrieve(cls, vote_status, edit_id=None, vote_id=None,
-                      validation_status=None):
+                      content_id=None, validation_status=None):
         """
         Args:
             vote_status: String, expects 'in-progress' or 'ended'.
@@ -134,16 +134,29 @@ class AuthorVote:
             validation_status: String, expects 'accepted' or 'rejected'.
                 Defaults to None.
         Returns:
-            List of AuthorVotes.
+            List of AuthorVotes or dictionary of the form
+            {edit_id1: list1 of AuthorVotes,
+             edit_id2: list2 of AuthorVotes,
+             ...}
         """
         if vote_status == "in-progress":
             if edit_id is None:
-                raise select.InputError("Invalid argument!")
-            else:
                 vote_dict = cls._retrieve_from_redis(edit_id)
                 votes = [AuthorVote(vote_status, edit_id, value[0],
                                     key, timestamp=dateparse.parse(value[3:]))
                          for key, value in vote_dict.items()]
+            elif content_id is not None:
+                try:
+                    vote_dicts = redis.get_votes(content_id)
+                except:
+                    raise
+                else:
+                    votes = {edit_id: [AuthorVote(vote_status, edit_id, value[0],
+                              key, timestamp=datetime.parse(value[3:]))
+                              for key, value in vote_dict.items()]
+                             for edit_id, vote_dict in vote_dicts.items()}
+            else:
+                raise select.InputError("Invalid arguments!")
         elif vote_status == "ended":
             if edit_id is not None:
                 vote_object = cls._retrieve_from_storage(
@@ -151,12 +164,45 @@ class AuthorVote:
             elif vote_id is not None:
                 vote_object = cls._retrieve_from_storage(
                     vote_id=vote_id, validation_status=validation_status)
+            elif content_id is not None:
+                if validation_status == "accepted":
+                    vote_objects = cls.storage_handler.call(
+                        select.get_accepted_votes, content_id=content_id)
+                    votes = {}
+                    for vote_object in vote_objects:
+                        edit_id = vote_object.accepted_edit_id
+                        vote_dict = cls.unpack_vote_summary(vote_object.vote)
+                        vote_list = [AuthorVote(vote_status, edit_id, value[0],
+                                 key, timestamp=dateparse.parse(value[3:]))
+                                 for key, value in vote_dict.items()]
+                        votes[edit_id] = vote_list
+                elif validation_status == "rejected":
+                    vote_objects = cls.storage_handler.call(
+                        select.get_rejected_votes, content_id=content_id)
+                    votes = {}
+                    for vote_object in vote_objects:
+                        edit_id = vote_object.rejected_edit_id
+                        vote_dict = cls.unpack_vote_summary(vote_object.vote)
+                        vote_list = [AuthorVote(vote_status, edit_id, value[0],
+                                 key, timestamp=dateparse.parse(value[3:]))
+                                 for key, value in vote_dict.items()]
+                        votes[edit_id] = vote_list
+                else:
+                    raise select.InputError("Invalid arguments!")
+                return votes
             else:
                 raise select.InputError("Invalid arguments!")
             vote_dict = cls.unpack_vote_summary(vote_object.vote)
+            if edit_id is None:
+                if validation_status == "accepted":
+                    edit_id = vote_object.accepted_edit_id
+                elif validation_status == "rejected":
+                    edit_id = vote_object.rejected_edit_id
+                else:
+                    raise select.InputError("Invalid argument!")
             votes = [AuthorVote(vote_status, edit_id, value[0],
-                                    key, timestamp=dateparse.parse(value[3:]))
-                         for key, value in vote_dict.items()]
+                                key, timestamp=dateparse.parse(value[3:]))
+                     for key, value in vote_dict.items()]
         else:
             raise select.InputError("Invalid argument!")
 
