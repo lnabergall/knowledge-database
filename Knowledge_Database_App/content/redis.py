@@ -125,13 +125,14 @@ def store_vote(edit_id, voter_id, vote_and_time):
             raise DuplicateVoteError
 
 
-def get_edits(content_id=None, user_id=None, voter_id=None,
-              text_id=None, citation_id=None, keyword_id=None,
-              name_id=None, content_type_id=None, only_ids=False):
+def get_edits(content_id=None, content_ids=None, user_id=None, voter_id=None,
+              text_id=None, citation_id=None, keyword_id=None, name_id=None,
+              content_type_id=None, only_ids=False):
     """
     Args:
         content_id: Integer. Defaults to None.
         user_id: Integer. Defaults to None.
+        voter_id: Integer. Defaults to None.
         text_id: Integer. Defaults to None.
         citation_id: Integer. Defaults to None.
         keyword_id: Integer. Defaults to None.
@@ -140,11 +141,28 @@ def get_edits(content_id=None, user_id=None, voter_id=None,
         only_ids: Boolean. Defaults to False. Determines whether to
             return edits or only edit ids.
     Returns:
-        Dictionary of the form
-        {edit_id1: edit_dict1, edit_id2: edit_dict2, ...}.
+        If only_ids is False and content_ids is None:
+            Dictionary of the form
+            {edit_id1: edit_dict1, edit_id2: edit_dict2, ...}.
+        If only_ids is True and content_ids is None:
+            List of integers.
+        If only_ids is True and content_ids is not None:
+            Dictionary of the form
+            {content_id1: List of edit IDs,
+             content_id2: List of edit IDS, ...}
     """
     if content_id is not None:
         edit_ids = redis.lrange("content:" + str(content_id), 0, -1)
+    elif content_ids is not None:
+        with redis.pipeline() as pipe:
+            for content_id in content_ids:
+                pipe.lrange("content:" + str(content_id), 0, -1)
+            edit_id_lists = pipe.execute()
+            if only_ids:
+                return {content_id: edit_ids for content_id, edit_ids
+                        in zip(content_ids, edit_id_lists)}
+            else:
+                raise InputError("Invalid arguments!")
     elif user_id is not None:
         edit_ids = redis.lrange("user:" + str(user_id), 0, -1)
     elif voter_id is not None:
