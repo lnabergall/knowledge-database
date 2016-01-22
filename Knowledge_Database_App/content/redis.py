@@ -131,6 +131,9 @@ def get_edits(content_id=None, user_id=None, text_id=None,
         content_type_id: Integer. Defaults to None.
         only_ids: Boolean. Defaults to False. Determines whether to
             return edits or only edit ids.
+    Returns:
+        Dictionary of the form
+        {edit_id1: edit_dict1, edit_id2: edit_dict2, ...}.
     """
     if content_id is not None:
         edit_ids = redis.lrange("content:" + str(content_id), 0, -1)
@@ -159,10 +162,29 @@ def get_edits(content_id=None, user_id=None, text_id=None,
         return {edit_id:edit for edit_id, edit in zip(edit_ids, edits)}
 
 
+def get_votes(content_id):
+    """
+    Args:
+        content_id: Integer.
+    Returns:
+        Dictionary of the form
+        {edit_id1: vote_dict1, edit_id2: vote_dict2, ...}.
+    """
+    edits_ids = redis.lrange("content:" + str(content_id), 0, -1)
+    with redis.pipeline() as pipe:
+        for edit_id in edits_ids:
+            pipe.hgetall("votes:" + str(edit_id))
+        votes = pipe.execute()
+
+    return {edit_id:vote for edit_id, vote in zip(edits_ids, votes)}
+
+
 def get_validation_data(edit_id):
     """
     Args:
         edit_id: Integer.
+    Returns:
+        Dictionary of the form {"edit": edit_dict, "vote": vote_dict}.
     """
     with redis.pipeline() as pipe:
         pipe.hgetall("edit:" + str(edit_id))
