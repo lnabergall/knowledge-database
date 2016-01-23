@@ -236,8 +236,9 @@ class AuthorVote:
         authored_content_ids = Content.bulk_retrieve(
             user_id=user_id, ids_only=True)
         try:
-            edit_ids = redis.get_edits(content_ids=authored_content_ids)
-            edits_voted_on = redis.get_edits(voter_id=user_id)
+            edit_ids = redis.get_edits(
+                content_ids=authored_content_ids, ids_only=True)
+            edits_voted_on = redis.get_edits(voter_id=user_id, ids_only=True)
         except:
             raise
         else:
