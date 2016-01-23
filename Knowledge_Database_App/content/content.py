@@ -238,11 +238,12 @@ class Content:
         """
         Args:
             content_id: Integer.
-            first_author: UserData object.
+            first_author_name: String.
+            first_author_id: Integer.
             content_type: String.
-            name: Name object.
-            alternate_names: List of Name objects.
-            text: Text object.
+            name: String.
+            alternate_names: List of Strings.
+            text: String.
             keywords: List of Strings.
             citations: List of Strings.
             content_piece: ContentPiece object.
