@@ -35,5 +35,5 @@ class ContentView:
         pass
 
     @classmethod
-    def author_validation_data(cls):
+    def validation_data(cls):
         pass
