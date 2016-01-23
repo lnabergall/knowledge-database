@@ -232,12 +232,13 @@ class AuthorVote:
                 raise
 
     @classmethod
-    def votes_needed(cls, user_id):
-        authored_content_ids = Content.bulk_retrieve(
-            user_id=user_id, ids_only=True)
+    def votes_needed(cls, user_id, content_ids=None):
+        if content_ids is None:
+            content_ids = Content.bulk_retrieve(
+                user_id=user_id, ids_only=True)
         try:
             edit_ids = redis.get_edits(
-                content_ids=authored_content_ids, ids_only=True)
+                content_ids=content_ids, ids_only=True)
             edits_voted_on = redis.get_edits(voter_id=user_id, ids_only=True)
         except:
             raise
