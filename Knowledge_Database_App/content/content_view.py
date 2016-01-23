@@ -4,6 +4,7 @@ Content Piece View API
 
 from . import content
 
+
 class ContentView:
 
     def __init__(self):
@@ -27,4 +28,12 @@ class ContentView:
 
     @classmethod
     def autocomplete(cls):
+        pass
+
+    @classmethod
+    def recent_activity(cls):
+        pass
+
+    @classmethod
+    def author_validation_data(cls):
         pass
