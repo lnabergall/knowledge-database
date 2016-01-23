@@ -309,6 +309,18 @@ class Edit:
                 self.part_id = edit_object.citation_id
 
     @classmethod
+    def edits_validating(cls, content_ids):
+        try:
+            edit_ids = redis.get_edits(
+                content_ids=authored_content_ids, ids_only=True)
+        except:
+            raise
+        else:
+            for content_id in edit_ids:
+                edit_ids[content_id] = bool(edit_ids[content_id])
+            return edit_ids
+
+    @classmethod
     def bulk_retrieve(cls, validation_status, user_id=None, content_id=None,
                       text_id=None, citation_id=None, name_id=None,
                       keyword_id=None, content_type_id=None, page_num=0,
