@@ -72,6 +72,7 @@ class Edit:
     """
 
     storage_handler = orm.StorageHandler()
+    content_type_choices = Content.get_content_types()
 
     edit_id = None              # Integer.
     content_id = None           # Integer.
@@ -201,6 +202,8 @@ class Edit:
                 config.SMALL_PART_MIN_CHARS >
                 len(edit_text) - edit_text.count(" "))):
             raise ContentError("Keyword out of allowed character count range!")
+        elif content_part == "content_type" not in self.content_type_choices:
+            raise ContentError("Content type not recognized!")
 
     def _retrieve_from_storage(self, edit_id=None, redis_edit_id=None):
         """
