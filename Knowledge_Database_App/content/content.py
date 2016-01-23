@@ -332,7 +332,7 @@ class Content:
         self.authors = [UserData(user_id=author.user_id,
                                  user_name=author.user_name)
                         for author in content_piece.authors]
-        self.content_type = content_piece.content_type
+        self.content_type = content_piece.content_type.content_type
         self.name = Name(name_id=content_piece.name.name_id,
                          name=content_piece.name.name,
                          name_type=content_piece.name.name_type,
@@ -345,8 +345,9 @@ class Content:
         self.text = Text(text_id=content_piece.text.text_id,
                          text=content_piece.text.text,
                          timestamp=content_piece.text.timestamp)
-        self.keywords = content_piece.keywords
-        self.citations = content_piece.citations
+        self.keywords = [keyword.keyword for keyword in content_piece.keywords]
+        self.citations = [citation.citation_text 
+                          for citation in content_piece.citations]
 
     @classmethod
     def bulk_retrieve(cls, user_id=None, page_num=0, ids_only=False):
