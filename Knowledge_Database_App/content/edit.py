@@ -556,9 +556,11 @@ class Edit:
             for i in range(len(edits)):
                 edits[i].author = loaded_authors[i]
             if validation_status == "validating":
-                edits = sorted(edits, key=lambda edit: edit.timestamp)
+                edits = sorted(edits, key=lambda edit: edit.timestamp, 
+                               reverse=True)
             else:
-                edits = sorted(edits, key=lambda edit: edit.validated_timestamp)
+                edits = sorted(edits, key=lambda edit: edit.validated_timestamp, 
+                               reverse=True)
             return edits
 
     def start_vote(self):
