@@ -322,15 +322,16 @@ class Edit:
 
     @classmethod
     def bulk_retrieve(cls, validation_status, user_id=None, content_id=None,
-                      text_id=None, citation_id=None, name_id=None,
-                      keyword_id=None, content_type_id=None, page_num=0,
-                      ids_only=False):
+                      content_ids=None, text_id=None, citation_id=None, 
+                      name_id=None, keyword_id=None, content_type_id=None, 
+                      page_num=0, ids_only=False):
         """
         Args:
             validation_status: String, expects 'validating', 'accepted',
                 or 'rejected'.
             user_id: Integer. Defaults to None.
             content_id: Integer. Defaults to None.
+            content_ids: List of Integers. Defaults to None.
             text_id: Integer. Defaults to None.
             citation_id: Integer. Defaults to None.
             name_id: Integer. Defaults to None.
@@ -351,13 +352,33 @@ class Edit:
             elif validation_status == "accepted":
                 try:
                     edits = cls.storage_handler.call(select.get_accepted_edits,
-                                                      user_id=user_id)
+                                                     user_id=user_id)
                 except:
                     raise
             elif validation_status == "rejected":
                 try:
                     edits = cls.storage_handler.call(select.get_rejected_edits,
-                                                      user_id=user_id)
+                                                     user_id=user_id)
+                except:
+                    raise
+            else:
+                raise select.InputError("Invalid arguments!")
+        elif content_ids is not None:
+            if validation_status == "validating":
+                try:
+                    edits = redis.get_edits(content_ids=content_ids).values()
+                except:
+                    raise
+            elif validation_status == "accepted":
+                try:
+                    edits = cls.storage_handler.call(select.get_accepted_edits,
+                                                     content_ids=content_ids)
+                except:
+                    raise
+            elif validation_status == "rejected":
+                try:
+                    edits = cls.storage_handler.call(select.get_rejected_edits,
+                                                      content_ids=content_ids)
                 except:
                     raise
             else:
@@ -461,13 +482,13 @@ class Edit:
             elif validation_status == "accepted":
                 try:
                     edits = cls.storage_handler.call(select.get_accepted_edits,
-                                                      content_id=content_id)
+                                                     content_id=content_id)
                 except:
                     raise
             elif validation_status == "rejected":
                 try:
                     edits = cls.storage_handler.call(select.get_rejected_edits,
-                                                      content_id=content_id)
+                                                     content_id=content_id)
                 except:
                     raise
             else:
@@ -481,13 +502,13 @@ class Edit:
             elif validation_status == "accepted":
                 try:
                     edits = cls.storage_handler.call(select.get_accepted_edits,
-                                                      text_id=text_id)
+                                                     text_id=text_id)
                 except:
                     raise
             elif validation_status == "rejected":
                 try:
                     edits = cls.storage_handler.call(select.get_rejected_edits,
-                                                      text_id=text_id)
+                                                     text_id=text_id)
                 except:
                     raise
             else:
@@ -501,13 +522,13 @@ class Edit:
             elif validation_status == "accepted":
                 try:
                     edits = cls.storage_handler.call(select.get_accepted_edits,
-                                                      name_id=name_id)
+                                                     name_id=name_id)
                 except:
                     raise
             elif validation_status == "rejected":
                 try:
                     edits = cls.storage_handler.call(select.get_rejected_edits,
-                                                      name_id=name_id)
+                                                     name_id=name_id)
                 except:
                     raise
             else:
