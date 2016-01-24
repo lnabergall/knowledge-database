@@ -121,7 +121,7 @@ class ContentView:
 
         def ordering_func(edit):
             if edit is None:
-                return datetime.utcnow()
+                return datetime.min
             if edit.validation_status == "validating":
                 return edit.timestamp
             else:
@@ -129,8 +129,6 @@ class ContentView:
 
         # Use ordering function to sort edits 
         # in descending chronological order.
-        max_index = max(len(validating_edits), len(accepted_edits), 
-                        len(rejected_edits), len(user_rejected_edits))
         validating_edits.reverse()
         accepted_edits.reverse()
         rejected_edits.reverse()
@@ -156,7 +154,7 @@ class ContentView:
             if (validating_edit is None and accepted_edit is None
                     and rejected_edit is None and user_rejected_edit is None):
                 break
-            next_oldest_edit = min(validating_edit, accepted_edit, 
+            next_oldest_edit = max(validating_edit, accepted_edit, 
                                    rejected_edit, user_rejected_edit, 
                                    key=ordering_func)
             if next_oldest_edit.validation_status == "validating":
