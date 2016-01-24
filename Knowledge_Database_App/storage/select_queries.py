@@ -264,7 +264,7 @@ def get_content_types(session=None):
 def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
                        user_id=None, text_id=None, name_id=None,
                        citation_id=None, keyword_id=None, content_type_id=None,
-                       ip_address=None, session=None):
+                       content_ids=None, ip_address=None, session=None):
     """
     Args:
         content_id: Integer. Defaults to None.
@@ -276,6 +276,7 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
         citation_id: Integer. Defaults to None.
         keyword_id: Integer. Defaults to None.
         content_type_id: Integer. Defaults to None.
+        content_ids: List of Integers. Defaults to None.
         ip_address: String. Defaults to None.
         session: SQLAlchemy session. Defaults to None.
     Returns:
@@ -328,6 +329,10 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
         accepted_edits = session.query(orm.AcceptedEdit).join(
             orm.ContentPiece).filter(
             orm.ContentPiece.content_id == content_id).all()
+    elif content_ids is not None:
+        accepted_edits = session.query(orm.AcceptedEdit).join(
+            orm.ContentPiece).filter(
+            orm.ContentPiece.content_id.in_(content_ids)).all()
     elif edit_id is not None:
         try:
             accepted_edit = session.query(orm.AcceptedEdit).options(
@@ -355,7 +360,7 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
 def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
                        user_id=None, text_id=None, name_id=None,
                        citation_id=None, keyword_id=None, content_type_id=None,
-                       ip_address=None, session=None):
+                       content_ids=None, ip_address=None, session=None):
     """
     Args:
         content_id: Integer. Defaults to None.
@@ -367,6 +372,7 @@ def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
         citation_id: Integer. Defaults to None.
         keyword_id: Integer. Defaults to None.
         content_type_id: Integer. Defaults to None.
+        content_ids: List of Integers. Defaults to None.
         ip_address: String. Defaults to None.
         session: SQLAlchemy session. Defaults to None.
     Returns:
@@ -420,6 +426,10 @@ def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
         rejected_edits = session.query(orm.RejectedEdit).join(
             orm.ContentPiece).filter(
             orm.ContentPiece.content_id == content_id).all()
+    elif content_ids is not None:
+        rejected_edits = session.query(orm.RejectedEdit).join(
+            orm.ContentPiece).filter(
+            orm.ContentPiece.content_id.in_(content_ids)).all()
     elif edit_id is not None:
         try:
             rejected_edit = session.query(orm.RejectedEdit).options(
