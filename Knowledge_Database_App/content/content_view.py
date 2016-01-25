@@ -181,7 +181,7 @@ class ContentView:
                 "author_type": edit["author_type"],
                 "author": edit["author"],
             }
-        return descending_edits
+        return descending_edits[20*(page_num-1) : 20*page_num]
 
     @classmethod
     def validation_data(cls):
