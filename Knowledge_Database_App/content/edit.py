@@ -314,7 +314,7 @@ class Edit:
     def edits_validating(cls, content_ids):
         try:
             edit_ids = redis.get_edits(
-                content_ids=authored_content_ids, ids_only=True)
+                content_ids=content_ids, only_ids=True)
         except:
             raise
         else:
