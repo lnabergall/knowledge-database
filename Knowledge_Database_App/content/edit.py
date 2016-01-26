@@ -825,7 +825,7 @@ class Edit:
                 (user_id, user_name, email).
         """
         content_name = self.storage_handler.call(
-            select.get_name, self.content_id)
+            select.get_name, content_id=self.content_id)
         if email_type == "edit_submitted":
             if author_info is None:
                 raise select.InputError("Invalid argument!")

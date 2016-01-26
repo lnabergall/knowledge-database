@@ -407,7 +407,8 @@ class Content:
         """
         if content_part == "name":
             try:
-                name = cls.storage_handler.call(select.get_name, content_id)
+                name = cls.storage_handler.call(
+                    select.get_name, content_id=content_id)
                 alternate_names = cls.storage_handler.call(
                     select.get_alternate_names, content_id)
             except:
