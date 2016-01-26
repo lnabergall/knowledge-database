@@ -10,7 +10,7 @@ Exceptions:
 
 Functions:
 
-    get_content_piece, get_content_pieces, get_name, get_alternate_names,
+    get_content_piece, get_content_pieces, get_names, get_alternate_names,
     get_keyword, get_keywords, get_citation, get_citations,
     get_content_type, get_content_types, get_accepted_edits,
     get_rejected_edits, get_user_votes, get_accepted_votes,
@@ -104,7 +104,7 @@ def get_content_pieces(user_id, session=None):
     return content_pieces
 
 
-def get_name(content_id, session=None):
+def get_names(content_id=None, content_ids=None, session=None):
     """
     Args:
         content_id: Integer.
@@ -114,12 +114,19 @@ def get_name(content_id, session=None):
     """
     if session is None:
         session = orm.start_session()
-    try:
-        name = session.query(orm.ContentPiece.name).filter(
-            orm.ContentPiece.content_id == content_id).one()
-    except (NoResultFound, MultipleResultsFound) as e:
-        raise SelectError(str(e))
-    return name
+    if content_id is not None:
+        try:
+            name = session.query(orm.ContentPiece.name).filter(
+                orm.ContentPiece.content_id == content_id).one()
+        except (NoResultFound, MultipleResultsFound) as e:
+            raise SelectError(str(e))
+        return name
+    elif content_ids is not None:
+        names = session.query(orm.ContentPiece.name).filter(
+            orm.ContentPiece.content_id.in_(content_ids)).all()
+        return names
+    else:
+        raise InputError("Missing argument!")
 
 
 def get_alternate_names(content_id, session=None):
