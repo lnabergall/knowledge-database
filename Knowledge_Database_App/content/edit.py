@@ -824,8 +824,13 @@ class Edit:
             author_info: List of Tuples of the form
                 (user_id, user_name, email).
         """
-        content_name = self.storage_handler.call(
-            select.get_name, content_id=self.content_id)
+        try:
+            content_name = self.storage_handler.call(
+                select.get_name, content_id=self.content_id)
+        except:
+            raise
+        else:
+            content_name = content_name.name
         if email_type == "edit_submitted":
             if author_info is None:
                 raise select.InputError("Invalid argument!")
