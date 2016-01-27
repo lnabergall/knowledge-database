@@ -322,7 +322,7 @@ class Edit:
     def bulk_retrieve(cls, validation_status, user_id=None, content_id=None,
                       content_ids=None, text_id=None, citation_id=None, 
                       name_id=None, keyword_id=None, content_type_id=None, 
-                      page_num=0, ids_only=False):
+                      page_num=0, return_count=False, ids_only=False):
         """
         Args:
             validation_status: String, expects 'validating', 'accepted',
@@ -536,9 +536,12 @@ class Edit:
 
         edits = [Edit(edit_object=edit, validation_status=validation_status)
                  for edit in edits]
+        edit_count = len(edits)
         if page_num != 0:
             edits = edits[10*(page_num-1) : 10*page_num]
-        if ids_only:
+        if ids_only and return_count:
+            return [edit.edit_id for edit in edits], edit_count
+        elif ids_only:
             return [edit.edit_id for edit in edits]
         else:
             edits = sorted(edits, key=lambda edit: edit.author.user_id)
@@ -558,7 +561,10 @@ class Edit:
             else:
                 edits = sorted(edits, key=lambda edit: edit.validated_timestamp, 
                                reverse=True)
-            return edits
+            if edit_count:
+                return edits, edit_count
+            else:
+                return edits
 
     def start_vote(self):
         """
