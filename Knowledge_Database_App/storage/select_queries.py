@@ -107,10 +107,11 @@ def get_content_pieces(user_id, session=None):
 def get_names(content_id=None, content_ids=None, session=None):
     """
     Args:
-        content_id: Integer.
+        content_id: Integer. Defaults to None.
+        content_ids: Integer. Defaults to None.
         session: SQLAlchemy session. Defaults to None.
     Returns:
-        Name.
+        Name or list of tuples of the form (content_id, Name).
     """
     if session is None:
         session = orm.start_session()
@@ -122,7 +123,8 @@ def get_names(content_id=None, content_ids=None, session=None):
             raise SelectError(str(e))
         return name
     elif content_ids is not None:
-        names = session.query(orm.ContentPiece.name).filter(
+        names = session.query(orm.ContentPiece.content_id,
+            orm.ContentPiece.name).filter(
             orm.ContentPiece.content_id.in_(content_ids)).all()
         return names
     else:
