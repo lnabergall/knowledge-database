@@ -215,14 +215,12 @@ class Edit:
         """
         if edit_id is not None:
             if self.validation_status == "accepted":
-                if edit_id is not None:
                     try:
                         edit = self.storage_handler.call(
                             select.get_accepted_edits, edit_id=edit_id)
                     except:
                         raise
             elif self.validation_status == "rejected":
-
                     try:
                         edit = self.storage_handler.call(
                             select.get_rejected_edits, edit_id=edit_id)
