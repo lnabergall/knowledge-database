@@ -548,7 +548,8 @@ class Edit:
             edits = sorted(edits, key=lambda edit: edit.author.user_id)
             authors = [edit.author for edit in edits]
             try:
-                loaded_authors = UserData.bulk_load(authors)
+                loaded_authors = UserData.bulk_retrieve(
+                    user_data_objects=authors)
             except:
                 raise
             loaded_authors = sorted(loaded_authors,
