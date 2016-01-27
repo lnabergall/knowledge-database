@@ -238,8 +238,8 @@ class AuthorVote:
                 user_id=user_id, ids_only=True)
         try:
             edit_ids = redis.get_edits(
-                content_ids=content_ids, ids_only=True)
-            edits_voted_on = redis.get_edits(voter_id=user_id, ids_only=True)
+                content_ids=content_ids, only_ids=True)
+            edits_voted_on = redis.get_edits(voter_id=user_id, only_ids=True)
         except:
             raise
         else:
