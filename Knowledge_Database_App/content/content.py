@@ -186,17 +186,26 @@ class UserData:
             raise
 
     @classmethod
-    def bulk_load(cls, user_data_objects):
+    def bulk_retrieve(cls, user_data_objects=None, content_id=None):
         storage_handler = orm.StorageHandler()
-        user_ids = [user.user_id for user in user_data_objects]
-        try:
-            info_tuples = storage_handler.call(
-                select.get_user_info, user_ids=user_ids)
-        except:
-            raise
+        if user_data_objects is not None:
+            user_ids = [user.user_id for user in user_data_objects]
+            try:
+                info_tuples = storage_handler.call(
+                    select.get_user_info, user_ids=user_ids)
+            except:
+                raise
+        elif content_id is not None:
+            try:
+                info_tuples = storage_handler.call(
+                    select.get_user_info, content_id=content_id)
+            except:
+                raise
         else:
-            return [UserData(user_id=tup[0], user_name=tup[1], email=tup[2])
-                    for tup in info_tuples]
+            raise select.InputError("Invalid arguments!")
+
+        return [UserData(user_id=tup[0], user_name=tup[1], email=tup[2])
+                for tup in info_tuples]
 
     @property
     def json_ready(self):
