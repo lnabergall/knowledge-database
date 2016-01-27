@@ -277,7 +277,6 @@ class Edit:
             self.author_type = edit_object["author_type"]
             if self.author_type == "U":
                 self.author = UserData(user_id=edit_object.author.user_id)
-                self.author.load_info()
             self.start_timestamp = dateparse.parse(
                 edit_object["start_timestamp"])
         else:
@@ -296,7 +295,6 @@ class Edit:
             self.author_type = edit_object.author_type
             if self.author_type == "U":
                 self.author = UserData(user_id=edit_object.author.user_id)
-                self.author.load_info()
             if edit_object.name_id:
                 self.part_id = edit_object.name_id
             elif edit_object.text_id:
