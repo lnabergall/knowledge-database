@@ -74,6 +74,20 @@ class Name:
             timestamp=self.timestamp,
         )
 
+    @classmethod
+    def bulk_retrieve(cls, content_ids):
+        storage_handler = orm.StorageHandler()
+        try:
+            name_object_tuples = storage_handler.call(
+                select.get_names, content_ids=content_ids)
+        except:
+            raise
+        else:
+            return {content_id: Name(name_id=name.name_id, name=name.name,
+                                     name_type=name.name_type,
+                                     timestamp=name.timestamp)
+                    for content_id, name in name_object_tuples}
+
     @property
     def json_ready(self):
         return {
