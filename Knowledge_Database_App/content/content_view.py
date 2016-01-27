@@ -4,7 +4,7 @@ Content Piece View API
 
 from datetime import datetime
 
-from .content import Content, Name
+from .content import Content, Name, UserData
 from .edit import Edit
 from .vote import AuthorVote
 
@@ -186,5 +186,18 @@ class ContentView:
         return descending_edits[20*(page_num-1) : 20*page_num]
 
     @classmethod
-    def validation_data(cls):
-        pass
+    def validation_data(cls, content_id, page_num=1):
+        try:
+            authors = UserData.bulk_retrieve(content_id=content_id)
+            validating_edits, val_edit_count = Edit.bulk_retrieve(
+                "validating", content_id=content_id, return_count=True)
+            accepted_edits, acc_edit_count = Edit.bulk_retrieve(
+                "accepted", content_id=content_id,
+                page_num=1, return_count=True)
+            rejected_edits, rej_edit_count = Edit.bulk_retrieve(
+                "rejected", content_id=content_id,
+                page_num=1, return_count=True)
+        except:
+            raise
+        else:
+            pass
