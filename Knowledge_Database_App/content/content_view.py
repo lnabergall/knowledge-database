@@ -4,7 +4,7 @@ Content Piece View API
 
 from datetime import datetime
 
-from .content import Content
+from .content import Content, Name
 from .edit import Edit
 from .vote import AuthorVote
 
@@ -105,6 +105,7 @@ class ContentView:
     def recent_activity(cls, user_id, page_num=1):
         try:
             content_ids = Content.bulk_retrieve(user_id=user_id, ids_only=True)
+            content_names = Name.bulk_retrieve(content_ids)
             validating_edits = Edit.bulk_retrieve(
                 "validating", content_ids=content_ids)
             accepted_edits = Edit.bulk_retrieve(
@@ -173,6 +174,7 @@ class ContentView:
             edit = descending_edits[i].json_ready
             descending_edits[i] = {
                 "content_id": edit["content_id"],
+                "content_name": content_names[edit["content_id"]].name,
                 "edit_id": edit["edit_id"],
                 "timestamp": edit["timestamp"],
                 "validated_timestamp": edit["validated_timestamp"],
