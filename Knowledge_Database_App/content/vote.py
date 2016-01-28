@@ -130,8 +130,8 @@ class AuthorVote:
             vote_status: String, expects 'in-progress' or 'ended'.
             edit_id: Integer. Defaults to None.
             vote_id: Integer. Defaults to None.
-            validation_status: String, expects 'accepted' or 'rejected'.
-                Defaults to None.
+            validation_status: String, expects 'validating', 'accepted',
+                or 'rejected'. Defaults to None.
         Returns:
             List of AuthorVotes or dictionary of the form
             {edit_id1: list1 of AuthorVotes,
