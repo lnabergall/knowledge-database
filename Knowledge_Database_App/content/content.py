@@ -303,6 +303,7 @@ class Content:
             self.citations = list(set(citations))
             _check_legal(name, alternate_names, text, keywords, citations)
             self.stored = False
+            self.store()
 
     @staticmethod
     def _check_legal(name, alternate_names, text, keywords, citations):
