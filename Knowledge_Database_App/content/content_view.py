@@ -1,5 +1,9 @@
 """
 Content Piece View API
+
+Classes:
+
+    ContentView
 """
 
 from datetime import datetime
@@ -10,6 +14,14 @@ from .vote import AuthorVote
 
 
 class ContentView:
+    """
+    Attributes:
+        content: Dictionary.
+
+    Class Methods:
+        user_content, get_content_types, search, filter_by,
+        autocomplete, recent_activity, validation_data
+    """
 
     def __init__(self, content_id=None, first_author_name=None, 
                  first_author_id=None, content_type=None, name=None,
@@ -48,6 +60,11 @@ class ContentView:
 
     @classmethod
     def user_content(cls, user_id, page_num=0):
+        """
+        Args:
+            user_id: Integer.
+            page_num: Integer. Defaults to 0.
+        """
         try:
             content = Content.bulk_retrieve(user_id=user_id, page_num=page_num)
             content_ids = [piece.content_id for piece in content]
@@ -75,6 +92,11 @@ class ContentView:
 
     @classmethod
     def search(cls, query, page_num=1):
+        """
+        Args:
+            query: String.
+            page_num: Integer. Defaults to 1.
+        """
         try:
             results = Content.search(query, page_num=page_num)
         except:
@@ -84,6 +106,13 @@ class ContentView:
 
     @classmethod
     def filter_by(cls, content_part, part_string, page_num=1):
+        """
+        Args:
+            content_part: String, accepts 'keyword', 'content_type',
+                'name', or 'citation'.
+            part_string: String.
+            page_num: Integer. Defaults to 1.
+        """
         try:
             results = Content.filter_by(content_part, part_string, 
                                         page_num=page_num)
@@ -94,6 +123,11 @@ class ContentView:
 
     @classmethod
     def autocomplete(cls, content_part, query):
+        """
+        Args:
+            content_part: String, expects 'name', 'keyword', or 'citation'.
+            query: String.
+        """
         try:
             completions = Content.autocomplete(content_part, query)
         except:
@@ -103,6 +137,11 @@ class ContentView:
 
     @classmethod
     def recent_activity(cls, user_id, page_num=1):
+        """
+        Args:
+            user_id: Integer.
+            page_num: Integer. Defaults to 1.
+        """
         # Retrieve activity info
         try:
             content_ids = Content.bulk_retrieve(user_id=user_id, ids_only=True)
@@ -189,6 +228,13 @@ class ContentView:
     @classmethod
     def validation_data(cls, user_id, content_id, validating_page_num=1,
                         closed_page_num=1):
+        """
+        Args:
+            user_id: Integer.
+            content_id: Integer.
+            validating_page_num: Integer. Defaults to 1.
+            closed_page_num: Integer. Defaults to 1.
+        """
         # Retrieve author names and edits
         try:
             authors = UserData.bulk_retrieve(content_id=content_id)
