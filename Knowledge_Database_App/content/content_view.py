@@ -103,6 +103,7 @@ class ContentView:
 
     @classmethod
     def recent_activity(cls, user_id, page_num=1):
+        # Retrieve activity info
         try:
             content_ids = Content.bulk_retrieve(user_id=user_id, ids_only=True)
             content_names = Name.bulk_retrieve(content_ids)
@@ -186,18 +187,117 @@ class ContentView:
         return descending_edits[20*(page_num-1) : 20*page_num]
 
     @classmethod
-    def validation_data(cls, content_id, page_num=1):
+    def validation_data(cls, user_id, content_id, validating_page_num=1,
+                        closed_page_num=1):
+        # Retrieve author names and edits
         try:
             authors = UserData.bulk_retrieve(content_id=content_id)
             validating_edits, val_edit_count = Edit.bulk_retrieve(
                 "validating", content_id=content_id, return_count=True)
             accepted_edits, acc_edit_count = Edit.bulk_retrieve(
                 "accepted", content_id=content_id,
-                page_num=1, return_count=True)
+                page_num=closed_page_num, return_count=True)
             rejected_edits, rej_edit_count = Edit.bulk_retrieve(
                 "rejected", content_id=content_id,
-                page_num=1, return_count=True)
+                page_num=closed_page_num, return_count=True)
+            val_edit_votes = AuthorVote.bulk_retrieve(
+                "in-progress", content_id=content_id,
+                validation_status="validating")
+            acc_edit_votes = AuthorVote.bulk_retrieve(
+                "ended", content_id=content_id,
+                validation_status="accepted")
+            rej_edit_votes = AuthorVote.bulk_retrieve(
+                "ended", content_id=content_id,
+                validation_status="rejected")
+            votes_needed = AuthorVote.votes_needed(
+                user_id, content_ids=[content_id])
         except:
             raise
         else:
-            pass
+            # Pair votes to edits
+            validating_edits = [edit.json_ready for edit in validating_edits]
+            accepted_edits = [edit.json_ready for edit in accepted_edits]
+            rejected_edits = [edit.json_ready for edit in rejected_edits]
+            for i in range(len(validating_edits)):
+                votes = val_edit_votes[validating_edits[i]["edit_id"]]
+                for_count = 0
+                against_count = 0
+                for vote in votes:
+                    if vote.vote == "Y":
+                        for_count += 1
+                    else:
+                        against_count += 1
+                validating_edits[i]["vote"] = {
+                    "for_count": for_count,
+                    "against_count": against_count,
+                    "close_timestamp": votes[0].close_timestamp,
+                }
+            validating_edits = validating_edits[10*(validating_page_num-1)
+                                                : 10*validating_page_num]
+            for i in range(len(accepted_edits)):
+                votes = acc_edit_votes[accepted_edits[i]["edit_id"]]
+                for_count = 0
+                against_count = 0
+                for vote in votes:
+                    if vote.vote == "Y":
+                        for_count += 1
+                    else:
+                        against_count += 1
+                accepted_edits[i]["vote"] = {
+                    "for_count": for_count,
+                    "against_count": against_count,
+                    "close_timestamp": votes[0].close_timestamp,
+                }
+            for i in range(len(rejected_edits)):
+                votes = rej_edit_votes[rejected_edits[i]["edit_id"]]
+                for_count = 0
+                against_count = 0
+                for vote in votes:
+                    if vote.vote == "Y":
+                        for_count += 1
+                    else:
+                        against_count += 1
+                rejected_edits[i]["vote"] = {
+                    "for_count": for_count,
+                    "against_count": against_count,
+                    "close_timestamp": votes[0].close_timestamp,
+                }
+
+            def ordering_func(edit):
+                if edit is None:
+                    return datetime.min
+                else:
+                    return edit["validated_timestamp"]
+
+            # Use ordering function to sort closed edits
+            # in descending chronological order.
+            closed_edits = []
+            accepted_edits.reverse()
+            rejected_edits.reverse()
+            while True:
+                try:
+                    accepted_edit = accepted_edits[-1]
+                except IndexError:
+                    accepted_edit = None
+                try:
+                    rejected_edit = rejected_edits[-1]
+                except IndexError:
+                    rejected_edit = None
+                if accepted_edit is None and rejected_edit is None:
+                    break
+                next_oldest_edit = max(accepted_edit, rejected_edit,
+                                       key=ordering_func)
+                if next_oldest_edit["validation_status"] == "accepted":
+                    accepted_edits.pop()
+                elif next_oldest_edit["validation_status"] == "rejected":
+                    rejected_edits.pop()
+                closed_edits.append(next_oldest_edit)
+
+            return {
+                "authors": [author.json_ready for author in authors],
+                "validating_edit_count": val_edit_count,
+                "validating_edits": validating_edits,
+                "votes_needed": votes_needed[content_id],
+                "closed_edit_count": acc_edit_count + rej_edit_count,
+                "closed_edits": closed_edits,
+            }
