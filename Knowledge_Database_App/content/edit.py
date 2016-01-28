@@ -1030,8 +1030,7 @@ class Edit:
 
         return val_conflict or acc_conflict
 
-    @property
-    def json_ready(self):
+    def json_ready_(self, conflict=False):
         return {
             "content_id": self.content_id,
             "edit_id": self.edit_id,
@@ -1056,9 +1055,15 @@ class Edit:
                 "insertions": self.edit_metrics.insertions,
                 "deletions": self.edit_metrics.deletions,
             },
-            "conflict": (self.conflict if self.validation_status == "pending" or
-                         self.validation_status == "validating" else None),
+            "conflict": (self.conflict if (self.validation_status == "pending" or
+                         self.validation_status == "validating") and
+                         conflict else None),
         }
+
+    # Since json_ready behaves like a property,
+    # but want to keep option to selectively return conflict
+    # when viewing validating edits.
+    json_ready = property(json_ready_)
 
 
 def is_ip_address(string):
