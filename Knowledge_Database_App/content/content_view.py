@@ -219,6 +219,9 @@ class ContentView:
             accepted_edits = [edit.json_ready for edit in accepted_edits]
             rejected_edits = [edit.json_ready for edit in rejected_edits]
             for i in range(len(validating_edits)):
+                del validating_edits[i]["start_timestamp"]
+                del validating_edits[i]["edit_text"]
+                del validating_edits[i]["applied_edit_text"]
                 votes = val_edit_votes[validating_edits[i]["edit_id"]]
                 for_count = 0
                 against_count = 0
@@ -235,6 +238,9 @@ class ContentView:
             validating_edits = validating_edits[10*(validating_page_num-1)
                                                 : 10*validating_page_num]
             for i in range(len(accepted_edits)):
+                del accepted_edits[i]["start_timestamp"]
+                del accepted_edits[i]["edit_text"]
+                del accepted_edits[i]["applied_edit_text"]
                 votes = acc_edit_votes[accepted_edits[i]["edit_id"]]
                 for_count = 0
                 against_count = 0
@@ -249,6 +255,9 @@ class ContentView:
                     "close_timestamp": votes[0].close_timestamp,
                 }
             for i in range(len(rejected_edits)):
+                del rejected_edits[i]["start_timestamp"]
+                del rejected_edits[i]["edit_text"]
+                del rejected_edits[i]["applied_edit_text"]
                 votes = rej_edit_votes[rejected_edits[i]["edit_id"]]
                 for_count = 0
                 against_count = 0
