@@ -111,7 +111,7 @@ class Edit:
             author_type: String, expects 'U' or an IP address.
                 Defaults to None.
             author_id: Integer. Defaults to None.
-            start_timestamp: Datetime. Defaults to None
+            start_timestamp: Datetime. Defaults to None.
             edit: AcceptedEdit or RejectedEdit object.
         """
         if (self.validation_status is not None and

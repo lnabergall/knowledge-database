@@ -29,15 +29,15 @@ class ContentView:
                  citations=None):
         """
         Args:
-            content_id: Integer.
-            first_author_name: String.
-            first_author_id: Integer.
-            content_type: String.
-            name: String.
-            alternate_names: List of Strings.
-            text: String.
-            keywords: List of Strings.
-            citations: List of Strings.
+            content_id: Integer. Defaults to None.
+            first_author_name: String. Defaults to None.
+            first_author_id: Integer. Defaults to None.
+            content_type: String. Defaults to None.
+            name: String. Defaults to None.
+            alternate_names: List of Strings. Defaults to None.
+            text: String. Defaults to None.
+            keywords: List of Strings. Defaults to None.
+            citations: List of Strings. Defaults to None.
         """
         if content_id is not None:
             try:
