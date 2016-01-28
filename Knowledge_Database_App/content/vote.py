@@ -35,6 +35,7 @@ class AuthorVote:
             Defaults to None.
         vote: String, expects 'Y' or 'N'. Defaults to None.
         timestamp: Datetime. Defaults to None.
+        close_timestamp: Datetime. Defaults to None.
         author: UserData object. Defaults to None.
 
     Properties:
@@ -50,13 +51,15 @@ class AuthorVote:
 
     storage_handler = orm.StorageHandler()
 
-    edit_id = None      # Integer.
-    vote_status = None  # String, expects 'in-progress' or 'ended'.
-    vote = None         # String, expects 'Y' or 'N'.
-    timestamp = None    # Datetime.
-    author = None       # UserData object.
+    edit_id = None          # Integer.
+    vote_status = None      # String, expects 'in-progress' or 'ended'.
+    vote = None             # String, expects 'Y' or 'N'.
+    timestamp = None        # Datetime.
+    close_timestamp = None  # Datetime.
+    author = None           # UserData object.
 
-    def __init__(self, vote_status, edit_id, vote, voter_id, timestamp=None):
+    def __init__(self, vote_status, edit_id, vote, voter_id,
+                 timestamp=None, close_timestamp=None):
         if (not content_id or not edit_id or
                 (vote != "Y" and vote != "N") or not voter_id or
                 (vote_status is not None and vote_status != "in-progress"
@@ -68,10 +71,14 @@ class AuthorVote:
             self.vote = vote
             self.timestamp = (datetime.utcnow() if timestamp is None
                               else timestamp)
+            self.close_timestamp = close_timestamp
             self.author = UserData(user_id=voter_id)
 
     @classmethod
     def unpack_vote_summary(cls, vote_summary):
+        if vote_summary[0] != "<":
+            cutoff_index = vote_summary.find("<")   # Should not be -1
+            vote_summary = vote_summary[cutoff_index:]
         vote_lists = [
             vote_string[:-3].split(", ")
             if vote_string.endswith(">, ") else vote_string[:-1].split(", ")
@@ -172,8 +179,9 @@ class AuthorVote:
                         edit_id = vote_object.accepted_edit_id
                         vote_dict = cls.unpack_vote_summary(vote_object.vote)
                         vote_list = [AuthorVote(vote_status, edit_id, value[0],
-                                 key, timestamp=dateparse.parse(value[3:]))
-                                 for key, value in vote_dict.items()]
+                                     key, timestamp=dateparse.parse(value[3:]),
+                                     close_timestamp=vote_object.close_timestamp)
+                                     for key, value in vote_dict.items()]
                         votes[edit_id] = vote_list
                 elif validation_status == "rejected":
                     vote_objects = cls.storage_handler.call(
@@ -183,8 +191,9 @@ class AuthorVote:
                         edit_id = vote_object.rejected_edit_id
                         vote_dict = cls.unpack_vote_summary(vote_object.vote)
                         vote_list = [AuthorVote(vote_status, edit_id, value[0],
-                                 key, timestamp=dateparse.parse(value[3:]))
-                                 for key, value in vote_dict.items()]
+                                     key, timestamp=dateparse.parse(value[3:]),
+                                     close_timestamp=vote_object.close_timestamp)
+                                     for key, value in vote_dict.items()]
                         votes[edit_id] = vote_list
                 else:
                     raise select.InputError("Invalid arguments!")
@@ -200,7 +209,8 @@ class AuthorVote:
                 else:
                     raise select.InputError("Invalid argument!")
             votes = [AuthorVote(vote_status, edit_id, value[0],
-                                key, timestamp=dateparse.parse(value[3:]))
+                                key, timestamp=dateparse.parse(value[3:]),
+                                close_timestamp=vote_object.close_timestamp)
                      for key, value in vote_dict.items()]
         else:
             raise select.InputError("Invalid argument!")
@@ -209,7 +219,9 @@ class AuthorVote:
 
     @classmethod
     def get_vote_summary(cls, votes):
-        vote_summary = ""
+        close_timestamp = votes[0].close_timestamp
+        vote_summary = (str(close_timestamp) + " "
+                        if close_timestamp is not None else "")
         for vote in votes:
             vote_summary += ("<" + vote.vote + ", " + str(vote.author.user_id) +
                              ", " + str(vote.timestamp) + ">, ")
@@ -253,5 +265,8 @@ class AuthorVote:
             "edit_id": self.edit_id,
             "vote_status": self.vote_status,
             "timestamp": str(self.timestamp),
+            "close_timestamp": str(self.close_timestamp),
             self.author.user_id: self.vote,
         }
+
+# TODO: Add code attribute to say explicitly how vote closed
