@@ -325,7 +325,7 @@ class Edit:
     def bulk_retrieve(cls, validation_status, user_id=None, content_id=None,
                       content_ids=None, text_id=None, citation_id=None, 
                       name_id=None, keyword_id=None, content_type_id=None, 
-                      page_num=0, return_count=False, ids_only=False):
+                      page_num=1, return_count=False, ids_only=False):
         """
         Args:
             validation_status: String, expects 'validating', 'accepted',
@@ -541,7 +541,7 @@ class Edit:
                  for edit in edits]
         edit_count = len(edits)
         if page_num != 0:
-            edits = edits[10*(page_num-1) : 10*page_num]
+            edits = edits[20*(page_num-1) : 20*page_num]
         if ids_only and return_count:
             return [edit.edit_id for edit in edits], edit_count
         elif ids_only:
