@@ -8,6 +8,8 @@ Classes:
 
 from datetime import datetime
 
+import dateutil.parser as dateparse
+
 from .content import Content, Name, UserData
 from .edit import Edit
 from .vote import AuthorVote
@@ -322,7 +324,7 @@ class ContentView:
                 if edit is None:
                     return datetime.min
                 else:
-                    return edit["validated_timestamp"]
+                    return dateparse.parse(edit["validated_timestamp"])
 
             # Use ordering function to sort closed edits
             # in descending chronological order.
