@@ -216,6 +216,7 @@ class EditView:
 
         # Format and serialize edits
         for i in range(len(validating_edits)):
+            validating_edits[i] = validating_edits[i].json_ready
             del validating_edits[i]["start_timestamp"]
             del validating_edits[i]["edit_text"]
             del validating_edits[i]["applied_edit_text"]
@@ -223,6 +224,7 @@ class EditView:
                 validating_edits[i]["content_name"] = content_names[
                     validating_edits[i]["content_id"]].name
         for i in range(len(closed_edits)):
+            closed_edits[i] = closed_edits[i].json_ready
             del closed_edits[i]["start_timestamp"]
             del closed_edits[i]["edit_text"]
             del closed_edits[i]["applied_edit_text"]
