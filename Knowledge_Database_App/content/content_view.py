@@ -28,7 +28,7 @@ class ContentView:
     def __init__(self, content_id=None, first_author_name=None, 
                  first_author_id=None, content_type=None, name=None,
                  alternate_names=None, text=None, keywords=None, 
-                 citations=None):
+                 citations=None, submit=False):
         """
         Args:
             content_id: Integer. Defaults to None.
@@ -40,6 +40,7 @@ class ContentView:
             text: String. Defaults to None.
             keywords: List of Strings. Defaults to None.
             citations: List of Strings. Defaults to None.
+            submit: Boolean. Defaults to False.
         """
         if content_id is not None:
             try:
@@ -58,6 +59,8 @@ class ContentView:
             except:
                 raise
             else:
+                if submit:
+                    content.store()
                 self.content = content.json_ready
 
     @classmethod
