@@ -59,10 +59,12 @@ class EditView:
                     edit_rationale=edit_rationale, content_part=content_part,
                     part_id=part_id, original_part_text=original_part_text,
                     author_type=author_type, author_id=author_id,
-                    start_timestamp=start_timestamp, submit=submit)
+                    start_timestamp=start_timestamp)
             except:
                 raise
             else:
+                if submit:
+                    self.edit_object.start_vote()
                 self.edit = self.edit_object.json_ready
 
     @classmethod

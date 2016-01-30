@@ -94,8 +94,7 @@ class Edit:
     def __init__(self, edit_id=None, validation_status=None, content_id=None,
                  edit_text=None, edit_rationale=None, content_part=None,
                  part_id=None, original_part_text=None, author_type=None,
-                 author_id=None, start_timestamp=None, edit_object=None,
-                 submit=False):
+                 author_id=None, start_timestamp=None, edit_object=None):
         """
         Args:
             edit_id: Integer. Defaults to None.
@@ -114,7 +113,6 @@ class Edit:
             author_id: Integer. Defaults to None.
             start_timestamp: Datetime. Defaults to None.
             edit: AcceptedEdit or RejectedEdit object.
-            submit: Boolean. Defaults to False.
         """
         if (self.validation_status is not None and
                 self.validation_status != "accepted" and
@@ -161,8 +159,6 @@ class Edit:
             _check_legal(content_part, edit_text)
             self.edit_text = diff.compute_diff(original_part_text, edit_text)
             self.edit_rationale = edit_rationale
-            if submit:
-                self.start_vote()
 
         if validation_status != "pending":
             insertions, deletions = diff.calculate_metrics(edit_text)
