@@ -252,7 +252,6 @@ def delete_validation_data(content_id, edit_id, user_id,
         pipe.lrem("content:" + str(content_id), 0, edit_id)
         pipe.delete("edit:" + str(edit_id))
         pipe.delete("votes:" + str(edit_id))
-        for voter_id  in voters:
+        for voter_id in voters:
             pipe.lrem("voter:" + str(voter_id), 0, edit_id)
         pipe.execute()
-
