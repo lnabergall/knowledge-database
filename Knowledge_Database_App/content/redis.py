@@ -32,8 +32,8 @@ def _setup_id_base():
     redis.setnx("next_edit_id", 1)
 
 
-def store_edit(content_id, edit_text, edit_rationale, content_part,
-               part_id, timestamp, start_timestamp, author_type, user_id):
+def store_edit(content_id, edit_text, edit_rationale, content_part, part_id,
+               timestamp, start_timestamp, author_type, user_id=None):
     """
     Args:
         content_id: Integer.
