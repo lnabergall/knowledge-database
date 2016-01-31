@@ -233,6 +233,7 @@ def delete_validation_data(content_id, edit_id, user_id,
         content_part: String, expects 'text', 'citation', 'keyword',
             'name', 'alternate_name', or 'content_type'.
     """
+    voters = get_validation_data(edit_id)["votes"]
     with redis.pipeline() as pipe:
         pipe.lrem("user:" + str(user_id), 0, edit_id)
         pipe.lrem("voter:" + str(user_id), 0, edit_id)
@@ -251,4 +252,7 @@ def delete_validation_data(content_id, edit_id, user_id,
         pipe.lrem("content:" + str(content_id), 0, edit_id)
         pipe.delete("edit:" + str(edit_id))
         pipe.delete("votes:" + str(edit_id))
+        for voter_id  in voters:
+            pipe.lrem("voter:" + str(voter_id), 0, edit_id)
         pipe.execute()
+
