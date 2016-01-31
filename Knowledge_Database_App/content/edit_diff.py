@@ -8,7 +8,7 @@ Exceptions:
 
 Functions:
 
-    compute_diff, restore, conflict, merge
+    compute_diff, restore, calculate_metrics, conflict, merge
 """
 
 from difflib import SequenceMatcher
