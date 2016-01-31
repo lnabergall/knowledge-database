@@ -11,7 +11,7 @@ from unittest import TestCase
 from Knowledge_Database_App.content import redis
 
 
-class RedisUnitTest(TestCase):
+class RedisTest(TestCase):
 
     def setUp(self):
         edit_id = redis.store_edit(-1013, "Kylo Ren is a dark force user.",

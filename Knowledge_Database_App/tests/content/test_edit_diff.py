@@ -12,7 +12,7 @@ from unittest import TestCase
 from Knowledge_Database_App.content import edit_diff as diff
 
 
-class EditDiffUnitTest(TestCase):
+class EditDiffTest(TestCase):
 
     def setUp(self):
         self.original_part_text = ("Kylo Ren is the master of the " +

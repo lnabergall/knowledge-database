@@ -11,7 +11,7 @@ from Knowledge_Database_App.search.index import (SearchableContentPiece,
     index_content_piece, update_content_piece, delete_content_piece)
 
 
-class SearchIndexTestCase(TestCase):
+class SearchIndexTest(TestCase):
 
     def setUp(self):
         self._test_index_content_piece()
