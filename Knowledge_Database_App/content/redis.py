@@ -8,8 +8,8 @@ Exceptions:
 
 Functions:
 
-    store_edit, store_vote, get_edits, get_validation_data,
-    delete_validation_data
+    store_edit, store_vote, get_edits, get_votes,
+    get_validation_data, delete_validation_data
 """
 
 from redis import StrictRedis, WatchError
