@@ -3,6 +3,8 @@ Redis API Unit Tests
 
 Currently primarily checks only core functionality of all
 functions, not exceptional cases.
+
+Note: Tests are numbered to force a desired execution order.
 """
 
 from datetime import datetime
@@ -13,20 +15,10 @@ from Knowledge_Database_App.content import redis
 
 class RedisTest(TestCase):
 
-    def setUp(self):
-        edit_id = redis.store_edit(-1013, "Kylo Ren is a dark force user.",
-                                   "Unlimited power!", "text", -100,
-                                   timestamp, timestamp, "U", -333)
-        self.edit_id = edit_id
-        redis.store_vote(edit_id, -42, "Y; 2016-01-31 02:33:58.060915")
-
-    def tearDown(self):
-        redis.delete_validation_data(-1013, self.edit_id, -333, -100, "text")
-
-    def test_store_edit(self):
+    def test_01_store_edit(self):
         timestamp = datetime.utcnow()
         try:
-            edit_id = redis.store_edit(-1013, "Kylo Ren is a dark force user.",
+            self.edit_id = redis.store_edit(-1013, "Kylo Ren is a dark force user.",
                                        "Unlimited power!", "text", -100,
                                        timestamp, timestamp, "U", -333)
         except Exception as e:
@@ -45,7 +37,7 @@ class RedisTest(TestCase):
             self.assertEqual(edit["author_type"], "U")
             self.assertEqual(edit["user_id"], -333)
 
-    def test_store_vote(self):
+    def test_02_store_vote(self):
         try:
             redis.store_vote(self.edit_id, -42, "Y; 2016-01-31 02:33:58.060915")
         except Exception as e:
@@ -57,9 +49,8 @@ class RedisTest(TestCase):
             self.assertEqual(votes[-42], "Y; 2016-01-31 02:33:58.060915")
             self.assertIn(self.edit_id, voted_edit_ids)
 
-    def test_get_edits(self):
+    def test_03_get_edits(self):
         try:
-            self.setUp()
             text_edits = redis.get_edits(text_id=-100)
             text_edit_ids = redis.get_edits(text_id=-100, only_ids=True)
             content_edits = redis.get_edits(content_id=-1013)
@@ -76,9 +67,8 @@ class RedisTest(TestCase):
             self.assertIsInstance(user_edits[self.edit_id], dict)
             self.assertEqual(user_edits[self.edit_id]["edit_id"], self.edit_id)
 
-    def test_get_votes(self):
+    def test_04_get_votes(self):
         try:
-            self.setUp()
             votes = redis.get_votes(-1013)
         except Exception as e:
             self.fail(str(e))
@@ -88,9 +78,8 @@ class RedisTest(TestCase):
             self.assertEqual(votes[self.edit_id][-42],
                              "Y; 2016-01-31 02:33:58.060915")
 
-    def test_get_validation_data(self):
+    def test_05_get_validation_data(self):
         try:
-            self.setUp()
             validation_data = redis.get_validation_data(self.edit_id)
         except Exception as e:
             self.fail(str(e))
@@ -102,9 +91,8 @@ class RedisTest(TestCase):
             self.assertEqual(validation_data["votes"][-42],
                              "Y; 2016-01-31 02:33:58.060915")
 
-    def test_delete_validation_data(self):
+    def test_06_delete_validation_data(self):
         try:
-            self.setUp()
             redis.delete_validation_data(-1013, self.edit_id,
                                          -333, -100, "text")
         except Exception as e:
