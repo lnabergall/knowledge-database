@@ -80,11 +80,18 @@ class ContentView:
             raise
         else:
             content = [piece.json_ready for piece in content]
+            votes_needed_content = []
+            no_votes_needed_content = []
             for i in range(len(content)):
                 content_id = content[i]["content_id"]
                 content[i]["edits_validating"] = edit_existence_dict[content_id]
                 content[i]["votes_needed"] = votes_needed[content_id]
-            return content
+                if votes_needed[content_id]:
+                    votes_needed_content.append(content[i])
+                else:
+                    no_votes_needed_content.append(content[i])
+
+            return no_votes_needed_content + votes_needed_content
 
     @classmethod
     def get_content_types(cls):
