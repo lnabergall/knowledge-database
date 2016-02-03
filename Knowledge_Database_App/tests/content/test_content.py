@@ -8,6 +8,7 @@ Note: Tests are numbered to force a desired execution order.
 """
 
 from datetime import datetime
+from math import ceil
 from unittest import TestCase
 
 from Knowledge_Database_App.content.content import Content
@@ -22,19 +23,22 @@ class ContentPieceTest(TestCase):
         self.name = "Kylo Ren"
         self.alternate_names = ["Ben Solo"]
         self.text = ("Kylo Ren is the master of the Knights of Ren, "
-                "a dark side Force user, and the son of " +
-                "Han Solo and Leia Organa.[ref:1]")
+                     "a dark side Force user, and the son of " +
+                     "Han Solo and Leia Organa.[ref:1]")
         self.keywords = ["Star Wars", "The Force Awakens", "The First Order"]
         self.citations = ["[1] Abrams, J.J. Star Wars: The Force Awakens. 2016."]
 
     def test_01_create(self):
         try:
-            self.piece = Content(first_author_name=self.first_author_name,
-                            first_author_id=self.first_author_id,
-                            content_type=self.content_type, name=self.name,
-                            alternate_names=self.alternate_names,
-                            text=self.text, keywords=self.keywords,
-                            citations=self.citations)
+            self.piece = Content(
+                first_author_name=self.first_author_name,
+                first_author_id=self.first_author_id,
+                content_type=self.content_type,
+                name=self.name,
+                alternate_names=self.alternate_names,
+                text=self.text,
+                keywords=self.keywords,
+                citations=self.citations)
         except Exception as e:
             self.fail(str(e))
         else:
@@ -145,40 +149,115 @@ class ContentPieceTest(TestCase):
 
     def test_07_filter_by(self):
         try:
-            pass
+            results = Content.filter_by("keyword", self.keywords[0])
         except Exception as e:
             self.fail(str(e))
         else:
-            pass
+            if results["count"] <= 10:
+                self.assertTrue(any([
+                    result["content_id"] == self.piece.content_id
+                    for result in results["results"]
+                ]))
+            else:
+                found = False
+                for i in range(ceil(results["count"]/10)):
+                    try:
+                        results = Content.filter_by(
+                            "keyword", self.keywords[0], page_num=i+1)
+                    except Exception as e:
+                        self.fail(str(e))
+                    else:
+                        found = any([
+                            result["content_id"] == self.piece.content_id
+                            for result in results["results"]
+                        ])
+                self.assertTrue(found)
 
     def test_08_search(self):
         try:
-            pass
+            results = Content.search("the force awakens")
         except Exception as e:
             self.fail(str(e))
         else:
-            pass
+            if results["count"] <= 10:
+                self.assertTrue(any([
+                    result["content_id"] == self.piece.content_id
+                    for result in results["results"]
+                ]))
+            else:
+                found = False
+                for i in range(ceil(results["count"]/10)):
+                    try:
+                        results = Content.search(
+                            "the force awakens", page_num=i+1)
+                    except Exception as e:
+                        self.fail(str(e))
+                    else:
+                        found = any([
+                            result["content_id"] == self.piece.content_id
+                            for result in results["results"]
+                        ])
+                self.assertTrue(found)
 
     def test_09_autocomplete(self):
         try:
-            pass
+            keyword_completions = Content.autocomplete(
+                "keyword", self.keywords[1].lower()[:8])
+            name_completions = Content.autocomplete(
+                "name", self.name.lower()[:4])
         except Exception as e:
             self.fail(str(e))
         else:
-            pass
+            self.assertTrue(any([
+                completion["completion"] == self.keywords[1]
+                for completion in keyword_completions
+            ]))
+            self.assertTrue(any([
+                completion["content_id"] == self.piece.content_id
+                for completion in name_completions
+            ]))
 
     def test_10_update(self):
+        timestamp = datetime.utcnow()
         try:
-            pass
+            Content.update(self.piece.content_id, "keyword", "add",
+                           timestamp, part_text="Skywalker")
         except Exception as e:
             self.fail(str(e))
         else:
-            pass
+            self.piece = Content(content_id=self.piece.content_id)
+            self.assertTrue("Skywalker" in self.piece.keywords)
 
     def test_11_json_ready(self):
         try:
-            pass
+            json_ready_version = self.piece.json_ready
         except Exception as e:
             self.fail(str(e))
         else:
-            pass
+            self.assertEqual(json_ready_version["content_id"],
+                             self.piece.content_id)
+            self.assertEqual(json_ready_version["timestamp"],
+                             str(self.piece.timestamp))
+            self.assertEqual(json_ready_version["deleted_timestamp"],
+                             self.piece.deleted_timestamp)
+            self.assertIsInstance(json_ready_version["first_author"], dict)
+            self.assertEqual(json_ready_version["first_author"]["user_name"],
+                             self.piece.first_author.user_name)
+            self.assertEqual(json_ready_version["name"], dict)
+            self.assertEqual(json_ready_version["name"]["name"],
+                             self.piece.name.name)
+            self.assertEqual(json_ready_version["content_type"],
+                             self.piece.content_type)
+            self.assertEqual(json_ready_version["text"], dict)
+            self.assertEqual(json_ready_version["text"]["text"],
+                             self.piece.text.text)
+            self.assertEqual(json_ready_version["citations"],
+                             self.piece.citations)
+            self.assertEqual(json_ready_version["keywords"],
+                             self.piece.keywords)
+            self.assertEqual(json_ready_version["alternate_names"], list)
+            for i in range(len(self.piece.alternate_names)):
+                self.assertEqual(
+                    json_ready_version["alternate_names"][i]["name"],
+                    self.piece.alternate_names[i].name
+                )
