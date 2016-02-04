@@ -38,7 +38,8 @@ class ContentPieceTest(TestCase):
                 alternate_names=self.alternate_names,
                 text=self.text,
                 keywords=self.keywords,
-                citations=self.citations)
+                citations=self.citations
+            )
         except Exception as e:
             self.fail(str(e))
         else:
