@@ -63,13 +63,16 @@ class Edit:
         conflict: Boolean, indicates whether this edit likely semantically
             conflicts with another edit.
 
+    Static Methods:
+        _check_legal
+
     Instance Methods:
         _retrieve_from_storage, _retrieve_from_redis, _transfer,
         start_vote, save, validate, _accept, _compute_merging_diff,
-        apply_edit, reject, _notify
+        apply_edit, _reject, _notify
 
     Class Methods:
-        bulk_retrieve
+        edits_validating, bulk_retrieve
     """
 
     storage_handler = orm.StorageHandler()
