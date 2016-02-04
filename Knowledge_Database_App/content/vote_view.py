@@ -1,8 +1,24 @@
 """
 Content Vote View API
+
+Exceptions:
+
+    DuplicateVoteError
+
+Classes:
+
+    VoteView
 """
 
-from .vote import AuthorVote
+from . import redis
+from .vote import AuthorVote, VoteStatusError
+
+
+class DuplicateVoteError(redis.DuplicateVoteError):
+    """
+    Wrapper around redis.DuplicateVoteError to raise in
+    APIs which call this view layer.
+    """
 
 
 class VoteView:
@@ -22,6 +38,8 @@ class VoteView:
             vote = AuthorVote(vote_status, edit_id, vote, voter_id,
                               timestamp, close_timestamp)
             vote.save()
+        except redis.DuplicateVoteError as e:
+            raise DuplicateVoteError(str(e))
         except:
             raise
         else:
