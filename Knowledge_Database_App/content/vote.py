@@ -265,7 +265,9 @@ class AuthorVote:
             "edit_id": self.edit_id,
             "vote_status": self.vote_status,
             "timestamp": str(self.timestamp),
-            "close_timestamp": str(self.close_timestamp),
+            "close_timestamp": (str(self.close_timestamp)
+                                if self.close_timestamp is not None
+                                else None),
             self.author.user_id: self.vote,
         }
 
