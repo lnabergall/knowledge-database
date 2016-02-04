@@ -219,6 +219,8 @@ class ContentPieceTest(TestCase):
                             result["content_id"] == self.piece.content_id
                             for result in results["results"]
                         ])
+                        if found:
+                            break
                 try:
                     self.assertTrue(found)
                 except AssertionError:
@@ -256,6 +258,8 @@ class ContentPieceTest(TestCase):
                             result["content_id"] == self.piece.content_id
                             for result in results["results"]
                         ])
+                        if found:
+                            break
                 try:
                     self.assertTrue(found)
                 except AssertionError:
