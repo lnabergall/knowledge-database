@@ -29,6 +29,9 @@ class ContentPieceTest(TestCase):
         self.citations = ["[1] Abrams, J.J. Star Wars: The Force Awakens. 2016."]
         self.failure = False
 
+    def tearDown(self):
+        self.piece._delete()
+
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_01_create(self):
         try:

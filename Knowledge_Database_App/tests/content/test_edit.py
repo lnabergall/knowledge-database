@@ -28,19 +28,24 @@ class ContentEditTest(TestCase):
                      "Han Solo and Leia Organa.[ref:1]")
         self.keywords = ["Star Wars", "The Force Awakens", "The First Order"]
         self.citations = ["[1] Abrams, J.J. Star Wars: The Force Awakens. 2016."]
-        self.piece = Content(
-            first_author_name=self.first_author_name,
-            first_author_id=self.first_author_id,
-            content_type=self.content_type,
-            name=self.name,
-            alternate_names=self.alternate_names,
-            text=self.text,
-            keywords=self.keywords,
-            citations=self.citations
-        )
-        self.piece.store()
+        user_content_pieces = Content.bulk_retrieve(user_id=self.first_author_id)
+        if self.name in [piece.name.name for piece in user_content_pieces]:
+            self.piece = filter(lambda piece: piece.name.name == self.name,
+                                user_content_pieces)[0]
+        else:
+            self.piece = Content(
+                first_author_name=self.first_author_name,
+                first_author_id=self.first_author_id,
+                content_type=self.content_type,
+                name=self.name,
+                alternate_names=self.alternate_names,
+                text=self.text,
+                keywords=self.keywords,
+                citations=self.citations
+            )
+            self.piece.store()
+            self.piece = Content(content_id=self.content_id)
         self.content_id = self.piece.content_id
-        self.piece = Content(content_id=self.content_id)
         self.start_timestamp = datetime.utcnow()
         self.edit_text = ("Kylo Ren is the master of the Knights of Ren, "
                           "a dark Force user, apprentice of Supreme Leader "
