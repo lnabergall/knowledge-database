@@ -85,7 +85,7 @@ class AuthorVote:
             for vote_string in vote_summary.split("<")
         ]
         vote_dict = {
-            vote_list[0]: vote_list[1] + str("; ") + vote_list[2]
+            int(vote_list[0]): vote_list[1] + str("; ") + vote_list[2]
             for vote_list in vote_lists[1:]
         }
         return vote_dict
