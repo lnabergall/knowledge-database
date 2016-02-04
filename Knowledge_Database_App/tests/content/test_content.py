@@ -102,7 +102,7 @@ class ContentPieceTest(TestCase):
                 self.assertEqual(piece.text.text, self.text)
                 self.assertEqual(piece.keywords, self.keywords)
                 self.assertEqual(piece.citations, self.citations)
-                self.assertEqual(piece.stored, False)
+                self.assertEqual(piece.stored, True)
                 self.assertIsInstance(piece.timestamp, datetime)
             except AssertionError:
                 self.failure = True
