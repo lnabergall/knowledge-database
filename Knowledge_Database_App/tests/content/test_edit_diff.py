@@ -7,7 +7,7 @@ functions, not exceptional cases.
 Note: Tests are numbered to force a desired execution order.
 """
 
-from unittest import TestCase
+from unittest import TestCase, skipIf
 
 from Knowledge_Database_App.content import edit_diff as diff
 
@@ -28,49 +28,75 @@ class EditDiffTest(TestCase):
         self.trivial_edit_diff = diff.compute_diff(
             self.original_part_text, self.original_part_text)
         self.empty_edit_diff = diff.compute_diff(self.original_part_text, "")
+        self.failure = False
 
+    @skipIf(self.failure, "Necessary previous test failed!")
     def test_01_compute_diff(self):
         try:
             self.edit_diff = diff.compute_diff(self.original_part_text,
                                                self.edit_text)
         except Exception as e:
+            self.failure = True
             self.fail(str(e))
         else:
-            self.assertIsInstance(edit_diff, str)
-            for line in edit_diff.splitlines():
-                self.assertTrue(line.startswith("      ") or
-                                line.startswith("+     ") or
-                                line.startswith("-     "))
+            try:
+                self.assertIsInstance(edit_diff, str)
+                for line in edit_diff.splitlines():
+                    self.assertTrue(line.startswith("      ") or
+                                    line.startswith("+     ") or
+                                    line.startswith("-     "))
+            except AssertionError:
+                self.failure = True
+                raise
 
+    @skipIf(self.failure, "Necessary previous test failed!")
     def test_02_restore(self):
         try:
             original = diff.restore(edit_diff)
             edit = diff.restore(edit_diff, version="edit")
         except Exception as e:
+            self.failure = True
             self.fail(str(e))
         else:
-            self.assertEqual(original, self.original_part_text)
-            self.assertEqual(edit, self.edit_text)
+            try:
+                self.assertEqual(original, self.original_part_text)
+                self.assertEqual(edit, self.edit_text)
+            except AssertionError:
+                self.failure = True
+                raise
 
+    @skipIf(self.failure, "Necessary previous test failed!")
     def test_03_calculate_metrics(self):
         try:
             insertions, deletions = diff.calculate_metrics(self.edit_diff)
         except Exception as e:
+            self.failure = True
             self.fail(str(e))
         else:
-            self.assertIsInstance(insertions, int)
-            self.assertIsInstance(deletions, int)
+            try:
+                self.assertIsInstance(insertions, int)
+                self.assertIsInstance(deletions, int)
+            except AssertionError:
+                self.failure = True
+                raise
 
+    @skipIf(self.failure, "Necessary previous test failed!")
     def test_04_conflict(self):
         try:
             conflict1 = diff.conflict(self.edit_diff, self.empty_edit_diff)
             conflict2 = diff.conflict(self.edit_diff, self.trivial_edit_diff)
         except Exception as e:
+            self.failure = True
             self.fail(str(e))
         else:
-            self.assertEqual(conflict1, True)
-            self.assertEqual(conflict2, False)
+            try:
+                self.assertEqual(conflict1, True)
+                self.assertEqual(conflict2, False)
+            except AssertionError:
+                self.failure = True
+                raise
 
+    @skipIf(self.failure, "Necessary previous test failed!")
     def test_05_merge(self):
         try:
             merged_diff_common = diff.merge([self.edit_diff,
@@ -79,19 +105,24 @@ class EditDiffTest(TestCase):
             merged_diff_nested = diff.merge(
                 [self.edit_diff, self.further_edit_text], base="first_diff")
         except Exception as e:
+            self.failure = True
             self.fail(str(e))
         else:
-            self.assertIsInstance(merged_diff_common, str)
-            self.assertIsInstance(merged_diff_nested, str)
-            for line in merged_diff_common.splitlines():
-                self.assertTrue(line.startswith("      ") or
-                                line.startswith("+     ") or
-                                line.startswith("-     "))
-            for line in merged_diff_nested.splitlines():
-                self.assertTrue(line.startswith("      ") or
-                                line.startswith("+     ") or
-                                line.startswith("-     "))
-            self.assertEqual(diff.restore(merged_diff_common),
-                             self.original_part_text)
-            self.assertEqual(diff.restore(merged_diff_nested),
-                             self.original_part_text)
+            try:
+                self.assertIsInstance(merged_diff_common, str)
+                self.assertIsInstance(merged_diff_nested, str)
+                for line in merged_diff_common.splitlines():
+                    self.assertTrue(line.startswith("      ") or
+                                    line.startswith("+     ") or
+                                    line.startswith("-     "))
+                for line in merged_diff_nested.splitlines():
+                    self.assertTrue(line.startswith("      ") or
+                                    line.startswith("+     ") or
+                                    line.startswith("-     "))
+                self.assertEqual(diff.restore(merged_diff_common),
+                                 self.original_part_text)
+                self.assertEqual(diff.restore(merged_diff_nested),
+                                 self.original_part_text)
+            except AssertionError:
+                self.failure = True
+                raise
