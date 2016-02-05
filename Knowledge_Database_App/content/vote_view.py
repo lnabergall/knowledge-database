@@ -37,7 +37,7 @@ class VoteView:
         try:
             vote = AuthorVote(vote_status, edit_id, vote, voter_id,
                               timestamp, close_timestamp)
-            vote.save()
+            self.error_response = vote.save()
         except redis.DuplicateVoteError as e:
             raise DuplicateVoteError(str(e))
         except:

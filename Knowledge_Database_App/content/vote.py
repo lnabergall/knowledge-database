@@ -17,8 +17,8 @@ import dateutil.parser as dateparse
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select)
 from . import redis
-from . import edit
-from .content import Content
+from . import edit as edit_api
+from .content import Content, ApplicationError
 
 
 class VoteStatusError(Exception):
@@ -231,6 +231,9 @@ class AuthorVote:
     def save(self):
         if self.vote_status != "in-progress":
             raise NotImplementedError
+        valid_vote, edit_to_vote_on = self.check_vote_order()
+        if not valid_vote:
+            return edit_to_vote_on
         else:
             try:
                 redis.store_vote(self.edit_id, self.author.user_id,
@@ -243,6 +246,45 @@ class AuthorVote:
                 raise VoteStatusError(str(e))
             except:
                 raise
+
+    def check_vote_order(self):
+        """
+        Returns:
+            Tuple of the form (bool, integer), where bool is True if
+            and only if this vote is on the earliest (chronologically)
+            submitted validating edit and integer is the edit id of the
+            earliest submitted validating edit.
+
+        Note: Properly ordered vote boolean returned despite redundancy
+            to keep logic within method.
+        """
+        edit = edit_api.Edit(edit_id=self.edit_id,
+                             validation_status="validating")
+        if (edit.content_part == "name" or
+                edit.content_part == "alternate_name"):
+            edit_ids = edit_api.Edit.bulk_retrieve(
+                validation_status="validating", name_id=edit.part_id,
+                page_num=0, ids_only=True)
+        elif edit.content_part == "text":
+            edit_ids = edit_api.Edit.bulk_retrieve(
+                validation_status="validating", text_id=edit.part_id,
+                page_num=0, ids_only=True)
+        elif edit.content_part == "keyword":
+            edit_ids = edit_api.Edit.bulk_retrieve(
+                validation_status="validating", content_id=edit.content_id,
+                keyword_id=edit.part_id, page_num=0, ids_only=True)
+        elif edit.content_part == "content_type":
+            edit_ids = edit_api.Edit.bulk_retrieve(
+                validation_status="validating", content_id=edit.content_id,
+                content_type_id=edit.part_id, page_num=0, ids_only=True)
+        elif edit.content_part == "citation":
+            edit_ids = edit_api.Edit.bulk_retrieve(
+                validation_status="validating", content_id=edit.content_id,
+                citation_id=edit.part_id, page_num=0, ids_only=True)
+        else:
+            raise ApplicationError("Unexpected edit argument!")
+
+        return edit_ids[-1] == self.edit_id, edit_ids[-1]
 
     @classmethod
     def votes_needed(cls, user_id, content_ids=None):
