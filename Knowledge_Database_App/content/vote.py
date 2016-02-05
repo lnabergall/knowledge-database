@@ -17,6 +17,7 @@ import dateutil.parser as dateparse
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select)
 from . import redis
+from . import edit
 from .content import Content
 
 
@@ -245,6 +246,21 @@ class AuthorVote:
 
     @classmethod
     def votes_needed(cls, user_id, content_ids=None):
+        """
+        Args:
+            user_id: Integer.
+            content_ids: List of integers. Defaults to None.
+
+        Returns:
+            Dictionary of the form
+
+                {content_id1: list of edit ids of edits not yet voted on,
+                 content_id2: list of edit ids of edits not yet voted on,
+                 ...},
+
+            where the each list is sorted in descending chronological
+            order by submission time.
+        """
         if content_ids is None:
             content_ids = Content.bulk_retrieve(
                 user_id=user_id, ids_only=True)

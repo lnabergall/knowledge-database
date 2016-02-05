@@ -25,9 +25,9 @@ from Knowledge_Database_App.storage import (orm_core as orm,
                                             action_queries as action)
 from . import redis
 from . import edit_diff as diff
+from . import author_vote
 from .celery import celery_app
 from .content import Content, Name, UserData
-from .vote import AuthorVote
 
 
 class DuplicateError(Exception):
@@ -620,8 +620,8 @@ class Edit:
         except:
             raise
         try:
-            votes = AuthorVote.bulk_retrieve(vote_status="in-progress",
-                                             edit_id=self.edit_id)
+            votes = author_vote.AuthorVote.bulk_retrieve(
+                vote_status="in-progress", edit_id=self.edit_id)
         except:
             raise
         vote_count = len(votes)
@@ -653,7 +653,7 @@ class Edit:
         content authors of the edit's acceptance.
         """
         accepted_timestamp = datetime.utcnow()
-        vote_string = AuthorVote.get_vote_summary(votes)
+        vote_string = author_vote.AuthorVote.get_vote_summary(votes)
         self.apply_edit()
         try:
             edit_id = self.storage_handler.call(
@@ -780,7 +780,7 @@ class Edit:
         the author and other content authors of the edit's rejection.
         """
         rejected_timestamp = datetime.utcnow()
-        vote_string = AuthorVote.get_vote_summary(votes)
+        vote_string = author_vote.AuthorVote.get_vote_summary(votes)
         try:
             edit_id = self.storage_handler.call(
                 action.store_rejected_edit,
