@@ -43,7 +43,7 @@ class AuthorVote:
         json_ready: Dictionary.
 
     Instance Methods:
-        save
+        check_vote_order, save
 
     Class Methods:
         unpack_vote_summary, _retrieve_from_storage,
@@ -228,25 +228,6 @@ class AuthorVote:
                              ", " + str(vote.timestamp) + ">, ")
         return vote_summary[:-2]
 
-    def save(self):
-        if self.vote_status != "in-progress":
-            raise NotImplementedError
-        valid_vote, edit_to_vote_on = self.check_vote_order()
-        if not valid_vote:
-            return edit_to_vote_on
-        else:
-            try:
-                redis.store_vote(self.edit_id, self.author.user_id,
-                                 self.vote + "; " + str(self.timestamp))
-            except redis.DuplicateVoteError:
-                raise redis.DuplicateVoteError(
-                    "Vote already submitted by user " +
-                    str(self.author.user_id) + "!")
-            except redis.MissingKeyError as e:
-                raise VoteStatusError(str(e))
-            except:
-                raise
-
     def check_vote_order(self):
         """
         Returns:
@@ -285,6 +266,25 @@ class AuthorVote:
             raise ApplicationError("Unexpected edit argument!")
 
         return edit_ids[-1] == self.edit_id, edit_ids[-1]
+
+    def save(self):
+        if self.vote_status != "in-progress":
+            raise NotImplementedError
+        valid_vote, edit_to_vote_on = self.check_vote_order()
+        if not valid_vote:
+            return edit_to_vote_on
+        else:
+            try:
+                redis.store_vote(self.edit_id, self.author.user_id,
+                                 self.vote + "; " + str(self.timestamp))
+            except redis.DuplicateVoteError:
+                raise redis.DuplicateVoteError(
+                    "Vote already submitted by user " +
+                    str(self.author.user_id) + "!")
+            except redis.MissingKeyError as e:
+                raise VoteStatusError(str(e))
+            except:
+                raise
 
     @classmethod
     def votes_needed(cls, user_id, content_ids=None):
