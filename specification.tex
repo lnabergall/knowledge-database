@@ -256,6 +256,7 @@ Attribute Name & Type & Indexed & Required \\ \hline
 text\_id & Integer & Yes, Primary Key & Yes \\ \hline
 text & Text & No & Yes \\ \hline
 timestamp & Timestamp & No & Yes \\ \hline
+last\_edited\_timestamp & Timestamp & No & Yes \\ \hline
 \multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
 Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
 One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated accepted edits
@@ -273,6 +274,7 @@ One-to-Many & Rejected\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associa
 content\_id & Integer & Yes, Primary Key & Yes \\ \hline
 %name & Text & Yes & Yes \\ \hline
 timestamp & Timestamp & No & Yes \\ \hline
+last\_edited\_timestamp & Timestamp & No & Yes \\ \hline
 deleted\_timestamp & Timestamp & No & No \\ \hline
 \multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
 Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
@@ -336,6 +338,7 @@ name\_id & Integer & Yes, Primary Key & Yes \\ \hline
 name & Text & No & Yes \\ \hline
 name\_type & Text & No & Yes \\ \hline % "Primary" vs "Alternate"
 timestamp & Timestamp & No & Yes \\ \hline
+last\_edited\_timestamp & Timestamp & No & Yes \\ \hline
 \multicolumn{4}{|c|}{Foreign Relationships} \\ \hline
 Type & Table & \multicolumn{2}{c|}{Attribute} \\ \hline
 One-to-Many & Accepted\_Edit & \multicolumn{2}{c|}{edit\_id} \\ \hline % Associated accepted edits

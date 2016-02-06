@@ -48,7 +48,8 @@ def store_content_piece(user_id, name, text, content_type, keywords, timestamp,
     """
     if session is None:
         session = orm.start_session()
-    content_piece = orm.ContentPiece(timestamp=timestamp)
+    content_piece = orm.ContentPiece(timestamp=timestamp, 
+                                     last_edited_timestamp=timestamp)
     author = get_user(user_id=user_id)
     content_piece.first_author = author
     content_piece.authors.append(author)
@@ -107,7 +108,7 @@ def update_content_type(content_id, content_type, session=None):
     """
     if session is None:
         session = orm.start_session()
-    content_piece = get_content_piece(content_id)
+    content_piece = get_content_piece(content_id, session=session)
     content_piece.content_type = content_type
     try:
         session.commit()
@@ -122,6 +123,7 @@ def store_content_part(content_part, content_id,
     Args:
         content_part: Name, Keyword, or Citation.
         content_id: Integer.
+        edited_citations: List of Citation objects.
         session: SQLAlchemy session. Defaults to None.
     Raises:
         InputError: if content_part is not a Name, Keyword, or Citation.
@@ -129,13 +131,13 @@ def store_content_part(content_part, content_id,
     """
     if session is None:
         session = orm.start_session()
-    content_piece = get_content_piece(content_id)
+    content_piece = get_content_piece(content_id, session=session)
     if isinstance(content_part, orm.Name):
         content_piece.alternate_names.append(content_part)
     elif isinstance(content_part, orm.Keyword):
         content_piece.keywords.append(content_part)
     elif isinstance(content_part, orm.Citation):
-        if edited_citation_ids is not None:
+        if edited_citations is not None:
             content_part.edited_citations = edited_citations
         content_piece.citations.append(content_part)
     else:
@@ -262,8 +264,14 @@ def store_accepted_edit(redis_edit_id, edit_text, applied_edit_text,
         session.execute(orm.content_authors.insert(),
             params={"content_id": content_id, "user_id": user_id})
     if content_part == "name":
+        session.query(orm.Name).filter(orm.Name.name_id == part_id).update(
+            {orm.Name.last_edited_timestamp: acc_timestamp}, 
+            synchronize_session=False)
         edit.name_id = part_id
     elif content_part == "text":
+        session.query(orm.Text).filter(orm.Text.text_id == part_id).update(
+            {orm.Text.last_edited_timestamp: acc_timestamp}, 
+            synchronize_session=False)
         edit.text_id = part_id
     elif content_part == "content_type":
         edit.content_type_id = part_id
@@ -273,7 +281,10 @@ def store_accepted_edit(redis_edit_id, edit_text, applied_edit_text,
         edit.citation_id = part_id
     else:
         raise InputError("Invalid argument!")
-
+    session.query(orm.ContentPiece).filter(
+        orm.ContentPiece.content_id == content_id).update(
+        {orm.ContentPiece.last_edited_timestamp: acc_timestamp}, 
+        synchronize_session=False)
     session.add(edit)
     try:
         session.commit()

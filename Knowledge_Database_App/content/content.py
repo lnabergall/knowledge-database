@@ -41,19 +41,22 @@ class Name:
         name: String.
         name_type: String, expects 'primary' or 'alternate'.
         timestamp: Datetime.
+        last_edited_timestamp: Datetime.
     Properties:
         json_ready: Dictionary.
         storage_object: orm.Name object.
     """
 
-    def __init__(self, name_id=None, name=None,
-                 name_type=None, timestamp=None):
+    def __init__(self, name_id=None, name=None, name_type=None, 
+                 timestamp=None, last_edited_timestamp=None):
         if (not (isinstance(name_id, None) or isinstance(name_id, int)) or
                 not (isinstance(name, None) or isinstance(name, str)) or
                 not (isinstance(name_type, None) or
                      isinstance(name_type, str)) or
                 not (isinstance(timestamp, None) or
-                     isinstance(timestamp, datetime))):
+                     isinstance(timestamp, datetime)) or
+                not (isinstance(last_edited_timestamp, None) or
+                     isinstance(last_edited_timestamp, datetime))):
             raise TypeError("Argument of invalid type given!")
         else:
             char_count = len(text) - text.count(" ")
@@ -64,14 +67,17 @@ class Name:
             self.name = name
             self.name_type = name_type
             self.timestamp = timestamp
+            self.last_edited_timestamp = last_edited_timestamp
 
     def __repr__(self):
         return (">Name(name_id={name_id}, name={name}, "
-                + "name_type={name_type}, timestamp={timestamp})<").format(
+                + "name_type={name_type}, timestamp={timestamp}"
+                + "last_edited_timestamp={last_edited_timestamp})<").format(
             name_id=self.name_id,
             name=self.name,
             name_type=self.name_type,
             timestamp=self.timestamp,
+            last_edited_timestamp=self.last_edited_timestamp,
         )
 
     @classmethod
@@ -95,12 +101,14 @@ class Name:
             "name": self.name,
             "name_type": self.name_type,
             "timestamp": self.timestamp,
+            "last_edited_timestamp": self.last_edited_timestamp,
         }
 
     @property
     def storage_object(self):
         return orm.Name(name_id=self.name_id, name=self.name,
-                        name_type=self.name_type, timestamp=self.timestamp)
+                        name_type=self.name_type, timestamp=self.timestamp,
+                        last_edited_timestamp=self.last_edited_timestamp)
 
 
 class Text:
@@ -114,11 +122,14 @@ class Text:
         storage_object: orm.Name object.
     """
 
-    def __init__(self, text_id=None, text=None, timestamp=None):
+    def __init__(self, text_id=None, text=None, timestamp=None, 
+                 last_edited_timestamp=None):
         if (not (isinstance(text_id, None) or isinstance(text_id, int)) or
                 not (isinstance(text, None) or isinstance(text, str)) or
                 not (isinstance(timestamp, None) or
-                     isinstance(timestamp, datetime))):
+                     isinstance(timestamp, datetime)) or
+                not (isinstance(last_edited_timestamp, None) or
+                     isinstance(last_edited_timestamp, datetime))):
             raise TypeError("Argument of invalid type given!")
         else:
             char_count = len(text) - text.count(" ")
@@ -128,13 +139,16 @@ class Text:
             self.text_id = text_id
             self.text = text
             self.timestamp = timestamp
+            self.last_edited_timestamp = last_edited_timestamp
 
     def __repr__(self):
         return (">Text(text_id={text_id}, text={text}, "
-                + "timestamp={timestamp})<").format(
+                + "timestamp={timestamp}, "
+                + "last_edited_timestamp={last_edited_timestamp})<").format(
             text_id=self.text_id,
             text=self.text,
             timestamp=self.timestamp,
+            last_edited_timestamp=self.last_edited_timestamp,
         )
 
     @property
@@ -142,13 +156,15 @@ class Text:
         return {
             "text_id": self.text_id,
             "text": self.text,
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
+            "last_edited_timestamp": self.last_edited_timestamp,
         }
 
     @property
     def storage_object(self):
         return orm.Text(text_id=self.text_id, text=self.text,
-                        timestamp=self.timestamp)
+                        timestamp=self.timestamp, 
+                        last_edited_timestamp=last_edited_timestamp)
 
 
 class UserData:
@@ -241,17 +257,18 @@ class Content:
 
     storage_handler = orm.StorageHandler()
 
-    content_id = None           # Integer.
-    timestamp = None            # Datetime.
-    deleted_timestamp = None    # Datetime.
-    first_author = None         # UserData object.
-    authors = None              # List of UserData objects.
-    content_type = None         # String.
-    name = None                 # Name object.
-    alternate_names = None      # List of Name objects.
-    text = None                 # Text object.
-    keywords = None             # List of Strings.
-    citations = None            # List of Strings.
+    content_id = None               # Integer.
+    timestamp = None                # Datetime.
+    last_edited_timestamp = None    # Datetime.
+    deleted_timestamp = None        # Datetime.
+    first_author = None             # UserData object.
+    authors = None                  # List of UserData objects.
+    content_type = None             # String.
+    name = None                     # Name object.
+    alternate_names = None          # List of Name objects.
+    text = None                     # Text object.
+    keywords = None                 # List of Strings.
+    citations = None                # List of Strings.
     notification = None
 
     def __init__(self, content_id=None, first_author_name=None,
@@ -288,17 +305,23 @@ class Content:
                     not content_type or not name or not text or not keywords):
                 raise action.InputError("Required arguments not provided!")
             self.timestamp = datetime.utcnow()
+            self.last_edited_timestamp = self.timestamp
             self.first_author = UserData(user_id=first_author_id,
                                          user_name=first_author_name)
             self.authors = [self.first_author]
             self.content_type = content_type
             self.name = Name(name=name, name_type="primary",
-                             timestamp=self.timestamp)
-            self.alternate_names = [Name(name=alt_name, name_type="alternate",
-                                         timestamp=self.timestamp)
-                                    for alt_name in list(set(alternate_names))
-                                    if alt_name and alt_name != self.name.name]
-            self.text = Text(text=text, timestamp=self.timestamp)
+                             timestamp=self.timestamp, 
+                             last_edited_timestamp=self.timestamp)
+            self.alternate_names = [
+                Name(name=alt_name, name_type="alternate",
+                     timestamp=self.timestamp, 
+                     last_edited_timestamp=self.last_edited_timestamp)
+                for alt_name in list(set(alternate_names))
+                if alt_name and alt_name != self.name.name
+            ]
+            self.text = Text(text=text, timestamp=self.timestamp, 
+                             last_edited_timestamp=self.timestamp)
             self.keywords = list(set(keywords))
             self.citations = list(set(citations))
             _check_legal(name, alternate_names, text, keywords, citations)
@@ -349,6 +372,7 @@ class Content:
         """
         self.content_id = content_piece.content_id
         self.timestamp = content_piece.timestamp
+        self.last_edited_timestamp = content_piece.last_edited_timestamp
         self.deleted_timestamp = content_piece.deleted_timestamp
         self.first_author = UserData(
             user_id=content_piece.first_author.user_id,
@@ -357,18 +381,25 @@ class Content:
                                  user_name=author.user_name)
                         for author in content_piece.authors]
         self.content_type = content_piece.content_type.content_type
-        self.name = Name(name_id=content_piece.name.name_id,
-                         name=content_piece.name.name,
-                         name_type=content_piece.name.name_type,
-                         timestamp=content_piece.name.timestamp)
+        self.name = Name(
+            name_id=content_piece.name.name_id,
+            name=content_piece.name.name,
+            name_type=content_piece.name.name_type,
+            timestamp=content_piece.name.timestamp,
+            last_edited_timestamp=content_piece.name.last_edited_timestamp
+        )
         self.alternate_names = [Name(name_id=name.name_id,
                                      name=name.name,
                                      name_type=name.name_type,
-                                     timestamp=name.timestamp)
+                                     timestamp=name.timestamp,
+                                     last_edited_timestamp=name.last_edited_timestamp)
                                 for name in content_piece.alternate_names]
-        self.text = Text(text_id=content_piece.text.text_id,
-                         text=content_piece.text.text,
-                         timestamp=content_piece.text.timestamp)
+        self.text = Text(
+            text_id=content_piece.text.text_id,
+            text=content_piece.text.text,
+            timestamp=content_piece.text.timestamp,
+            last_edited_timestamp=content_piece.text.last_edited_timestamp
+        )
         self.keywords = [keyword.keyword for keyword in content_piece.keywords]
         self.citations = [citation.citation_text 
                           for citation in content_piece.citations]
@@ -394,6 +425,9 @@ class Content:
             else:
                 content = [Content(content_piece=content_piece)
                            for content_piece in content_pieces]
+                content = sorted(content, 
+                    key=lambda piece: piece.last_edited_timestamp,
+                    reverse=True)
                 content_count = len(content)
                 if ids_only:
                     content = [content_piece.content_id

@@ -103,6 +103,7 @@ class ContentPiece(Base):
     Attributes:
         content_id: Integer, primary key.
         timestamp: Datetime.
+        last_edited_timestamp: Datetime.
         deleted_timestamp: Datetime.
         first_author_id: Integer, foreign key to User table.
         first_author: User, Many-to-One relationship, backref
@@ -121,6 +122,7 @@ class ContentPiece(Base):
 
     content_id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime)
+    last_edited_timestamp = Column(DateTime)
     deleted_timestamp = Column(DateTime)
 
     # Many-to-One relationships
@@ -149,6 +151,7 @@ class Name(Base):
         name_id: Integer, primary key.
         name: String.
         name_type: String, expects 'primary' or 'alternate'.
+        last_edited_timestamp: Datetime.
         timestamp: Datetime.
         content_id: Integer, foreign key to Content_Piece table.
         piece: ContentPiece, Many-to-One relationship, backref
@@ -159,6 +162,7 @@ class Name(Base):
     name_id = Column(Integer, primary_key=True)
     name = Column(Text_)
     name_type = Column(Text_)
+    last_edited_timestamp = Column(DateTime)
     timestamp = Column(DateTime)
 
     # Many-to-One relationships
@@ -174,12 +178,14 @@ class Text(Base):
     Attributes:
         text_id: Integer, primary key.
         text: String.
+        last_edited_timestamp: Datetime.
         timestamp: Datetime.
     """
     __tablename__ = "Text"
 
     text_id = Column(Integer, primary_key=True)
     text = Column(Text_)
+    last_edited_timestamp = Column(DateTime)
     timestamp = Column(DateTime)
 
     def __repr__(self):
