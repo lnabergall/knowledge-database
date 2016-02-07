@@ -117,6 +117,7 @@ class Text:
         text_id: Integer.
         text: String.
         timestamp: Datetime.
+        last_edited_timestamp: Datetime.
     Properties:
         json_ready: Dictionary.
         storage_object: orm.Name object.
@@ -233,6 +234,7 @@ class Content:
     Attributes:
         content_id: Integer. Defaults to None.
         timestamp: Datetime. Defaults to None.
+        last_edited_timestamp: Datetime. Defaults to None.
         deleted_timestamp: Datetime. Defaults to None.
         first_author: UserData object. Defaults to None.
         authors: List of UserData objects. Defaults to None.
