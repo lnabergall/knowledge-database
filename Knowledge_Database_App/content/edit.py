@@ -818,7 +818,7 @@ class Edit:
         self._notify.apply_async(args=["author_rejection"],
                                  kwargs={"author_info": author_info})
 
-    @celery_app.task(name="edit._notify")
+    @celery_app.task(name="email._notify")
     def _notify(self, email_type, days_remaining=None, author_info=None):
         """
         Args:
