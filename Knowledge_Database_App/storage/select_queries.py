@@ -626,8 +626,7 @@ def get_author_count(content_id, session=None):
         return author_count
 
 
-def get_user(user_id=None, email=None, pass_hash=None, remember_id=None,
-             remember_token_hash=None, session=None):
+def get_user(user_id=None, email=None, remember_id=None, session=None):
     """
     Args:
         user_id: Integer. Defaults to None.
@@ -649,19 +648,18 @@ def get_user(user_id=None, email=None, pass_hash=None, remember_id=None,
     """
     if session is None:
         session = orm.start_session()
-    if email is not None and pass_hash is not None:
+    if email is not None:
         try:
-            user = session.query(orm.User).filter(orm.User.email == email,
-                orm.User.pass_hash == pass_hash).one()
+            user = session.query(orm.User).filter(
+                orm.User.email == email).one()
         except MultipleResultsFound as e:
             raise SelectError(str(e))
         except NoResultFound:
             return None
-    elif remember_id is not None and remember_token_hash is not None:
+    elif remember_id is not None:
         try:
             user = session.query(orm.User).filter(
-                orm.User.remember_id == remember_id,
-                orm.User.remember_token_hash == remember_token_hash).one()
+                orm.User.remember_id == remember_id).one()
         except MultipleResultsFound as e:
             raise SelectError(str(e))
         except NoResultFound:
