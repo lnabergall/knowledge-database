@@ -676,12 +676,14 @@ The following roughly documents the layout of the User API.
 \item[] EmailAddressError
 \item[] RegisteredUser - instantiation creates a new user or authenticates and retrieves an existing user. 
 \begin{enumerate}
-\item[] \_check\_legal
+\item[] \_check\_legal (static)
 \item[] \_transfer
 \item[] register
-\item[] request\_confirm
 \item[] store
+\item[] send\_welcome 
+\item[] request\_confirm
 \item[] process\_confirm (class)
+\item[] remember\_user
 \item[] json\_ready (property)
 \end{enumerate}
 \item[] Admin - instantiation creates a new admin or authenticates and retrieves an existing admin. 
