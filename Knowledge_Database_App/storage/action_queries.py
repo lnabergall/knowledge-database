@@ -387,6 +387,8 @@ def store_new_user(user_type, user_name, email, pass_hash,
     except Exception as e:
         session.rollback()
         raise ActionError(str(e))
+    else:
+        return user.user_id
 
 
 def update_user(user_id, new_user_name=None, new_email=None,
@@ -479,3 +481,5 @@ def store_user_report(content_id, report_text, report_type, admin_report,
     except Exception as e:
         session.rollback()
         raise ActionError(str(e))
+    else:
+        return user_report.report_id
