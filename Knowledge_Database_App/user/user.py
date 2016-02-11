@@ -2,13 +2,18 @@
 User API
 """
 
+import re
+from random import SystemRandom
 from datetime import datetime
 from passlib.apps import custom_app_context as pass_handler
+from passlib.utils import generate_password
+from validate_email import validate_email
 
 from Knowledge_Database_App.content.celery import celery_app
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select,
                                             action_queries as action)
+from .user_config import PASS_REGEX, USER_NAME_REGEX
 
 
 class PasswordError(Exception):
@@ -93,16 +98,28 @@ class RegisteredUser:
                     else:
                         raise RememberUserError("Invalid Remember Me token!")
         else:
-            self.email = email
-            self.pass_hash = pass_handler.encrypt(password)
-            self.pass_hash_type = "sha512_crypt"
-            self.user_type = user_type
-            self.user_name = user_name
-            self.timestamp = datetime.utcnow()
+            if not email and not password and not user_type and not user_name:
+                raise select.InputError("Invalid arguments!")
+            else:
+                email = email.strip()
+                password = password.strip()
+                user_name = user_name.strip()
+                self._check_legal(email, password, user_name)
+                self.email = email
+                self.pass_hash = pass_handler.encrypt(password)
+                self.pass_hash_type = "sha512_crypt"
+                self.user_type = user_type
+                self.user_name = user_name
+                self.timestamp = datetime.utcnow()
 
     @staticmethod
-    def _check_legal():
-        pass
+    def _check_legal(email, password, user_name):
+        if PASS_REGEX.fullmatch(password) is None:
+            raise PasswordError("Invalid password!")
+        if not validate_email(email):
+            raise EmailAddressError("Invalid email address!")
+        if USER_NAME_REGEX.fullmatch(user_name) is None:
+            raise UserNameError("Invalid user name!")
 
     def _transfer(self, stored_user_object):
         self.user_id = stored_user_object.user_id
@@ -116,7 +133,9 @@ class RegisteredUser:
         self.deleted_timestamp = stored_user_object.deleted_timestamp
 
     def register(self):
-        pass
+        self.store()
+        self.send_welcome.apply_async()
+        self.request_confirm.apply_async()
 
     def store(self):
         pass
@@ -134,8 +153,22 @@ class RegisteredUser:
         pass
 
     def remember_user(self):
-        pass
+        remember_id = SystemRandom().getrandbits(64)
+        remember_token = generate_password(size=20)
+        self.remember_token_hash = pass_handler.encrypt(remember_token)
+
+        return {
+            "remember_id": remember_id,
+            "remember_token": remember_token,
+        }
 
     @property
     def json_ready(self):
-        return None
+        return {
+            "user_id": self.user_id,
+            "user_name": self.user_name,
+            "user_type": self.user_type,
+            "email": self.email,
+            "remember_id": self.remember_id,
+            "timestamp": self.timestamp,
+        }
