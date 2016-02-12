@@ -111,6 +111,7 @@ class RegisteredUser:
                 self.user_type = user_type
                 self.user_name = user_name
                 self.timestamp = datetime.utcnow()
+                self.remember_id = SystemRandom().getrandbits(64)
 
     @staticmethod
     def _check_legal(email, password, user_name):
@@ -131,6 +132,7 @@ class RegisteredUser:
         self.remember_hash_type = stored_user_object.remember_hash_type
         self.timestamp = stored_user_object.timestamp
         self.deleted_timestamp = stored_user_object.deleted_timestamp
+        self.remember_id = stored_user_object.remember_id
 
     def register(self):
         self.store()
@@ -138,7 +140,15 @@ class RegisteredUser:
         self.request_confirm.apply_async()
 
     def store(self):
-        pass
+        try:
+            user_id = self.storage_handler.call(
+                action.store_new_user, self.user_type, self.user_name,
+                self.email, self.pass_hash, self.pass_hash_type,
+                self.pass_salt, self.remember_id, self.timestamp)
+        except:
+            raise
+        else:
+            self.user_id = user_id
 
     @celery_app.task(name="user.send_welcome")
     def send_welcome(self):
@@ -148,19 +158,52 @@ class RegisteredUser:
     def request_confirm(self):
         pass
 
+    @celery_app.task(name="user.expire_confirm")
+    def expire_confirm(self, confirmation_id_hash):
+        pass
+
     @classmethod
-    def process_confirm(cls):
+    def process_confirm(cls, email, confirmation_id):
         pass
 
     def remember_user(self):
-        remember_id = SystemRandom().getrandbits(64)
         remember_token = generate_password(size=20)
         self.remember_token_hash = pass_handler.encrypt(remember_token)
+        try:
+            self.storage_handler.call(action.update_user, self.user_id,
+                new_remember_token_hash=self.remember_token_hash,
+                new_remember_hash_type="sha512_crypt")
+        except:
+            raise
+        else:
+            return {
+                "remember_id": self.remember_id,
+                "remember_token": remember_token,
+            }
 
-        return {
-            "remember_id": remember_id,
-            "remember_token": remember_token,
-        }
+    @classmethod
+    def update(cls, user_id, new_user_name=None,
+               new_email=None, new_password=None):
+        if new_user_name is not None:
+            try:
+                self.storage_handler.call(action.update_user, user_id,
+                                          new_user_name=new_user_name)
+            except:
+                raise
+        elif new_email is not None:
+            try:
+                self.storage_handler.call(action.update_user, user_id,
+                                          new_email=new_email)
+            except:
+                raise
+        elif new_password is not None:
+            try:
+                self.storage_handler.call(action.update_user, user_id,
+                                          new_password=new_password)
+            except:
+                raise
+        else:
+            raise select.InputError("Invalid arguments!")
 
     @property
     def json_ready(self):
@@ -169,6 +212,9 @@ class RegisteredUser:
             "user_name": self.user_name,
             "user_type": self.user_type,
             "email": self.email,
-            "remember_id": self.remember_id,
             "timestamp": self.timestamp,
         }
+
+# TODO:
+# Need to save metadata about changes to a user,
+# probably in a separate table
