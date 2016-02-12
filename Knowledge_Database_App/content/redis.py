@@ -125,6 +125,14 @@ def store_vote(edit_id, voter_id, vote_and_time):
             raise DuplicateVoteError
 
 
+def store_confirm(email, confirmation_id_hash):
+    pass
+
+
+def expire_confirm(email, confirmation_id_hash):
+    pass
+
+
 def get_edits(content_id=None, content_ids=None, user_id=None, voter_id=None,
               text_id=None, citation_id=None, keyword_id=None, name_id=None,
               content_type_id=None, only_ids=False):
