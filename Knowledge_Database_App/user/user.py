@@ -4,11 +4,13 @@ User API
 
 import re
 from random import SystemRandom
-from datetime import datetime
+from datetime import datetime, timedelta
 from passlib.apps import custom_app_context as pass_handler
 from passlib.utils import generate_password
 from validate_email import validate_email
+import dateutil.parser as dateparse
 
+from Knowledge_Database_App.content import redis
 from Knowledge_Database_App.content.celery import celery_app
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select,
@@ -30,6 +32,10 @@ class EmailAddressError(Exception):
 
 class RememberUserError(Exception):
     """Exception raised upon input of invalid Remember Me info."""
+
+
+class ConfirmationError(Exception):
+    """Exception raised upon input of an invalid confirmation ID."""
 
 
 class RegisteredUser:
@@ -137,7 +143,7 @@ class RegisteredUser:
     def register(self):
         self.store()
         self.send_welcome.apply_async()
-        self.request_confirm.apply_async()
+        self.initiate_confirm(self.timestamp)
 
     def store(self):
         try:
@@ -154,20 +160,56 @@ class RegisteredUser:
     def send_welcome(self):
         pass
 
+    def initiate_confirm(self, timestamp=None):
+        if timestamp is None:
+            timestamp = datetime.utcnow()
+        confirmation_id = generate_password(size=60)
+        confirmation_id_hash = pass_handler.encrypt(confirmation_id)
+        self.request_confirm.apply_async(
+            args=[confirmation_id, confirmation_id_hash, 3])
+        self.request_confirm.apply_async(
+            args=[confirmation_id, confirmation_id_hash, 1],
+            eta=timestamp+timedelta(days=2))
+        self.expire_confirm.apply_async(
+            args=[confirmation_id_hash], eta=timestamp+timedelta(days=3))
+
     @celery_app.task(name="user.request_confirm")
-    def request_confirm(self):
+    def request_confirm(self, confirmation_id, confirmation_id_hash,
+                        days_until_expiration):
         pass
 
     @celery_app.task(name="user.expire_confirm")
     def expire_confirm(self, confirmation_id_hash):
-        pass
+        try:
+            confirmation_dict = redis.get_confirm_info(self.email)
+        except:
+            raise
+        else:
+            if confirmation_dict and (max(confirmation_dict.items(),
+                    key=lambda item: dateparse.parse(item[1]))[0] ==
+                    confirmation_id_hash):
+                redis.expire_confirm(self.email)
+                self.delete()
 
     @classmethod
     def process_confirm(cls, email, confirmation_id):
-        pass
+        try:
+            confirmation_dict = redis.get_confirm_info(email)
+            user_id = self.storage_handler.call(
+                select.get_user, email=email).user_id
+        except:
+            raise
+        else:
+            for confirmation_id_hash in confirmation_dict:
+                if pass_handler.verify(confirmation_id, confirmation_id_hash):
+                    confirmed_timestamp = datetime.utcnow()
+                    cls.update(user_id, confirmed_timestamp=confirmed_timestamp)
+                    break
+            else:
+                raise ConfirmationError("Invalid confirmation ID!")
 
     def remember_user(self):
-        remember_token = generate_password(size=20)
+        remember_token = generate_password(size=40)
         self.remember_token_hash = pass_handler.encrypt(remember_token)
         try:
             self.storage_handler.call(action.update_user, self.user_id,
@@ -182,8 +224,8 @@ class RegisteredUser:
             }
 
     @classmethod
-    def update(cls, user_id, new_user_name=None,
-               new_email=None, new_password=None):
+    def update(cls, user_id, new_user_name=None, new_email=None,
+               new_password=None, confirmed_timestamp=None):
         if new_user_name is not None:
             try:
                 self.storage_handler.call(action.update_user, user_id,
@@ -202,8 +244,22 @@ class RegisteredUser:
                                           new_password=new_password)
             except:
                 raise
+        elif confirmed_timestamp is not None:
+            try:
+                self.storage_handler.call(action.update_user, user_id,
+                    confirmed_timestamp=confirmed_timestamp)
+            except:
+                raise
         else:
             raise select.InputError("Invalid arguments!")
+
+    def delete(self):
+        deleted_timestamp = datetime.utcnow()
+        try:
+            self.storage_handler.call(action.delete_user, self.user_id,
+                                      deleted_timestamp)
+        except:
+            raise
 
     @property
     def json_ready(self):
