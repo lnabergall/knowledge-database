@@ -448,6 +448,19 @@ def update_user(user_id, new_user_name=None, new_email=None,
         raise ActionError(str(e))
 
 
+def delete_user(user_id, deleted_timestamp, session=None):
+    if session is None:
+        session = orm.start_session()
+    session.query(orm.User).filter(orm.User.user_id == user_id).update(
+        {orm.User.deleted_timestamp: deleted_timestamp},
+        synchronize_session=False)
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise ActionError(str(e))
+
+
 def store_user_report(content_id, report_text, report_type, admin_report,
                       timestamp, res_timestamp, admin_id, author_type,
                       user_id=None, session=None):
