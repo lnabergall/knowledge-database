@@ -12,8 +12,8 @@ Functions:
 
     store_content_piece, delete_content_piece, update_content_type, 
     store_content_part, remove_content_part, update_content_part, 
-    store_accepted_edit, store_rejected_edit, store_new_user, update_user, 
-    store_user_report
+    store_accepted_edit, store_rejected_edit, store_new_user, update_user,
+    delete_user store_user_report
 
     Note that all functions take a common 'session' keyword argument,
     with default value None.
@@ -449,6 +449,12 @@ def update_user(user_id, new_user_name=None, new_email=None,
 
 
 def delete_user(user_id, deleted_timestamp, session=None):
+    """
+    Args:
+        user_id: Integer.
+        deleted_timestamp: Datetime.
+        session: SQLAlchemy session. Defaults to None.
+    """
     if session is None:
         session = orm.start_session()
     session.query(orm.User).filter(orm.User.user_id == user_id).update(
