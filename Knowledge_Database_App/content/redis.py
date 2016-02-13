@@ -8,8 +8,9 @@ Exceptions:
 
 Functions:
 
-    store_edit, store_vote, get_edits, get_votes,
-    get_validation_data, delete_validation_data
+    store_edit, store_vote, store_confirm, get_confirm_info,
+    expire_confirm, get_edits, get_votes, get_validation_data,
+    delete_validation_data
 """
 
 from redis import StrictRedis, WatchError
@@ -125,12 +126,22 @@ def store_vote(edit_id, voter_id, vote_and_time):
             raise DuplicateVoteError
 
 
-def store_confirm(email, confirmation_id_hash):
-    pass
+def store_confirm(email, confirmation_id_hash, expire_timestamp):
+    redis.hset("user_email:" + email, confirmation_id_hash,
+               str(expire_timestamp))
+
+
+def get_confirm_info(email):
+    confirmation_dict = redis.hgetall("user_email:" + email)
+    return confirmation_dict
 
 
 def expire_confirm(email, confirmation_id_hash):
-    pass
+    confirmation_dict = redis.hgetall("user_email:" + email)
+    if len(confirmation_dict) == 1:
+        redis.delete("user_email:" + email)
+    else:
+        redis.hdel("user_email:" + email, confirmation_id_hash)
 
 
 def get_edits(content_id=None, content_ids=None, user_id=None, voter_id=None,
