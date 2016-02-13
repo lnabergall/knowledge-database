@@ -136,12 +136,8 @@ def get_confirm_info(email):
     return confirmation_dict
 
 
-def expire_confirm(email, confirmation_id_hash):
-    confirmation_dict = redis.hgetall("user_email:" + email)
-    if len(confirmation_dict) == 1:
-        redis.delete("user_email:" + email)
-    else:
-        redis.hdel("user_email:" + email, confirmation_id_hash)
+def expire_confirm(email):
+    redis.delete("user_email:" + email)
 
 
 def get_edits(content_id=None, content_ids=None, user_id=None, voter_id=None,
