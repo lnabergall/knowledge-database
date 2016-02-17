@@ -1,5 +1,14 @@
 """
 User API
+
+Exceptions:
+
+    PasswordError, UserNameError, EmailAddressError,
+    RememberUserError, ConfirmationError
+
+Classes:
+
+    RegisteredUser
 """
 
 import re
@@ -10,6 +19,7 @@ from passlib.utils import generate_password
 from validate_email import validate_email
 import dateutil.parser as dateparse
 
+from Knowledge_Database_App._email import send_email, Email
 from Knowledge_Database_App.content import redis
 from Knowledge_Database_App.content.celery import celery_app
 from Knowledge_Database_App.storage import (orm_core as orm,
@@ -58,7 +68,19 @@ class RegisteredUser:
 
     def __init__(self, user_id=None, email=None, password=None,
                  user_type=None, user_name=None, remember_id=None,
-                 remember_token=None, remember_user=None):
+                 remember_token=None, remember_user=False):
+        """
+        Args:
+            user_id: Integer. Defaults to None.
+            email: String. Defaults to None.
+            password: String. Defaults to None.
+            user_type: String, excepts 'admin' or 'standard'.
+                Defaults to None.
+            user_name: String. Defaults to None.
+            remember_id: Integer. Defaults to None.
+            remember_token: String. Defaults to None.
+            remember_user: Boolean. Defaults to False.
+        """
         if user_id is not None:
             try:
                 user_object = self.storage_handler.call(
@@ -158,25 +180,36 @@ class RegisteredUser:
 
     @celery_app.task(name="user.send_welcome")
     def send_welcome(self):
-        pass
+        email = Email(self.email, self.user_name)
+        try:
+            send_email(email, self.email)
+        except:
+            raise
 
     def initiate_confirm(self, timestamp=None):
         if timestamp is None:
             timestamp = datetime.utcnow()
+        expire_timestamp = timestamp + timedelta(days=3)
         confirmation_id = generate_password(size=60)
         confirmation_id_hash = pass_handler.encrypt(confirmation_id)
+        redis.store_confirm(self.email, confirmation_id_hash, expire_timestamp)
         self.request_confirm.apply_async(
-            args=[confirmation_id, confirmation_id_hash, 3])
+            args=[confirmation_id, 3])
         self.request_confirm.apply_async(
-            args=[confirmation_id, confirmation_id_hash, 1],
+            args=[confirmation_id, 1],
             eta=timestamp+timedelta(days=2))
         self.expire_confirm.apply_async(
-            args=[confirmation_id_hash], eta=timestamp+timedelta(days=3))
+            args=[confirmation_id_hash], eta=expire_timestamp)
 
     @celery_app.task(name="user.request_confirm")
-    def request_confirm(self, confirmation_id, confirmation_id_hash,
-                        days_until_expiration):
-        pass
+    def request_confirm(self, confirmation_id, days_until_expiration):
+        email = Email(self.email, self.user_name,
+                      days_remaining=days_until_expiration,
+                      confirmation_id=confirmation_id)
+        try:
+            send_email(email, self.email)
+        except:
+            raise
 
     @celery_app.task(name="user.expire_confirm")
     def expire_confirm(self, confirmation_id_hash):
@@ -226,6 +259,14 @@ class RegisteredUser:
     @classmethod
     def update(cls, user_id, new_user_name=None, new_email=None,
                new_password=None, confirmed_timestamp=None):
+        """
+        Args:
+            user_id: Integer.
+            new_user_name: String. Defaults to None.
+            new_email: String. Defaults to None.
+            new_password: String. Defaults to None.
+            confirmed_timestamp: Datetime. Defaults to None.
+        """
         if new_user_name is not None:
             try:
                 self.storage_handler.call(action.update_user, user_id,
