@@ -29,7 +29,7 @@ class Email:
 
     def __init__(self, user_address, user_name, content_name=None,
                  days_remaining=None, edit_text=None, vote_result=None,
-                 confirmation_id=None):
+                 confirmation_id=None, welcome=False):
         self.recipient_address = user_address
         self.user_name = user_name
         self.message = Message()
@@ -46,6 +46,8 @@ class Email:
             self._compose_edit_validated_alert(content_name, vote_result)
         elif confirmation_id is not None:
             self._compose_confirmation_request(confirmation_id, days_remaining)
+        elif welcome:
+            self._compose_user_welcome()
         else:
             raise InputError("Invalid arguments!")
 
@@ -177,6 +179,21 @@ class Email:
                 user_name=self.user_name,
                 confirmation_id=confirmation_id,
                 days_remaining=days_remaining,
+            )
+        texts = MIMEMultipart()
+        texts.attach(MIMEText(rich_text, "html"))
+        texts.attach(MIMEText(plain_text))
+        self.message.attach(texts)
+
+    def _compose_user_welcome(self):
+        self.message["Subject"] = "You just joined something awesome!"   # TEMPORARY
+        with open(r"templates\user_welcome.html", "r") as html_file:
+            rich_text = html_file.read().format(
+                user_name=self.user_name,
+            )
+        with open(r"templates\user_welcome_plain.txt", "r") as text_file:
+            plain_text = text_file.read().format(
+                user_name=self.user_name,
             )
         texts = MIMEMultipart()
         texts.attach(MIMEText(rich_text, "html"))
