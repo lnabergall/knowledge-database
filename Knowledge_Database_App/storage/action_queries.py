@@ -13,7 +13,7 @@ Functions:
     store_content_piece, delete_content_piece, update_content_type, 
     store_content_part, remove_content_part, update_content_part, 
     store_accepted_edit, store_rejected_edit, store_new_user, update_user,
-    delete_user store_user_report
+    delete_user, store_user_report
 
     Note that all functions take a common 'session' keyword argument,
     with default value None.
