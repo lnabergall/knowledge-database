@@ -52,8 +52,8 @@ class RegisteredUser:
 
     storage_handler = orm.StorageHandler()
 
-    user_id = None              # Integer
-    user_type = None            # String, 'admin' or 'standard'
+    user_id = None              # Integer.
+    user_type = None            # String, 'admin' or 'standard'.
     user_name = None            # String.
     email = None                # String.
     confirmed_timestamp = None  # Datetime.
@@ -66,16 +66,14 @@ class RegisteredUser:
     timestamp = None            # Datetime.
     deleted_timestamp = None    # Datetime.
 
-    def __init__(self, user_id=None, email=None, password=None,
-                 user_type=None, user_name=None, remember_id=None,
-                 remember_token=None, remember_user=False):
+    def __init__(self, user_id=None, email=None, password=None, 
+                 user_name=None, remember_id=None, remember_token=None, 
+                 remember_user=False):
         """
         Args:
             user_id: Integer. Defaults to None.
             email: String. Defaults to None.
             password: String. Defaults to None.
-            user_type: String, excepts 'admin' or 'standard'.
-                Defaults to None.
             user_name: String. Defaults to None.
             remember_id: Integer. Defaults to None.
             remember_token: String. Defaults to None.
@@ -126,7 +124,7 @@ class RegisteredUser:
                     else:
                         raise RememberUserError("Invalid Remember Me token!")
         else:
-            if not email and not password and not user_type and not user_name:
+            if not email and not password and not user_name:
                 raise select.InputError("Invalid arguments!")
             else:
                 email = email.strip()
@@ -136,7 +134,7 @@ class RegisteredUser:
                 self.email = email
                 self.pass_hash = pass_handler.encrypt(password)
                 self.pass_hash_type = "sha512_crypt"
-                self.user_type = user_type
+                self.user_type = "standard"
                 self.user_name = user_name
                 self.timestamp = datetime.utcnow()
                 self.remember_id = SystemRandom().getrandbits(64)
