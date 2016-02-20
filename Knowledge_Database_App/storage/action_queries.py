@@ -13,7 +13,7 @@ Functions:
     store_content_piece, delete_content_piece, update_content_type, 
     store_content_part, remove_content_part, update_content_part, 
     store_accepted_edit, store_rejected_edit, store_new_user, update_user,
-    delete_user, store_user_report
+    change_user_type, delete_user, store_user_report
 
     Note that all functions take a common 'session' keyword argument,
     with default value None.
@@ -448,12 +448,34 @@ def update_user(user_id, new_user_name=None, new_email=None,
         raise ActionError(str(e))
 
 
+def change_user_type(user_id, user_type, session=None):
+    """
+    Args:
+        user_id: Integer.
+        user_type: String, expects 'standard' or 'admin'.
+        session: SQLAlchemy session. Defaults to None.
+    Raises:
+        ActionError: if session is provided and committing changes fails.
+    """
+    if session is None:
+        session = orm.start_session()
+    session.query(orm.User).filter(orm.User.user_id == user_id).update(
+        {orm.User.user_type: user_type}, synchronize_session=False)
+    try:
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise ActionError(str(e))
+
+
 def delete_user(user_id, deleted_timestamp, session=None):
     """
     Args:
         user_id: Integer.
         deleted_timestamp: Datetime.
         session: SQLAlchemy session. Defaults to None.
+    Raises:
+        ActionError: if session is provided and committing changes fails.
     """
     if session is None:
         session = orm.start_session()
