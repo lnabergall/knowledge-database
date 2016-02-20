@@ -122,7 +122,8 @@ class Edit:
                 self.validation_status != "rejected" and
                 self.validation_status != "validating") or (
                 author_type is not None and
-                not is_ip_address(author_type) and author_type != "U"):
+                not is_ip_address(author_type) and author_type != "U") or (
+                author_type == "U" and author_id is None):
             raise select.InputError("Invalid argument!")
 
         self.validation_status = validation_status
