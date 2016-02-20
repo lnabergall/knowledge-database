@@ -124,7 +124,7 @@ class RegisteredUser:
                     else:
                         raise RememberUserError("Invalid Remember Me token!")
         else:
-            if not email and not password and not user_name:
+            if not email or not password or not user_name:
                 raise select.InputError("Invalid arguments!")
             else:
                 email = email.strip()
