@@ -9,8 +9,8 @@ Exceptions:
 Functions:
 
     store_edit, store_vote, store_confirm, get_confirm_info,
-    expire_confirm, get_edits, get_votes, get_validation_data,
-    delete_validation_data
+    expire_confirm, store_report, get_report, delete_report, get_edits, 
+    get_votes, get_validation_data, delete_validation_data
 """
 
 from redis import StrictRedis, WatchError
@@ -30,7 +30,9 @@ redis = StrictRedis()
 
 
 def _setup_id_base():
+    # Only call once.
     redis.setnx("next_edit_id", 1)
+    redis.setnx("next_report_id", 1)
 
 
 def store_edit(content_id, edit_text, edit_rationale, content_part, part_id,
@@ -138,6 +140,53 @@ def get_confirm_info(email):
 
 def expire_confirm(email):
     redis.delete("user_email:" + email)
+
+
+def store_report(content_id, report_text, report_type, admin_id, 
+                 timestamp, author_type, author_id=None):
+    with redis.pipeline() as pipe:
+        # Get a unique report id and increment it for the next report
+        while True:
+            try:
+                pipe.watch("next_report_id")
+                report_id = pipe.get("next_report_id")
+                next_report_id = report_id + 1
+                pipe.multi()
+                pipe.set("next_report_id", next_report_id).execute()
+            except WatchError:
+                continue
+            except:
+                raise
+            else:
+                break
+
+        # Now store the report with the report id
+        if author_id is not None:
+            pipe.lpush("user_reports:" + str(author_id), report_id)
+        pipe.lpush("admin_reports:" + str(admin_id), report_id)
+        pipe.lpush("content_reports:" + str(content_id), report_id)
+        pipe.hmset("report:" + str(report_id), {
+            "report_id": report_id,
+            "content_id": content_id,
+            "report_text": report_text,
+            "report_type": report_type,
+            "admin_id": admin_id,
+            "timestamp": timestamp,
+            "author_type": author_type,
+        })
+        if author_id is not None:
+            pipe.hset("report:" + str(report_id), "author_id", author_id)
+        pipe.execute()
+
+    return report_id
+
+
+def get_reports(report_id=None, content_id=None, user_id=None, admin_id=None):
+    pass
+
+
+def delete_report(report_id):
+    pass
 
 
 def get_edits(content_id=None, content_ids=None, user_id=None, voter_id=None,
