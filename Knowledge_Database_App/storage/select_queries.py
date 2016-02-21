@@ -15,7 +15,7 @@ Functions:
     get_content_type, get_content_types, get_accepted_edits,
     get_rejected_edits, get_user_votes, get_accepted_votes,
     get_rejected_votes, get_user_encrypt_info, get_author_count, get_user,
-    get_user_info, get_user_reports
+    get_user_info, get_admin_ids, get_user_reports
 
     Note that all functions take a common 'session' keyword argument,
     which defaults to None.
@@ -747,6 +747,20 @@ def get_user_info(content_id=None, user_id=None, accepted_edit_id=None,
             return info
     else:
         raise InputError("No arguments!")
+
+
+def get_admin_ids(session=None):
+    """
+    Args:
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        List of integers.
+    """
+    if session is None:
+        session = orm.start_session()
+    admin_ids = session.query(orm.User.user_id).filter(
+        orm.User.user_type == "admin").all()
+    return admin_ids
 
 
 def get_user_reports(content_id=None, report_id=None, user_id=None,
