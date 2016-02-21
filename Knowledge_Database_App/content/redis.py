@@ -9,8 +9,9 @@ Exceptions:
 Functions:
 
     store_edit, store_vote, store_confirm, get_confirm_info,
-    expire_confirm, store_report, get_report, delete_report, get_edits, 
-    get_votes, get_validation_data, delete_validation_data
+    expire_confirm, store_report, get_report, get_admin_assignments, 
+    delete_report, get_edits, get_votes, get_validation_data, 
+    delete_validation_data
 """
 
 from redis import StrictRedis, WatchError
@@ -230,6 +231,17 @@ def get_reports(report_id=None, content_id=None, user_id=None, admin_id=None):
             report_dicts = pipe.execute()
 
     return report_dicts
+
+
+def get_admin_assignments(admin_ids):
+    with redis.pipeline() as pipe:
+        for admin_id in admin_ids:
+            pipe.lrange("admin_reports:" + str(admin_ids), 0, -1)
+        admin_assignments = pipe.execute()
+        if len(admin_ids) != len(admin_assignments):
+            raise RuntimeError      # If this raises on testing will need to recode
+
+    return {admin_ids[i]: admin_assignments[i] for i in range(admin_ids)}
 
 
 def delete_report(report_id):
