@@ -144,6 +144,18 @@ def expire_confirm(email):
 
 def store_report(content_id, report_text, report_type, admin_id, 
                  timestamp, author_type, author_id=None):
+    """
+    Args:
+        content_id: Integer. 
+        report_text: String.
+        report_type: String, expects 'content' or 'authors'.
+        admin_id: Integer.
+        timestamp: Datetime.
+        author_type: String, expects 'U' or IP address.
+        author_id: Integer. Defaults to None.
+    Returns:
+        Report ID integer.
+    """
     with redis.pipeline() as pipe:
         # Get a unique report id and increment it for the next report
         while True:
@@ -182,11 +194,55 @@ def store_report(content_id, report_text, report_type, admin_id,
 
 
 def get_reports(report_id=None, content_id=None, user_id=None, admin_id=None):
-    pass
+    """
+    Args:
+        report_id: Integer. Defaults to None.
+        content_id: Integer. Defaults to None.
+        user_id: Integer. Defaults to None.
+        admin_id: Integer. Defaults to None.
+    Returns:
+        Dictionary of the form
+        {
+            "report_id": int,
+            "content_id": int,
+            "report_text": string,
+            "report_type": string,
+            "admin_id": int,
+            "timestamp": string,
+            "author_type": string,
+            "author_id": int
+        }
+    """
+    if report_id is not None:
+        report_dict = redis.hgetall("report:" + str(report_id))
+        return report_dict
+    elif content_id is not None:
+        report_ids = redis.lrange("content_reports:" + str(content_id), 0, -1)
+    elif user_id is not None:
+        report_ids = redis.lrange("user_reports:" + str(user_id), 0, -1)
+    elif admin_id is not None:
+        report_ids = redis.lrange("admin_reports:" + str(admin_id), 0, -1)
+    else:
+        raise InputError("Missing arguments!")
+    with redis.pipeline() as pipe:
+            for report_id in report_ids:
+                pipe.hgetall("report:" + str(report_id))
+            report_dicts = pipe.execute()
+
+    return report_dicts
 
 
 def delete_report(report_id):
-    pass
+    report_dict = get_reports(report_id=report_id)
+    content_id = report_dict["content_id"]
+    if report_dict["author_type"] == "U":
+        user_id = report_dict["author_id"]
+    admin_id = report_dict["admin_id"]
+    with redis.pipeline() as pipe:
+        pipe.lrem("content_reports:" + str(content_id), 0, report_id)
+        pipe.lrem("user_reports:" + str(user_id), 0, report_id)
+        pipe.lrem("admin_reports:" + str(admin_id), 0, report_id)
+        pipe.delete("report:" + str(report))
 
 
 def get_edits(content_id=None, content_ids=None, user_id=None, voter_id=None,
