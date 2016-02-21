@@ -1,7 +1,12 @@
 """
 Report API
+
+Classes:
+    
+    Report
 """
 
+from random import choice
 from datetime import datetime, timedelta
 import dateutil.parser as dateparse
 
@@ -24,19 +29,43 @@ class Report:
     author_id = None        # Integer.
     admin_report = None     # String.
     admin_id = None         # Integer.
+    report_status = None    # String, accepts 'pending', 'open', 'resolved'.
     timestamp = None        # Datetime.
     res_timestamp = None    # Datetime.
 
-    def __init__(self, report_id=None, content_id=None, report_text=None, 
-                 report_type=None, author_type=None, author_id=None):
+    def __init__(self, report_id=None, report_status=None, content_id=None, 
+                 report_text=None, report_type=None, author_type=None, 
+                 author_id=None, report_object=None):
+        """
+        Args:
+            report_id: Integer. Defaults to None.
+            report_status: String, accepts 'open' or 'resolved'. 
+                Defaults to None.
+            content_id: Integer. Defaults to None.
+            report_text: String. Defaults to None.
+            report_type: String, accepts 'content' or 'authors'. 
+                Defaults to None.
+            author_type: String, accepts 'U' or IP address. 
+                Defaults to None.
+            author_id: Integer. Defaults to None.
+            report_object: orm.UserReport object.  Defaults to None.
+        """
+        self.report_status = report_status
         if report_id is not None:
             try:
-                report_object = self.storage_handler.call(
-                    select.get_user_reports, report_id=report_id)
+                if report_status == "open":
+                    report_object = redis.get_reports(report_id)
+                elif report_status == "resolved":
+                    report_object = self.storage_handler.call(
+                        select.get_user_reports, report_id=report_id)
+                else:
+                    raise select.InputError("Invalid arguments!")
             except:
                 raise
             else:
                 self._transfer(report_object)
+        elif report_object is not None:
+            self._transfer(report_object)
         else:
             if not content_id or not report_text or not report_type or (
                     author_type is not None and 
@@ -45,6 +74,7 @@ class Report:
                     report_type != "content" and report_type != "authors"):
                 raise select.InputError("Invalid arguments!")
             else:
+                self.report_status = "pending"
                 self.report_text = report_text.strip()
                 self.content_id = content_id
                 self.report_type = report_type
@@ -57,36 +87,143 @@ class Report:
         pass
 
     def _transfer(self, report_object):
-        self.report_id = report_object.report_id
-        self.report_text = report_object.report_text
-        self.report_type = report_object.report_type
-        self.author_type = report_object.author_type
-        self.admin_report = report_object.admin_report
-        self.timestamp = report_object.timestamp
-        self.res_timestamp = report_object.res_timestamp
-        self.author_id = report_object.author_id
-        self.admin_id = report_object.admin_id
-        self.content_id = report_object.content_id
+        if self.report_status = "open":
+            self.report_id = report_object["report_id"]
+            self.content_id = report_object["content_id"]
+            self.report_text = report_object["report_text"]
+            self.report_type = report_object["report_type"]
+            self.admin_id = report_object["admin_id"]
+            self.author_type = report_object["author_type"]
+            self.author_id = report_object.get("author_id", default=None)
+            self.timestamp = report_object["timestamp"]
+        elif self.report_status = "resolved":
+            self.report_id = report_object.report_id
+            self.report_text = report_object.report_text
+            self.report_type = report_object.report_type
+            self.author_type = report_object.author_type
+            self.admin_report = report_object.admin_report
+            self.timestamp = report_object.timestamp
+            self.res_timestamp = report_object.res_timestamp
+            self.author_id = report_object.author_id
+            self.admin_id = report_object.admin_id
+            self.content_id = report_object.content_id
 
     @classmethod
-    def bulk_retrieve(cls):
-        pass
+    def bulk_retrieve(cls, user_id=None, admin_id=None, content_id=None, 
+                      ip_address=None, report_status="open"):
+        """
+        Args:
+            user_id: Integer. Defaults to None.
+            admin_id: Integer. Defaults to None.
+            content_id: Integer. Defaults to None.
+            ip_address: String. Defaults to None.
+            report_status: String, accepts 'open' or 'resolved'. 
+                Defaults to 'open'.
+        Returns:
+            List of Report objects.
+        """
+        if user_id is not None:
+            try:
+                if report_status == "open":
+                    report_objects = redis.get_reports(user_id=user_id)
+                elif report_status == "resolved":
+                    report_objects = self.storage_handler.call(
+                        select.get_user_reports, user_id=user_id)
+            except:
+                raise
+        elif admin_id is not None:
+            try:
+                if report_status == "open":
+                    report_objects = redis.get_reports(admin_id=admin_id)
+                elif report_status == "resolved":
+                    report_objects = self.storage_handler.call(
+                        select.get_user_reports, admin_id=admin_id)
+            except:
+                raise
+        elif content_id is not None:
+            try:
+                if report_status == "open":
+                    report_objects = redis.get_reports(content_id=content_id)
+                elif report_status == "resolved":
+                    report_objects = self.storage_handler.call(
+                        select.get_user_reports, content_id=content_id)
+            except:
+                raise
+        elif ip_address is not None:
+            try:
+                if report_status == "open":
+                    raise NotImplementedError
+                elif report_status == "resolved":
+                    report_objects = self.storage_handler.call(
+                        select.get_user_reports, ip_address=ip_address)
+            except:
+                raise
+        else:
+            raise select.InputError("Missing argument!")
+
+        return [Report(report_status=report_status, report_object=report_object) 
+                for report_object in report_objects]
 
     def submit(self):
-        pass
+        self.assign_admin()
+        self.save()
+        self.report_status == "open"
 
     def assign_admin(self):
-        pass
+        try:
+            admin_ids = self.storage_handler.call(select.get_admin_ids)
+            admin_assignments = redis.get_admin_assignments(admin_ids)
+        except:
+            raise
+        else:
+            assignment_counts = {}
+            for admin_id in admin_assignments:
+                reports_assigned = len(admin_assignments[admin_id])
+                admin_ids = assignment_counts.get(reports_assigned, [])
+                admin_ids.append(admin_ids)
+                assignment_counts[reports_assigned] = admin_ids
+            counts = assignment_counts.keys()
+            counts.sort()
+            self.admin_id = choice(assignment_counts[counts[0]])
 
     def resolve(self, admin_report):
-        pass
+        self.admin_report = admin_report
+        self.res_timestamp = datetime.utcnow()
+        self.store()
+        self.report_status = "resolved"
 
     def save(self):
-        pass
+        try:
+            report_id = redis.store_report(self.content_id, 
+                self.report_text, self.report_type, self.admin_id, 
+                self.timestamp, self.author_type, self.author_id)
+        except:
+            raise
+        else:
+            self.report_id = report_id
+            self.report_status = "open"
 
     def store(self):
-        pass
+        try:
+            self.storage_handler.call(action.store_user_report, 
+                self.content_id, self.report_text, self.report_type, 
+                self.admin_report, self.timestamp, self.res_timestamp, 
+                self.admin_id, self.author_type, user_id=self.user_id)
+        except:
+            raise
 
     @property
     def json_ready(self):
-        pass
+        return {
+            "report_id": self.report_id,
+            "content_id": self.content_id,
+            "report_text": self.report_text,
+            "report_type": self.report_type,
+            "author_type": self.author_type,
+            "author_id": self.author_id,
+            "admin_report": self.admin_report,
+            "admin_id": self.admin_id,
+            "report_status": self.report_status,
+            "timestamp": self.timestamp,
+            "res_timestamp": self.res_timestamp,
+        }
