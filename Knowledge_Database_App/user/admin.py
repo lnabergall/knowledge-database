@@ -19,7 +19,7 @@ class Admin(RegisteredUser):
     def promote(cls, user_id):
         try:
             self.storage_handler.call(select.change_user_type, 
-                                      self.user_id, "admin")
+                                      user_id, "admin")
         except:
             raise
 

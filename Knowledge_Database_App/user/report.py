@@ -87,7 +87,7 @@ class Report:
         pass
 
     def _transfer(self, report_object):
-        if self.report_status = "open":
+        if self.report_status == "open":
             self.report_id = report_object["report_id"]
             self.content_id = report_object["content_id"]
             self.report_text = report_object["report_text"]
@@ -96,7 +96,7 @@ class Report:
             self.author_type = report_object["author_type"]
             self.author_id = report_object.get("author_id", default=None)
             self.timestamp = report_object["timestamp"]
-        elif self.report_status = "resolved":
+        elif self.report_status == "resolved":
             self.report_id = report_object.report_id
             self.report_text = report_object.report_text
             self.report_type = report_object.report_type
@@ -167,7 +167,7 @@ class Report:
     def submit(self):
         self.assign_admin()
         self.save()
-        self.report_status == "open"
+        self.report_status = "open"
 
     def assign_admin(self):
         try:
