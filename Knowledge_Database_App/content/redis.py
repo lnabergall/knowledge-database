@@ -236,7 +236,7 @@ def get_reports(report_id=None, content_id=None, user_id=None, admin_id=None):
 def get_admin_assignments(admin_ids):
     with redis.pipeline() as pipe:
         for admin_id in admin_ids:
-            pipe.lrange("admin_reports:" + str(admin_ids), 0, -1)
+            pipe.lrange("admin_reports:" + str(admin_id), 0, -1)
         admin_assignments = pipe.execute()
         if len(admin_ids) != len(admin_assignments):
             raise RuntimeError      # If this raises on testing will need to recode
@@ -252,7 +252,8 @@ def delete_report(report_id):
     admin_id = report_dict["admin_id"]
     with redis.pipeline() as pipe:
         pipe.lrem("content_reports:" + str(content_id), 0, report_id)
-        pipe.lrem("user_reports:" + str(user_id), 0, report_id)
+        if report_dict["author_type"] == "U":
+            pipe.lrem("user_reports:" + str(user_id), 0, report_id)
         pipe.lrem("admin_reports:" + str(admin_id), 0, report_id)
         pipe.delete("report:" + str(report))
 
