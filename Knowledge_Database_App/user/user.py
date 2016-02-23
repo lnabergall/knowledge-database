@@ -292,10 +292,11 @@ class RegisteredUser:
         else:
             raise select.InputError("Invalid arguments!")
 
-    def delete(self):
+    @classmethod
+    def delete(cls, user_id):
         deleted_timestamp = datetime.utcnow()
         try:
-            self.storage_handler.call(action.delete_user, self.user_id,
+            self.storage_handler.call(action.delete_user, user_id,
                                       deleted_timestamp)
         except:
             raise
