@@ -25,6 +25,7 @@ CELERY_QUEUES = (
     Queue("edit_tasks", routing_key="edit.#"),
     Queue("vote_tasks", routing_key="vote.#"),
     Queue("email_tasks", routing_key="email.#"),
+    Queue("user_tasks", routing_key="user.#"),
 )
 CELERY_DEFAULT_QUEUE = "default"
 
@@ -42,10 +43,15 @@ CELERY_ROUTES = {
         "queue": "email_tasks",
         "routing_key": "email.user.request_confirm"
     },
+    "user.expire_confirm": {
+        "queue": "user_tasks",
+        "routing_key": "user.user.expire_confirm"
+    },
     "user.send_welcome": {
         "queue": "email_tasks",
         "routing_key": "email.user.send_welcome"
     },
+
 }
 
 # File to store worker state (e.g. revoked tasks).
