@@ -220,7 +220,7 @@ class RegisteredUser:
                     key=lambda item: dateparse.parse(item[1]))[0] ==
                     confirmation_id_hash):
                 redis.expire_confirm(self.email)
-                self.delete()
+                RegisteredUser.delete(self.user_id)
 
     @classmethod
     def process_confirm(cls, email, confirmation_id):
