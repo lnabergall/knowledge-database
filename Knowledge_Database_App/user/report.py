@@ -110,7 +110,7 @@ class Report:
 
     @classmethod
     def bulk_retrieve(cls, user_id=None, admin_id=None, content_id=None, 
-                      ip_address=None, report_status="open"):
+                      ip_address=None, report_status="open", page_num=1):
         """
         Args:
             user_id: Integer. Defaults to None.
@@ -161,8 +161,16 @@ class Report:
         else:
             raise select.InputError("Missing argument!")
 
-        return [Report(report_status=report_status, report_object=report_object) 
+        if page_num != 0:
+            reports = [Report(report_status=report_status,
+                              report_object=report_object)
+                for report_object in report_objects[10*(page_num-1): 10*page_num]]
+        else:
+            reports = [Report(report_status=report_status,
+                              report_object=report_object)
                 for report_object in report_objects]
+
+        return reports
 
     def submit(self):
         self.assign_admin()

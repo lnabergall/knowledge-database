@@ -15,9 +15,10 @@ class Admin(RegisteredUser):
         super().__init__(*args, **kwargs)
         self.user_type = "admin"
         open_reports = Report.bulk_retrieve(admin_id=self.user_id,
-                                            report_status="open")
+                                            report_status="open", page_num=0)
         resolved_reports = Report.bulk_retrieve(admin_id=self.user_id,
-                                                report_status="resolved")
+                                                report_status="resolved",
+                                                page_num=1)
         self.reports = {
             "open": open_reports,
             "resolved": resolved_reports,
