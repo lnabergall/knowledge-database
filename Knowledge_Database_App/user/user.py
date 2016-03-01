@@ -139,6 +139,17 @@ class RegisteredUser:
                 self.timestamp = datetime.utcnow()
                 self.remember_id = SystemRandom().getrandbits(64)
 
+    def __eq__(self, other):
+        return (self.user_id == other.user_id and self.email == other.email and
+                self.pass_hash == other.pass_hash and
+                self.pass_hash_type == other.pass_hash_type and
+                self.user_name == other.user_name and
+                self.timestamp == other.timestamp and
+                self.remember_id == other.remember_id and
+                self.user_type == other.user_type and
+                self.remember_token_hash == other.remember_token_hash and
+                self.remember_hash_type == other.remember_hash_type)
+
     @staticmethod
     def _check_legal(email, password, user_name):
         if PASS_REGEX.fullmatch(password) is None:
