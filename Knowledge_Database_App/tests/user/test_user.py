@@ -51,7 +51,7 @@ class UserTest(TestCase):
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_02_register(self):
         try:
-            self.user.register()
+            self.confirmation_id = self.user.register()
         except Exception as e:
             self.failure = True
             self.fail(str(e))
@@ -82,30 +82,40 @@ class UserTest(TestCase):
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_04_process_confirm(self):
         try:
-            pass
+            RegisteredUser.process_confirm(self.email, self.confirmation_id)
         except Exception as e:
             self.failure = True
             self.fail(str(e))
         else:
             try:
-                pass
+                confirmed_user = RegisteredUser(user_id=self.user.user_id)
+                self.assertIsInstance(confirmed_user.confirmed_timestamp, datetime)
             except AssertionError:
                 self.failure = True
                 raise
+            else:
+                self.user = confirmed_user
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_05_remember_user(self):
         try:
-            pass
+            user_with_remember = RegisteredUser(
+                email=self.email, password=self.password, remember_user=True)
         except Exception as e:
             self.failure = True
             self.fail(str(e))
         else:
             try:
-                pass
+                user = RegisteredUser(
+                    remember_id=self.user_with_remember.remember_id,
+                    remember_token=self.user_with_remember.remember_token)
+                self.assertEqual(user, self.user)
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_06_update(self):
