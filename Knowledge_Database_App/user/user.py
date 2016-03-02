@@ -174,7 +174,8 @@ class RegisteredUser:
     def register(self):
         self.store()
         self.send_welcome.apply_async()
-        self.initiate_confirm(self.timestamp)
+        confirmation_id = self.initiate_confirm(self.timestamp)
+        return confirmation_id
 
     def store(self):
         try:
@@ -209,6 +210,7 @@ class RegisteredUser:
             eta=timestamp+timedelta(days=2))
         self.expire_confirm.apply_async(
             args=[confirmation_id_hash], eta=expire_timestamp)
+        return confirmation_id
 
     @celery_app.task(name="user.request_confirm")
     def request_confirm(self, confirmation_id, days_until_expiration):
@@ -260,10 +262,7 @@ class RegisteredUser:
         except:
             raise
         else:
-            return {
-                "remember_id": self.remember_id,
-                "remember_token": remember_token,
-            }
+            self.remember_token = remember_token
 
     @classmethod
     def update(cls, user_id, new_user_name=None, new_email=None,
