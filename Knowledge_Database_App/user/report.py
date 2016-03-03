@@ -175,7 +175,6 @@ class Report:
     def submit(self):
         self.assign_admin()
         self.save()
-        self.report_status = "open"
 
     def assign_admin(self):
         try:
