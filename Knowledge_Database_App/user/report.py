@@ -82,6 +82,18 @@ class Report:
                 self.author_id = author_id
                 self.timestamp = datetime.utcnow()
 
+    def __eq__(self, other):
+        return self.report_id == other.report_id or (
+                self.content_id == other.content_id and
+                self.report_text == other.report_text and
+                self.report_type == other.report_text and
+                self.author_type == other.author_type and
+                self.author_id == other.author_id and
+                self.admin_report == other.admin_report and
+                self.admin_id == other.admin_id and
+                self.report_status == other.report_status and
+                self.timestamp == other.timestamp)
+
     @staticmethod
     def _check_legal():
         pass
