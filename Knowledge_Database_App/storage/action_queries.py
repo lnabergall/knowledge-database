@@ -468,20 +468,25 @@ def change_user_type(user_id, user_type, session=None):
         raise ActionError(str(e))
 
 
-def delete_user(user_id, deleted_timestamp, session=None):
+def delete_user(user_id, deleted_timestamp, permanently=False, session=None):
     """
     Args:
         user_id: Integer.
         deleted_timestamp: Datetime.
+        permanently: Boolean, if True, the user's data is permanently
+            deleted from the database. Defaults to False.
         session: SQLAlchemy session. Defaults to None.
     Raises:
         ActionError: if session is provided and committing changes fails.
     """
     if session is None:
         session = orm.start_session()
-    session.query(orm.User).filter(orm.User.user_id == user_id).update(
-        {orm.User.deleted_timestamp: deleted_timestamp},
-        synchronize_session=False)
+    if permanently:
+        session.query(orm.User).filter(orm.User.user_id == user_id).delete()
+    else:
+        session.query(orm.User).filter(orm.User.user_id == user_id).update(
+            {orm.User.deleted_timestamp: deleted_timestamp},
+            synchronize_session=False)
     try:
         session.commit()
     except Exception as e:
