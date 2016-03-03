@@ -203,5 +203,3 @@ class UserTest(TestCase):
             except Exception as e:
                 self.failure = True
                 self.fail(str(e))
-            else:
-                self.stored = False
