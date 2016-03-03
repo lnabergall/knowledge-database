@@ -17,7 +17,7 @@ class UserTest(TestCase):
 
     def setUp(self):
         self.user_name = "Kylo Ren"
-        self.email = "kyloren@gmail.com"
+        self.email = "kyloren121323@gmail.com"
         self.password = "darthvader123"
         self.failure = False
         self.stored = False
@@ -107,8 +107,8 @@ class UserTest(TestCase):
         else:
             try:
                 user = RegisteredUser(
-                    remember_id=self.user_with_remember.remember_id,
-                    remember_token=self.user_with_remember.remember_token)
+                    remember_id=user_with_remember.remember_id,
+                    remember_token=user_with_remember.remember_token)
                 self.assertEqual(user, self.user)
             except AssertionError:
                 self.failure = True
@@ -119,14 +119,25 @@ class UserTest(TestCase):
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_06_update(self):
+        new_email = "bensolo121323@gmail.com"
+        new_user_name = "Ben Solo"
+        new_password = "hansolo123"
         try:
-            pass
+            RegisteredUser.update(self.user.user_id,
+                                  new_user_name=new_user_name)
+            RegisteredUser.update(self.user.user_id, new_email=new_email)
+            RegisteredUser.update(self.user.user_id, new_password=new_password)
         except Exception as e:
             self.failure = True
             self.fail(str(e))
         else:
             try:
-                pass
+                self.user = RegisteredUser(user_id=self.user.user_id)
+                self.assertEqual(self.user.email, new_email)
+                self.assertEqual(self.user.user_name, new_user_name)
+                user_logged_in = RegisteredUser(email=new_email,
+                                                password=new_password)
+                self.assertEqual(user_logged_in, self.user)
             except AssertionError:
                 self.failure = True
                 raise
@@ -134,13 +145,22 @@ class UserTest(TestCase):
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_07_json_ready(self):
         try:
-            pass
+            json_ready_dict = self.user.json_ready
         except Exception as e:
             self.failure = True
             self.fail(str(e))
         else:
             try:
-                pass
+                self.assertEqual(json_ready_dict["user_id"], self.user.user_id)
+                self.assertEqual(json_ready_dict["user_name"],
+                                 self.user.user_name)
+                self.assertEqual(json_ready_dict["user_type"],
+                                 self.user.user_type)
+                self.assertEqual(json_ready_dict["email"], self.user.email)
+                self.assertEqual(json_ready_dict["timestamp"],
+                                 self.user.timestamp)
+                self.assertEqual(json_ready_dict["deleted_timestamp"],
+                                 self.user.deleted_timestamp)
             except AssertionError:
                 self.failure = True
                 raise
@@ -148,13 +168,14 @@ class UserTest(TestCase):
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_08_delete(self):
         try:
-            pass
+            RegisteredUser.delete(self.user.user_id)
         except Exception as e:
             self.failure = True
             self.fail(str(e))
         else:
             try:
-                pass
+                deleted_user = RegisteredUser(user_id=self.user.user_id)
+                self.assertIsInstance(deleted_user.deleted_timestamp, datetime)
             except AssertionError:
                 self.failure = True
                 raise
