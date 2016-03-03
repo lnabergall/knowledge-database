@@ -468,11 +468,11 @@ def change_user_type(user_id, user_type, session=None):
         raise ActionError(str(e))
 
 
-def delete_user(user_id, deleted_timestamp, permanently=False, session=None):
+def delete_user(user_id, deleted_timestamp=None, permanently=False, session=None):
     """
     Args:
         user_id: Integer.
-        deleted_timestamp: Datetime.
+        deleted_timestamp: Datetime. Defaults to None.
         permanently: Boolean, if True, the user's data is permanently
             deleted from the database. Defaults to False.
         session: SQLAlchemy session. Defaults to None.
