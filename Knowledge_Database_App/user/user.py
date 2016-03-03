@@ -319,6 +319,7 @@ class RegisteredUser:
             "user_type": self.user_type,
             "email": self.email,
             "timestamp": self.timestamp,
+            "deleted_timestamp": self.deleted_timestamp,
         }
 
 # TODO:
