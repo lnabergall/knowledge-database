@@ -23,8 +23,8 @@ class UserTest(TestCase):
         self.stored = False
 
     def tearDown(self):
-        if not self.failure:
-            pass
+        if self.stored:
+            RegisteredUser.delete(self.user.user_id)
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_01_create(self):
@@ -37,13 +37,13 @@ class UserTest(TestCase):
             self.fail(str(e))
         else:
             try:
-                self.assertEqual(user.email, self.email)
-                self.assertEqual(user.user_name, self.user_name)
-                self.assertNotEqual(user.pass_hash, self.password)
-                self.assertIsInstance(user.pass_hash_type, str)
-                self.assertEqual(user.user_type, "standard")
-                self.assertIsNotNone(user.remember_id)
-                self.assertIsInstance(user.timestamp, datetime)
+                self.assertEqual(self.user.email, self.email)
+                self.assertEqual(self.user.user_name, self.user_name)
+                self.assertNotEqual(self.user.pass_hash, self.password)
+                self.assertIsInstance(self.user.pass_hash_type, str)
+                self.assertEqual(self.user.user_type, "standard")
+                self.assertIsNotNone(self.user.remember_id)
+                self.assertIsInstance(self.user.timestamp, datetime)
             except AssertionError:
                 self.failure = True
                 raise
@@ -61,6 +61,8 @@ class UserTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            else:
+                self.stored = True
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_03_login(self):
@@ -179,3 +181,5 @@ class UserTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            else:
+                self.stored = False
