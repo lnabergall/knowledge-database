@@ -47,6 +47,9 @@ class UserTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_02_register(self):
@@ -61,6 +64,9 @@ class UserTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
             else:
                 self.stored = True
 
@@ -80,6 +86,9 @@ class UserTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_04_process_confirm(self):
@@ -95,6 +104,9 @@ class UserTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
             else:
                 self.user = confirmed_user
 
@@ -143,6 +155,9 @@ class UserTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_07_json_ready(self):
@@ -166,6 +181,9 @@ class UserTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_08_delete(self):
@@ -181,5 +199,8 @@ class UserTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
             else:
                 self.stored = False

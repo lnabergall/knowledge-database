@@ -68,6 +68,9 @@ class ContentPieceTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_02_store(self):
@@ -83,6 +86,9 @@ class ContentPieceTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_03_retrieve(self):
@@ -110,6 +116,9 @@ class ContentPieceTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_04_bulk_retrieve(self):
@@ -143,6 +152,9 @@ class ContentPieceTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_05_get_content_types(self):
@@ -158,6 +170,9 @@ class ContentPieceTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_06_check_uniqueness(self):
@@ -190,6 +205,9 @@ class ContentPieceTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_07_filter_by(self):
@@ -229,6 +247,9 @@ class ContentPieceTest(TestCase):
                 except AssertionError:
                     self.failure = True
                     raise
+                except Exception as e:
+                    self.failure = True
+                    self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_08_search(self):
@@ -268,6 +289,9 @@ class ContentPieceTest(TestCase):
                 except AssertionError:
                     self.failure = True
                     raise
+                except Exception as e:
+                    self.failure = True
+                    self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_09_autocomplete(self):
@@ -292,6 +316,9 @@ class ContentPieceTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_10_update(self):
@@ -309,6 +336,9 @@ class ContentPieceTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_11_json_ready(self):
@@ -349,3 +379,6 @@ class ContentPieceTest(TestCase):
             except AssertionError:
                 self.failure = True
                 raise
+            except Exception as e:
+                self.failure = True
+                self.fail(str(e))
