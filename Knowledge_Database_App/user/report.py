@@ -224,12 +224,15 @@ class Report:
 
     def store(self):
         try:
-            self.storage_handler.call(action.store_user_report, 
+            report_id = self.storage_handler.call(action.store_user_report,
                 self.content_id, self.report_text, self.report_type, 
                 self.admin_report, self.timestamp, self.res_timestamp, 
                 self.admin_id, self.author_type, user_id=self.user_id)
+            redis.delete_report(self.report_id)
         except:
             raise
+        else:
+            self.report_id = report_id
 
     @property
     def json_ready(self):
