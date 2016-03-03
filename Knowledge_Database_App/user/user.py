@@ -140,7 +140,7 @@ class RegisteredUser:
                 self.remember_id = SystemRandom().getrandbits(64)
 
     def __eq__(self, other):
-        return (self.user_id == other.user_id and self.email == other.email and
+        return self.user_id == other.user_id or (self.email == other.email and
                 self.pass_hash == other.pass_hash and
                 self.pass_hash_type == other.pass_hash_type and
                 self.user_name == other.user_name and
