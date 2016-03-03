@@ -26,7 +26,7 @@ class AdminTest(TestCase):
 
     def tearDown(self):
         if self.stored:
-            RegisteredUser.delete(self.admin.user_id)
+            delete_user(self.admin.user_id, permanently=True)
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_01_create(self):

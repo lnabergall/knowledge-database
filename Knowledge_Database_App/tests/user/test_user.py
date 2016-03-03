@@ -10,6 +10,7 @@ Note: Tests are numbered to force a desired execution order.
 from datetime import datetime
 from unittest import TestCase, skipIf
 
+from Knowledge_Database_App.storage.action_queries import delete_user
 from Knowledge_Database_App.user.user import RegisteredUser
 
 
@@ -24,7 +25,7 @@ class UserTest(TestCase):
 
     def tearDown(self):
         if self.stored:
-            RegisteredUser.delete(self.user.user_id)
+            delete_user(self.user.user_id, permanently=True)
 
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_01_create(self):
