@@ -17,7 +17,6 @@ import dateutil.parser as dateparse
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select)
 from . import redis_api
-from . import edit as edit_api
 from .content import Content, ApplicationError
 
 
@@ -239,6 +238,7 @@ class AuthorVote:
         Note: Properly ordered vote boolean returned despite redundancy
             to keep logic within method.
         """
+        from . import edit as edit_api  # Here to resolve circular imports
         edit = edit_api.Edit(edit_id=self.edit_id,
                              validation_status="validating")
         if (edit.content_part == "name" or
