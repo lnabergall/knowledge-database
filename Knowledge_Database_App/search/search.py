@@ -13,7 +13,7 @@ from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import MultiMatch, Match, Term, Q
 
 from Knowledge_Database_App.storage.select_queries import InputError
-from index import SearchableContentPiece
+from .index import SearchableContentPiece
 
 
 def search(query_string, page_num=1):
