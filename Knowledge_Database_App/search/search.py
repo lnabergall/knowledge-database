@@ -10,7 +10,7 @@ Functions:
 """
 
 from elasticsearch_dsl import Search
-from elasticsearch_dsl.query import MultiMatch, Match, Term, F
+from elasticsearch_dsl.query import MultiMatch, Match, Term, Q
 
 from Knowledge_Database_App.storage.select_queries import InputError
 from index import SearchableContentPiece
@@ -116,6 +116,7 @@ def filter_by(content_part, part_string, page_num=1):
             or 'citation'.
         part_string: String.
         page_num: Positive integer. Defaults to 1.
+
     Returns:
         A dictionary of the form
 
@@ -136,14 +137,14 @@ def filter_by(content_part, part_string, page_num=1):
     search = SearchableContentPiece.search()
     search = search[10*(page_num-1) : 10*page_num]
     if content_part == "keyword":
-        query = F("term", keywords=part_string)
+        query = Q("bool", filter=[Q("term", keywords=part_string)])
     elif content_part == "content_type":
-        query = F("term", content_type=part_string)
+        query = Q("bool", filter=[Q("term", content_type=part_string)])
     elif content_part == "citation":
-        query = F("term", citations=part_string)
+        query = Q("bool", filter=[Q("term", citations=part_string)])
     elif content_part == "name":
-        query = (F("term", name=part_string) |
-                 F("term", alternate_names=part_string))
+        query = (Q("bool", filter=[Q("term", name=part_string)]) |
+                 Q("bool", filter=[Q("term", alternate_names=part_string)]))
     else:
         raise InputError("Missing arguments!")
     response = search.query(query).execute()
