@@ -26,7 +26,7 @@ from Knowledge_Database_App.storage import (orm_core as orm,
 from . import redis_api
 from . import edit_diff as diff
 from . import vote as author_vote
-from .celery import celery_app
+from .celery_app import celery_app
 from .content import Content, Name, UserData
 
 

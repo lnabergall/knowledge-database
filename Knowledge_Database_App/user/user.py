@@ -21,7 +21,7 @@ import dateutil.parser as dateparse
 
 from Knowledge_Database_App._email import send_email, Email
 from Knowledge_Database_App.content import redis_api
-from Knowledge_Database_App.content.celery import celery_app
+from Knowledge_Database_App.content.celery_app import celery_app
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select,
                                             action_queries as action)
