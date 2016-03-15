@@ -10,7 +10,7 @@ from random import choice
 from datetime import datetime, timedelta
 import dateutil.parser as dateparse
 
-from Knowledge_Database_App.content import redis
+from Knowledge_Database_App.content import redis_api
 from Knowledge_Database_App.content.edit import is_ip_address
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select,
@@ -54,7 +54,7 @@ class Report:
         if report_id is not None:
             try:
                 if report_status == "open":
-                    report_object = redis.get_reports(report_id)
+                    report_object = redis_api.get_reports(report_id)
                 elif report_status == "resolved":
                     report_object = self.storage_handler.call(
                         select.get_user_reports, report_id=report_id)
@@ -137,7 +137,7 @@ class Report:
         if user_id is not None:
             try:
                 if report_status == "open":
-                    report_objects = redis.get_reports(user_id=user_id)
+                    report_objects = redis_api.get_reports(user_id=user_id)
                 elif report_status == "resolved":
                     report_objects = self.storage_handler.call(
                         select.get_user_reports, user_id=user_id)
@@ -146,7 +146,7 @@ class Report:
         elif admin_id is not None:
             try:
                 if report_status == "open":
-                    report_objects = redis.get_reports(admin_id=admin_id)
+                    report_objects = redis_api.get_reports(admin_id=admin_id)
                 elif report_status == "resolved":
                     report_objects = self.storage_handler.call(
                         select.get_user_reports, admin_id=admin_id)
@@ -155,7 +155,7 @@ class Report:
         elif content_id is not None:
             try:
                 if report_status == "open":
-                    report_objects = redis.get_reports(content_id=content_id)
+                    report_objects = redis_api.get_reports(content_id=content_id)
                 elif report_status == "resolved":
                     report_objects = self.storage_handler.call(
                         select.get_user_reports, content_id=content_id)
@@ -191,7 +191,7 @@ class Report:
     def assign_admin(self):
         try:
             admin_ids = self.storage_handler.call(select.get_admin_ids)
-            admin_assignments = redis.get_admin_assignments(admin_ids)
+            admin_assignments = redis_api.get_admin_assignments(admin_ids)
         except:
             raise
         else:
@@ -213,7 +213,7 @@ class Report:
 
     def save(self):
         try:
-            report_id = redis.store_report(self.content_id, 
+            report_id = redis_api.store_report(self.content_id,
                 self.report_text, self.report_type, self.admin_id, 
                 self.timestamp, self.author_type, self.author_id)
         except:
@@ -228,7 +228,7 @@ class Report:
                 self.content_id, self.report_text, self.report_type, 
                 self.admin_report, self.timestamp, self.res_timestamp, 
                 self.admin_id, self.author_type, user_id=self.user_id)
-            redis.delete_report(self.report_id)
+            redis_api.delete_report(self.report_id)
         except:
             raise
         else:

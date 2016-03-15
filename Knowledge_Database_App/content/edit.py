@@ -23,7 +23,7 @@ from Knowledge_Database_App import _email as mail
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select,
                                             action_queries as action)
-from . import redis
+from . import redis_api
 from . import edit_diff as diff
 from . import author_vote
 from .celery import celery_app
@@ -258,7 +258,7 @@ class Edit:
         if self.validation_status != "validating":
             return NotImplemented
         try:
-            validation_data = redis.get_validation_data(edit_id)
+            validation_data = redis_api.get_validation_data(edit_id)
         except:
             raise
         else:
@@ -312,7 +312,7 @@ class Edit:
     @classmethod
     def edits_validating(cls, content_ids):
         try:
-            edit_ids = redis.get_edits(
+            edit_ids = redis_api.get_edits(
                 content_ids=content_ids, only_ids=True)
         except:
             raise
@@ -347,7 +347,7 @@ class Edit:
         if user_id is not None:
             if validation_status == "validating":
                 try:
-                    edits = redis.get_edits(user_id=user_id).values()
+                    edits = redis_api.get_edits(user_id=user_id).values()
                 except:
                     raise
             elif validation_status == "accepted":
@@ -367,7 +367,7 @@ class Edit:
         elif content_ids is not None:
             if validation_status == "validating":
                 try:
-                    edits = redis.get_edits(content_ids=content_ids).values()
+                    edits = redis_api.get_edits(content_ids=content_ids).values()
                 except:
                     raise
             elif validation_status == "accepted":
@@ -387,11 +387,11 @@ class Edit:
         elif citation_id is not None:
             if validation_status == "validating":
                 try:
-                    citation_edits = redis.get_edits(
+                    citation_edits = redis_api.get_edits(
                         citation_id=citation_id).values()
                     if content_id is not None:
                         citation_edits = set(citation_edits)
-                        content_edits = set(redis.get_edits(
+                        content_edits = set(redis_api.get_edits(
                             content_id=content_id).values())
                         edits = list(citation_edits & content_edits)
                     else:
@@ -417,11 +417,11 @@ class Edit:
         elif keyword_id is not None:
             if validation_status == "validating":
                 try:
-                    keyword_edits = redis.get_edits(
+                    keyword_edits = redis_api.get_edits(
                         keyword_id=keyword_id).values()
                     if content_id is not None:
                         keyword_edits = set(keyword_edits)
-                        content_edits = set(redis.get_edits(
+                        content_edits = set(redis_api.get_edits(
                             content_id=content_id).values())
                         edits = list(keyword_edits & content_edits)
                     else:
@@ -447,11 +447,11 @@ class Edit:
         elif content_type_id is not None:
             if validation_status == "validating":
                 try:
-                    content_type_edits = redis.get_edits(
+                    content_type_edits = redis_api.get_edits(
                         content_type_id=content_type_id).values()
                     if content_id is not None:
                         content_type_edits = set(content_type_edits)
-                        content_edits = set(redis.get_edits(
+                        content_edits = set(redis_api.get_edits(
                             content_id=content_id).values())
                         edits = list(content_type_edits & content_edits)
                     else:
@@ -477,7 +477,7 @@ class Edit:
         elif content_id is not None:
             if validation_status == "validating":
                 try:
-                    edits = redis.get_edits(content_id=content_id).values()
+                    edits = redis_api.get_edits(content_id=content_id).values()
                 except:
                     raise
             elif validation_status == "accepted":
@@ -497,7 +497,7 @@ class Edit:
         elif text_id is not None:
             if validation_status == "validating":
                 try:
-                    edits = redis.get_edits(text_id=text_id).values()
+                    edits = redis_api.get_edits(text_id=text_id).values()
                 except:
                     raise
             elif validation_status == "accepted":
@@ -517,7 +517,7 @@ class Edit:
         elif name_id is not None:
             if validation_status == "validating":
                 try:
-                    edits = redis.get_edits(name_id=name_id).values()
+                    edits = redis_api.get_edits(name_id=name_id).values()
                 except:
                     raise
             elif validation_status == "accepted":
@@ -595,7 +595,7 @@ class Edit:
         Saves the edit to Redis for storage until validation completes.
         """
         try:
-            edit_id = redis.store_edit(
+            edit_id = redis_api.store_edit(
                 self.content_id, self.edit_text, self.edit_rationale,
                 self.content_part, self.part_id, self.timestamp,
                 self.start_timestamp, self.author_type,
@@ -681,7 +681,7 @@ class Edit:
         self.validation_status = "accepted"
         self.validated_timestamp = accepted_timestamp
         try:
-            redis.delete_validation_data(
+            redis_api.delete_validation_data(
                 self.content_id, redis_edit_id,
                 self.author.user_id if self.author else None,
                 self.part_id, self.content_part)
@@ -804,7 +804,7 @@ class Edit:
         self.validation_status = "rejected"
         self.validated_timestamp = rejected_timestamp
         try:
-            redis.delete_validation_data(
+            redis_api.delete_validation_data(
                 self.content_id, self.edit_id,
                 self.author.user_id if self.author else None,
                 self.part_id, self.content_part)

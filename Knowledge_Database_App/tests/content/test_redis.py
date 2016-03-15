@@ -10,7 +10,7 @@ Note: Tests are numbered to force a desired execution order.
 from datetime import datetime
 from unittest import TestCase, skipIf
 
-from Knowledge_Database_App.content import redis
+from Knowledge_Database_App.content import redis_api
 
 
 class RedisTest(TestCase):
@@ -22,13 +22,13 @@ class RedisTest(TestCase):
     def test_01_store_edit(self):
         timestamp = datetime.utcnow()
         try:
-            self.edit_id = redis.store_edit(-1013, "Kylo Ren is a dark force user.",
+            self.edit_id = redis_api.store_edit(-1013, "Kylo Ren is a dark force user.",
                                        "Unlimited power!", "text", -100,
                                        timestamp, timestamp, "U", -333)
         except Exception as e:
             self.fail(str(e))
         else:
-            edit = redis.get_validation_data(edit_id)["edit"]
+            edit = redis_api.get_validation_data(edit_id)["edit"]
             self.assertIsInstance(edit, dict)
             self.assertEqual(edit["edit_id"], edit_id)
             self.assertEqual(edit["content_id"], -1013)
@@ -44,13 +44,13 @@ class RedisTest(TestCase):
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_02_store_vote(self):
         try:
-            redis.store_vote(self.edit_id, -42, "Y; 2016-01-31 02:33:58.060915")
+            redis_api.store_vote(self.edit_id, -42, "Y; 2016-01-31 02:33:58.060915")
         except Exception as e:
             self.failure = True
             self.fail(str(e))
         else:
-            votes = redis.get_validation_data(self.edit_id)["votes"]
-            voted_edit_ids = redis.get_edits(voter_id=-42, only_ids=True)
+            votes = redis_api.get_validation_data(self.edit_id)["votes"]
+            voted_edit_ids = redis_api.get_edits(voter_id=-42, only_ids=True)
             try:
                 self.assertIsInstance(votes, dict)
                 self.assertEqual(votes[-42], "Y; 2016-01-31 02:33:58.060915")
@@ -62,10 +62,10 @@ class RedisTest(TestCase):
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_03_get_edits(self):
         try:
-            text_edits = redis.get_edits(text_id=-100)
-            text_edit_ids = redis.get_edits(text_id=-100, only_ids=True)
-            content_edits = redis.get_edits(content_id=-1013)
-            user_edits = redis.get_edits(user_id=-333)
+            text_edits = redis_api.get_edits(text_id=-100)
+            text_edit_ids = redis_api.get_edits(text_id=-100, only_ids=True)
+            content_edits = redis_api.get_edits(content_id=-1013)
+            user_edits = redis_api.get_edits(user_id=-333)
         except Exception as e:
             self.failure = True
             self.fail(str(e))
@@ -88,7 +88,7 @@ class RedisTest(TestCase):
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_04_get_votes(self):
         try:
-            votes = redis.get_votes(-1013)
+            votes = redis_api.get_votes(-1013)
         except Exception as e:
             self.failure = True
             self.fail(str(e))
@@ -105,7 +105,7 @@ class RedisTest(TestCase):
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_05_get_validation_data(self):
         try:
-            validation_data = redis.get_validation_data(self.edit_id)
+            validation_data = redis_api.get_validation_data(self.edit_id)
         except Exception as e:
             self.failure = True
             self.fail(str(e))
@@ -125,13 +125,13 @@ class RedisTest(TestCase):
     @skipIf(self.failure, "Necessary previous test failed!")
     def test_06_delete_validation_data(self):
         try:
-            redis.delete_validation_data(-1013, self.edit_id,
+            redis_api.delete_validation_data(-1013, self.edit_id,
                                          -333, -100, "text")
         except Exception as e:
             self.failure = True
             self.fail(str(e))
         else:
-            validation_data = redis.get_validation_data(self.edit_id)
+            validation_data = redis_api.get_validation_data(self.edit_id)
             try:
                 self.assertIs(validation_data["edit"], None)
                 self.assertIs(validation_data["votes"], None)

@@ -16,7 +16,7 @@ import dateutil.parser as dateparse
 
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select)
-from . import redis
+from . import redis_api
 from . import edit as edit_api
 from .content import Content, ApplicationError
 
@@ -124,7 +124,7 @@ class AuthorVote:
     @classmethod
     def _retrieve_from_redis(cls, edit_id):
         try:
-            vote_dict = redis.get_validation_data(edit_id)["votes"]
+            vote_dict = redis_api.get_validation_data(edit_id)["votes"]
         except:
             raise
         else:
@@ -154,7 +154,7 @@ class AuthorVote:
                          for key, value in vote_dict.items()]
             elif content_id is not None:
                 try:
-                    vote_dicts = redis.get_votes(content_id)
+                    vote_dicts = redis_api.get_votes(content_id)
                 except:
                     raise
                 else:
@@ -275,13 +275,13 @@ class AuthorVote:
             return edit_to_vote_on
         else:
             try:
-                redis.store_vote(self.edit_id, self.author.user_id,
+                redis_api.store_vote(self.edit_id, self.author.user_id,
                                  self.vote + "; " + str(self.timestamp))
-            except redis.DuplicateVoteError:
-                raise redis.DuplicateVoteError(
+            except redis_api.DuplicateVoteError:
+                raise redis_api.DuplicateVoteError(
                     "Vote already submitted by user " +
                     str(self.author.user_id) + "!")
-            except redis.MissingKeyError as e:
+            except redis_api.MissingKeyError as e:
                 raise VoteStatusError(str(e))
             except:
                 raise
@@ -307,9 +307,9 @@ class AuthorVote:
             content_ids = Content.bulk_retrieve(
                 user_id=user_id, ids_only=True)
         try:
-            edit_ids = redis.get_edits(
+            edit_ids = redis_api.get_edits(
                 content_ids=content_ids, only_ids=True)
-            edits_voted_on = redis.get_edits(voter_id=user_id, only_ids=True)
+            edits_voted_on = redis_api.get_edits(voter_id=user_id, only_ids=True)
         except:
             raise
         else:

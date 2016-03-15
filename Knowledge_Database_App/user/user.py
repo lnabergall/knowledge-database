@@ -20,7 +20,7 @@ from validate_email import validate_email
 import dateutil.parser as dateparse
 
 from Knowledge_Database_App._email import send_email, Email
-from Knowledge_Database_App.content import redis
+from Knowledge_Database_App.content import redis_api
 from Knowledge_Database_App.content.celery import celery_app
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select,
@@ -202,7 +202,7 @@ class RegisteredUser:
         expire_timestamp = timestamp + timedelta(days=3)
         confirmation_id = generate_password(size=60)
         confirmation_id_hash = pass_handler.encrypt(confirmation_id)
-        redis.store_confirm(self.email, confirmation_id_hash, expire_timestamp)
+        redis_api.store_confirm(self.email, confirmation_id_hash, expire_timestamp)
         self.request_confirm.apply_async(
             args=[confirmation_id, 3])
         self.request_confirm.apply_async(
@@ -225,20 +225,20 @@ class RegisteredUser:
     @celery_app.task(name="user.expire_confirm")
     def expire_confirm(self, confirmation_id_hash):
         try:
-            confirmation_dict = redis.get_confirm_info(self.email)
+            confirmation_dict = redis_api.get_confirm_info(self.email)
         except:
             raise
         else:
             if confirmation_dict and (max(confirmation_dict.items(),
                     key=lambda item: dateparse.parse(item[1]))[0] ==
                     confirmation_id_hash):
-                redis.expire_confirm(self.email)
+                redis_api.expire_confirm(self.email)
                 RegisteredUser.delete(self.user_id)
 
     @classmethod
     def process_confirm(cls, email, confirmation_id):
         try:
-            confirmation_dict = redis.get_confirm_info(email)
+            confirmation_dict = redis_api.get_confirm_info(email)
             user_id = self.storage_handler.call(
                 select.get_user, email=email).user_id
         except:
