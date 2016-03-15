@@ -76,7 +76,7 @@ class Edit:
     """
 
     storage_handler = orm.StorageHandler()
-    content_type_choices = Content.get_content_types()
+    # content_type_choices = Content.get_content_types()
 
     edit_id = None              # Integer.
     content_id = None           # Integer.
