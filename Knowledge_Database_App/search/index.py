@@ -19,7 +19,7 @@ Functions:
 
 from elasticsearch import NotFoundError
 from elasticsearch_dsl import (DocType, String, Completion,
-                               Index, analyzer, tokenizer)
+                               Index, analyzer, tokenizer, token_filter)
 from elasticsearch_dsl.connections import connections
 
 from Knowledge_Database_App.storage.select_queries import InputError
@@ -35,9 +35,15 @@ def _create_index():
     content.create()
 
 
-bigram_analyzer = analyzer("bigram_analyzer", tokenizer=tokenizer(
-    "bigram", "shingle", min_shingle_size=2, max_shingle_size=2),
-    filter=["lowercase"],
+bigram_analyzer = analyzer(
+    "bigram_analyzer",
+    type="custom",
+    tokenizer="standard",
+    filter=[
+        "lowercase",
+        token_filter("shingle_filter", type="shingle",
+                     min_shingle_size=2, max_shingle_size=2)
+    ],
 )
 
 
