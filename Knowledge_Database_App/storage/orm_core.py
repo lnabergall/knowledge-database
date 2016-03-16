@@ -93,7 +93,7 @@ class StorageHandler:
 
 # Many-to-Many relationship between Content_Piece and User
 content_authors = Table("content_authors", Base.metadata,
-    Column("content_id", Integer, ForeignKey("ContentPiece.content_id")),
+    Column("content_id", Integer, ForeignKey("Content_Piece.content_id")),
     Column("user_id", Integer, ForeignKey("User.user_id")),
 )
 
