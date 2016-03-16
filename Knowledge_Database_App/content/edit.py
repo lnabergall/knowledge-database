@@ -160,7 +160,7 @@ class Edit:
             self.content_part = content_part
             self.part_id = part_id
             self.original_part_text = original_part_text
-            _check_legal(content_part, edit_text)
+            Edit._check_legal(content_part, edit_text)
             self.edit_text = diff.compute_diff(original_part_text, edit_text)
             self.edit_rationale = edit_rationale
 

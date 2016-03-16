@@ -130,7 +130,7 @@ class RegisteredUser:
                 email = email.strip()
                 password = password.strip()
                 user_name = user_name.strip()
-                self._check_legal(email, password, user_name)
+                RegisteredUser._check_legal(email, password, user_name)
                 self.email = email
                 self.pass_hash = pass_handler.encrypt(password)
                 self.pass_hash_type = "sha512_crypt"

@@ -326,7 +326,7 @@ class Content:
                              last_edited_timestamp=self.timestamp)
             self.keywords = list(set(keywords))
             self.citations = list(set(citations))
-            _check_legal(name, alternate_names, text, keywords, citations)
+            Content._check_legal(name, alternate_names, text, keywords, citations)
             self.stored = False
 
     @staticmethod
