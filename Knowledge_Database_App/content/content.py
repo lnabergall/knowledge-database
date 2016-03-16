@@ -59,7 +59,7 @@ class Name:
                      isinstance(last_edited_timestamp, datetime))):
             raise TypeError("Argument of invalid type given!")
         else:
-            char_count = len(text) - text.count(" ")
+            char_count = len(name) - name.count(" ")
             if (char_count < config.SMALL_PART_MIN_CHARS or
                     char_count > config.SMALL_PART_MAX_CHARS):
                 raise ContentError("Name out of allowed character count range!")
