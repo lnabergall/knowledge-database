@@ -533,10 +533,11 @@ class UserReport(Base):
 
     # Many-to-One relationships
     author_id = Column(Integer, ForeignKey("User.user_id"))
-    author = relationship("User", backref="reports")
+    author = relationship("User", backref="reports", foreign_keys=[author_id])
 
     admin_id = Column(Integer, ForeignKey("User.user_id"))
-    admin = relationship("User", backref="reports_resolved")
+    admin = relationship("User", backref="reports_resolved",
+                         foreign_keys=[admin_id])
 
     content_id = Column(Integer, ForeignKey("Content_Piece.content_id"))
     piece = relationship("ContentPiece", backref="user_reports")
