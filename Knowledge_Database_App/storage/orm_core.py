@@ -444,7 +444,7 @@ class RejectedEdit(Base):
     author = relationship("User", backref="rejected_edits")
 
     content_id = Column(Integer, ForeignKey("Content_Piece.content_id"))
-    piece = relationship("ContentPiece", backref="accepted_edits")
+    piece = relationship("ContentPiece", backref="rejected_edits")
 
     name_id = Column(Integer, ForeignKey("Name.name_id"))
     name = relationship("Name", backref="rejected_edits")
@@ -456,10 +456,10 @@ class RejectedEdit(Base):
     content_type = relationship("ContentType", backref="rejected_edits")
 
     keyword_id = Column(Integer, ForeignKey("Keyword.keyword_id"))
-    keyword = relationship("Keyword", backref="accepted_edits")
+    keyword = relationship("Keyword", backref="rejected_edits")
 
     citation_id = Column(Integer, ForeignKey("Citation.citation_id"))
-    citation = relationship("Citation", backref="accepted_edits")
+    citation = relationship("Citation", backref="rejected_edits")
 
 
 class User(Base):
