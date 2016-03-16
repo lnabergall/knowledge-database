@@ -112,7 +112,8 @@ class ContentPiece(Base):
         content_type: ContentType, Many-to-One relationship,
             backref 'pieces'.
         name_id: Integer, foreign key to Name table.
-        name: Name, One-to-One relationship, backref 'piece'.
+        name: Name, One-to-One relationship, backref 'piece_' to remove
+            conflict with alternate names 'piece' backref.
         text_id: Integer, foreign key to Text table.
         text: Text, One-to-One relationship, backref 'piece'.
         authors: list of Users, Many-to-Many relationship,
@@ -134,7 +135,8 @@ class ContentPiece(Base):
 
     # One-to-One relationships
     name_id = Column(Integer, ForeignKey("Name.name_id"))
-    name = relationship("Name", backref=backref("piece", uselist=False))
+    name = relationship("Name", backref=backref("piece_", uselist=False),
+                        foreign_keys=[name_id])
 
     text_id = Column(Integer, ForeignKey("Text.text_id"))
     text = relationship("Text", backref=backref("piece", uselist=False))
@@ -167,7 +169,8 @@ class Name(Base):
 
     # Many-to-One relationships
     content_id = Column(Integer, ForeignKey("Content_Piece.content_id"))
-    piece = relationship("ContentPiece", backref="alternate_names")
+    piece = relationship("ContentPiece", backref="alternate_names",
+                         foreign_keys=[content_id])
 
     def __repr__(self):
         return "<Name(name={}, name_type={})>".format(self.name, self.name_type)
