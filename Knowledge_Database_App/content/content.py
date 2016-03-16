@@ -127,7 +127,7 @@ class Text:
                  last_edited_timestamp=None):
         if (not (text_id is None or isinstance(text_id, int)) or
                 not (text is None or isinstance(text, str)) or
-                not isinstance(timestamp is None or
+                not (timestamp is None or
                      isinstance(timestamp, datetime)) or
                 not (last_edited_timestamp is None or
                      isinstance(last_edited_timestamp, datetime))):
