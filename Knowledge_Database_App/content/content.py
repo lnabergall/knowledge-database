@@ -49,13 +49,13 @@ class Name:
 
     def __init__(self, name_id=None, name=None, name_type=None, 
                  timestamp=None, last_edited_timestamp=None):
-        if (not (isinstance(name_id, None) or isinstance(name_id, int)) or
-                not (isinstance(name, None) or isinstance(name, str)) or
-                not (isinstance(name_type, None) or
+        if (not (name_id is None or isinstance(name_id, int)) or
+                not (name is None or isinstance(name, str)) or
+                not (name_type is None or
                      isinstance(name_type, str)) or
-                not (isinstance(timestamp, None) or
+                not (timestamp is None or
                      isinstance(timestamp, datetime)) or
-                not (isinstance(last_edited_timestamp, None) or
+                not (last_edited_timestamp is None or
                      isinstance(last_edited_timestamp, datetime))):
             raise TypeError("Argument of invalid type given!")
         else:
@@ -125,11 +125,11 @@ class Text:
 
     def __init__(self, text_id=None, text=None, timestamp=None, 
                  last_edited_timestamp=None):
-        if (not (isinstance(text_id, None) or isinstance(text_id, int)) or
-                not (isinstance(text, None) or isinstance(text, str)) or
-                not (isinstance(timestamp, None) or
+        if (not (text_id is None or isinstance(text_id, int)) or
+                not (text is None or isinstance(text, str)) or
+                not isinstance(timestamp is None or
                      isinstance(timestamp, datetime)) or
-                not (isinstance(last_edited_timestamp, None) or
+                not (last_edited_timestamp is None or
                      isinstance(last_edited_timestamp, datetime))):
             raise TypeError("Argument of invalid type given!")
         else:
@@ -180,8 +180,8 @@ class UserData:
     """
 
     def __init__(self, user_id=None, user_name=None, email=None):
-        if (not (isinstance(user_id, None) or isinstance(user_id, int)) or
-                not (isinstance(user_name, None) or
+        if (not (user_id is None or isinstance(user_id, int)) or
+                not (user_name is None or
                      isinstance(user_name, str))):
             raise TypeError("Argument of invalid type given!")
         else:
