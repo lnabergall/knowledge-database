@@ -793,7 +793,7 @@ class Content:
             "first_author": (self.first_author.json_ready
                              if self.first_author is not None else None),
             "authors": ([author.json_ready for author in self.authors]
-                        if authors is not None else None),
+                        if self.authors is not None else None),
             "content_type": self.content_type,
             "name": self.name.json_ready if self.name is not None else None,
             "alternate_names": ([name.json_ready for name in self.alternate_names]
