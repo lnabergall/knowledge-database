@@ -137,7 +137,7 @@ class RegisteredUser:
                 self.user_type = "standard"
                 self.user_name = user_name
                 self.timestamp = datetime.utcnow()
-                self.remember_id = SystemRandom().getrandbits(64)
+                self.remember_id = SystemRandom().getrandbits(48)
 
     def __eq__(self, other):
         return self.user_id == other.user_id or (self.email == other.email and
