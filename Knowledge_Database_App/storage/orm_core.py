@@ -19,7 +19,7 @@ Classes:
     of creation.
 """
 
-from sqlalchemy import (create_engine, Column, Integer,
+from sqlalchemy import (create_engine, Column, Integer, BigInteger,
                         DateTime, ForeignKey, Table, UniqueConstraint)
 from sqlalchemy import Text as Text_
 from sqlalchemy.orm import sessionmaker, relationship, backref
@@ -489,7 +489,7 @@ class User(Base):
     pass_hash = Column(Text_, unique=True, index=True)
     pass_hash_type = Column(Text_)
     pass_salt = Column(Text_, unique=True, index=True)
-    remember_id = Column(Integer, unique=True, index=True)
+    remember_id = Column(BigInteger, unique=True, index=True)
     remember_token_hash = Column(Text_, unique=True, index=True)
     remember_hash_type = Column(Text_)
     timestamp = Column(DateTime)
