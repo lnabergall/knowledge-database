@@ -305,9 +305,10 @@ class RegisteredUser:
     @classmethod
     def delete(cls, user_id):
         deleted_timestamp = datetime.utcnow()
+        storage_handler = orm.StorageHandler()
         try:
-            self.storage_handler.call(action.delete_user, user_id,
-                                      deleted_timestamp)
+            storage_handler.call(action.delete_user, user_id,
+                                 deleted_timestamp)
         except:
             raise
 
