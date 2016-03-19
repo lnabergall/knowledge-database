@@ -28,7 +28,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.associationproxy import association_proxy
 
 
-KDB_url = "postgresql+psycopg2://Lukas:Cetera4247@localhost/kdb_develop"
+KDB_url = "postgresql+psycopg2://postgres:Cetera4247@localhost/kdb_develop"
 Base = declarative_base()
 
 
