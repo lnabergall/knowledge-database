@@ -9,11 +9,12 @@ Classes:
 from email.message import Message
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path
 
 from Knowledge_Database_App.storage.select_queries import InputError
 
 
-BASE_URL = "Knowledge_Database_App/_email/"
+BASE_URL = Path("Knowledge_Database_App/_email/").resolve().path
 
 
 class Email:
