@@ -13,6 +13,9 @@ from email.mime.text import MIMEText
 from Knowledge_Database_App.storage.select_queries import InputError
 
 
+BASE_URL = "Knowledge_Database_App/_email/"
+
+
 class Email:
     """
     Args:
@@ -53,13 +56,13 @@ class Email:
 
     def _compose_edit_alert(self, content_name, edit_text):
         self.message["Subject"] = "New Edit!"   # TEMPORARY
-        with open("templates\edit_alert.html", "r") as html_file:
+        with open(BASE_URL+"templates/edit_alert.html", "r") as html_file:
             rich_text = html_file.read().format(
                 user_name=self.user_name,
                 content_name=content_name,
                 edit_text=edit_text,
             )
-        with open("templates\edit_alert_plain.txt", "r") as text_file:
+        with open(BASE_URL+"templates/edit_alert_plain.txt", "r") as text_file:
             plain_text = text_file.read().format(
                 user_name=self.user_name,
                 content_name=content_name,
@@ -72,14 +75,14 @@ class Email:
 
     def _compose_vote_reminder(self, content_name, edit_text, days_remaining):
         self.message["Subject"] = "Remember to vote!"   # TEMPORARY
-        with open(r"templates\vote_reminder.html", "r") as html_file:
+        with open(BASE_URL+"templates/vote_reminder.html", "r") as html_file:
             rich_text = html_file.read().format(
                 user_name=self.user_name,
                 content_name=content_name,
                 edit_text=edit_text,
                 days_remaining=days_remaining,
             )
-        with open(r"templates\vote_reminder_plain.txt", "r") as text_file:
+        with open(BASE_URL+"templates/vote_reminder_plain.txt", "r") as text_file:
             plain_text = text_file.read().format(
                 user_name=self.user_name,
                 content_name=content_name,
@@ -94,12 +97,12 @@ class Email:
     def _compose_edit_validated_alert(self, content_name, vote_result):
         if vote_result:
             self.message["Subject"] = "Your edit has been accepted!"  # TEMPORARY
-            with open("templates\edit_accepted.html", "r") as html_file:
+            with open(BASE_URL+"templates/edit_accepted.html", "r") as html_file:
                 rich_text = html_file.read().format(
                     user_name=self.user_name,
                     content_name=content_name,
                 )
-            with open("templates\edit_accepted_plain.txt", "r") as text_file:
+            with open(BASE_URL+"templates/edit_accepted_plain.txt", "r") as text_file:
                 plain_text = text_file.read().format(
                     user_name=self.user_name,
                     content_name=content_name,
@@ -111,12 +114,12 @@ class Email:
         else:
             # TEMPORARY
             self.message["Subject"] = "There was a problem with your edit..."
-            with open("templates\edit_rejected.html", "r") as html_file:
+            with open(BASE_URL+"templates/edit_rejected.html", "r") as html_file:
                 rich_text = html_file.read().format(
                     user_name=self.user_name,
                     content_name=content_name,
                 )
-            with open("templates\edit_rejected_plain.txt", "r") as text_file:
+            with open(BASE_URL+"templates/edit_rejected_plain.txt", "r") as text_file:
                 plain_text = text_file.read().format(
                     user_name=self.user_name,
                     content_name=content_name,
@@ -130,13 +133,13 @@ class Email:
                                         edit_text, vote_result):
         if vote_result:
             self.message["Subject"] = "An edit has been accepted!"  # TEMPORARY
-            with open("templates\author_edit_accepted.html", "r") as html_file:
+            with open(BASE_URL+"templates/author_edit_accepted.html", "r") as html_file:
                 rich_text = html_file.read().format(
                     user_name=self.user_name,
                     content_name=content_name,
                     edit_text=edit_text,
                 )
-            with open("templates\author_edit_accepted_plain.txt", "r") as text_file:
+            with open(BASE_URL+"templates/author_edit_accepted_plain.txt", "r") as text_file:
                 plain_text = text_file.read().format(
                     user_name=self.user_name,
                     content_name=content_name,
@@ -149,13 +152,13 @@ class Email:
         else:
             # TEMPORARY
             self.message["Subject"] = "There was a problem with your edit..."
-            with open("templates\author_edit_rejected.html", "r") as html_file:
+            with open(BASE_URL+"templates/author_edit_rejected.html", "r") as html_file:
                 rich_text = html_file.read().format(
                     user_name=self.user_name,
                     content_name=content_name,
                     edit_text=edit_text,
                 )
-            with open("templates\author_edit_rejected_plain.txt", "r") as text_file:
+            with open(BASE_URL+"templates/author_edit_rejected_plain.txt", "r") as text_file:
                 plain_text = text_file.read().format(
                     user_name=self.user_name,
                     content_name=content_name,
@@ -168,13 +171,13 @@ class Email:
 
     def _compose_confirmation_request(self, confirmation_id, days_remaining):
         self.message["Subject"] = "Please confirm your email!"   # TEMPORARY
-        with open(r"templates\email_confirmation.html", "r") as html_file:
+        with open(BASE_URL+"templates/email_confirmation.html", "r") as html_file:
             rich_text = html_file.read().format(
                 user_name=self.user_name,
                 confirmation_id=confirmation_id,
                 days_remaining=days_remaining,
             )
-        with open(r"templates\email_confirmation_plain.txt", "r") as text_file:
+        with open(BASE_URL+"templates/email_confirmation_plain.txt", "r") as text_file:
             plain_text = text_file.read().format(
                 user_name=self.user_name,
                 confirmation_id=confirmation_id,
@@ -187,11 +190,11 @@ class Email:
 
     def _compose_user_welcome(self):
         self.message["Subject"] = "You just joined something awesome!"   # TEMPORARY
-        with open(r"templates\user_welcome.html", "r") as html_file:
+        with open(BASE_URL+"templates/user_welcome.html", "r") as html_file:
             rich_text = html_file.read().format(
                 user_name=self.user_name,
             )
-        with open(r"templates\user_welcome_plain.txt", "r") as text_file:
+        with open(BASE_URL+"templates/user_welcome_plain.txt", "r") as text_file:
             plain_text = text_file.read().format(
                 user_name=self.user_name,
             )
