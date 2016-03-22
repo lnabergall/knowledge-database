@@ -19,9 +19,9 @@ class EmailSendError(Exception):
     """Exception to raise for all emailing send errors."""
 
 
-mail_server = "MAILSERVER"
-sending_address = "USERNAME@DOMAIN"
-password = "PASSWORD"
+mail_server = "localhost"
+sending_address = "FringePC1013@gmail.com"
+password = "Fr1nge1013"
 
 
 def send_email(email, address):
