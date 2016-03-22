@@ -19,7 +19,7 @@ class EmailSendError(Exception):
     """Exception to raise for all emailing send errors."""
 
 
-mail_server = "localhost"
+mail_server = "smtp.gmail.com"
 sending_address = "FringePC1013@gmail.com"
 password = "Fr1nge1013"
 
