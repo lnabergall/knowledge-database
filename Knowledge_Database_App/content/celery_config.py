@@ -8,26 +8,27 @@ from kombu import Queue
 # Broker settings.
 BROKER_URL = "amqp://"
 
-# Result backend (for storing errors) settings.
+# Result task and backend (for storing errors) settings.
 CELERY_RESULT_BACKEND = "redis://"
 CELERY_TASK_RESULT_EXPIRES = 259200     # 3 days
+CELERY_TRACK_STARTED = True
 
 # Ignore results, but keep errors in Redis
-CELERY_IGNORE_RESULT = True
+# CELERY_IGNORE_RESULT = True
 CELERY_STORE_ERRORS_EVEN_IF_IGNORED = True
 
 # List of modules to import when celery starts.
-CELERY_IMPORTS = []
+CELERY_IMPORTS = ["Knowledge_Database_App.user.user"]
 
 # Queue settings.
-CELERY_QUEUES = (
-    Queue("default", routing_key="default"),
-    Queue("edit_tasks", routing_key="edit.#"),
-    Queue("vote_tasks", routing_key="vote.#"),
-    Queue("email_tasks", routing_key="email.#"),
-    Queue("user_tasks", routing_key="user.#"),
-)
-CELERY_DEFAULT_QUEUE = "default"
+# CELERY_QUEUES = (
+#     Queue("default", routing_key="default"),
+#     Queue("edit_tasks", routing_key="edit.#"),
+#     Queue("vote_tasks", routing_key="vote.#"),
+#     Queue("email_tasks", routing_key="email.#"),
+#     Queue("user_tasks", routing_key="user.#"),
+# )
+# CELERY_DEFAULT_QUEUE = "default"
 
 # Task routes.
 CELERY_ROUTES = {
