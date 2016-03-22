@@ -847,7 +847,7 @@ class Edit:
                           for info_tuple in author_info]
                 for email, info_tuple in zip(emails, author_info):
                     try:
-                        mail.send_email(email, info_tuple[2])
+                        mail.send_email(email.message, info_tuple[2])
                     except mail.EmailSendError:
                         continue
                     except:
@@ -863,7 +863,7 @@ class Edit:
                           for info_tuple in author_info]
                 for email, info_tuple in zip(emails, author_info):
                     try:
-                        mail.send_email(email, info_tuple[2])
+                        mail.send_email(email.message, info_tuple[2])
                     except mail.EmailSendError:
                         continue
                     except:
@@ -874,7 +874,7 @@ class Edit:
             email = mail.Email(self.author.email, self.author.user_name,
                                content_name, vote_result=vote_result)
             try:
-                mail.send_email(email, self.author.email)
+                mail.send_email(email.message, self.author.email)
             except mail.EmailSendError:
                 raise
         elif (email_type == "author_acceptance" or
@@ -891,7 +891,7 @@ class Edit:
                           for info_tuple in author_info]
                 for email, info_tuple in zip(emails, author_info):
                     try:
-                        mail.send_email(email, info_tuple[2])
+                        mail.send_email(email.message, info_tuple[2])
                     except mail.EmailSendError:
                         continue
                     except:

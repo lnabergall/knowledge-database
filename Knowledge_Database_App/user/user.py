@@ -192,7 +192,7 @@ class RegisteredUser:
     def send_welcome(self):
         email = Email(self.email, self.user_name, welcome=True)
         try:
-            send_email(email, self.email)
+            send_email(email.message, self.email)
         except:
             raise
 
@@ -218,7 +218,7 @@ class RegisteredUser:
                       days_remaining=days_until_expiration,
                       confirmation_id=confirmation_id)
         try:
-            send_email(email, self.email)
+            send_email(email.message, self.email)
         except:
             raise
 
