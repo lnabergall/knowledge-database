@@ -190,7 +190,7 @@ class RegisteredUser:
 
     @celery_app.task(name="user.send_welcome")
     def send_welcome(self):
-        email = Email(self.email, self.user_name)
+        email = Email(self.email, self.user_name, welcome=True)
         try:
             send_email(email, self.email)
         except:
