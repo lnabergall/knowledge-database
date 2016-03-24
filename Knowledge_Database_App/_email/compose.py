@@ -7,7 +7,6 @@ Classes:
 """
 
 import os
-from email.message import Message
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -34,7 +33,7 @@ class Email:
         os.chdir("C:/Python34/Lib/site-packages/Knowledge_Database_App/_email")
         self.recipient_address = user_address
         self.user_name = user_name
-        self.message = Message()
+        self.message = MIMEMultipart()
         self.message["To"] = self.recipient_address
         if (edit_text is not None and
                 days_remaining is None and vote_result is None):
@@ -67,10 +66,8 @@ class Email:
                 content_name=content_name,
                 edit_text=edit_text,
             )
-        texts = MIMEMultipart()
-        texts.attach(MIMEText(rich_text, "html"))
-        texts.attach(MIMEText(plain_text))
-        self.message.attach(texts)
+        self.message.attach(MIMEText(rich_text, "html"))
+        self.message.attach(MIMEText(plain_text))
 
     def _compose_vote_reminder(self, content_name, edit_text, days_remaining):
         self.message["Subject"] = "Remember to vote!"   # TEMPORARY
@@ -88,10 +85,8 @@ class Email:
                 edit_text=edit_text,
                 days_remaining=days_remaining,
             )
-        texts = MIMEMultipart()
-        texts.attach(MIMEText(rich_text, "html"))
-        texts.attach(MIMEText(plain_text))
-        self.message.attach(texts)
+        self.message.attach(MIMEText(rich_text, "html"))
+        self.message.attach(MIMEText(plain_text))
 
     def _compose_edit_validated_alert(self, content_name, vote_result):
         if vote_result:
@@ -106,10 +101,8 @@ class Email:
                     user_name=self.user_name,
                     content_name=content_name,
                 )
-            texts = MIMEMultipart()
-            texts.attach(MIMEText(rich_text, "html"))
-            texts.attach(MIMEText(plain_text))
-            self.message.attach(texts)
+            self.message.attach(MIMEText(rich_text, "html"))
+            self.message.attach(MIMEText(plain_text))
         else:
             # TEMPORARY
             self.message["Subject"] = "There was a problem with your edit..."
@@ -123,10 +116,8 @@ class Email:
                     user_name=self.user_name,
                     content_name=content_name,
                 )
-            texts = MIMEMultipart()
-            texts.attach(MIMEText(rich_text, "html"))
-            texts.attach(MIMEText(plain_text))
-            self.message.attach(texts)
+            self.message.attach(MIMEText(rich_text, "html"))
+            self.message.attach(MIMEText(plain_text))
 
     def _compose_author_validated_alert(self, content_name,
                                         edit_text, vote_result):
@@ -144,10 +135,8 @@ class Email:
                     content_name=content_name,
                     edit_text=edit_text,
                 )
-            texts = MIMEMultipart()
-            texts.attach(MIMEText(rich_text, "html"))
-            texts.attach(MIMEText(plain_text))
-            self.message.attach(texts)
+            self.message.attach(MIMEText(rich_text, "html"))
+            self.message.attach(MIMEText(plain_text))
         else:
             # TEMPORARY
             self.message["Subject"] = "There was a problem with your edit..."
@@ -163,10 +152,8 @@ class Email:
                     content_name=content_name,
                     edit_text=edit_text,
                 )
-            texts = MIMEMultipart()
-            texts.attach(MIMEText(rich_text, "html"))
-            texts.attach(MIMEText(plain_text))
-            self.message.attach(texts)
+            self.message.attach(MIMEText(rich_text, "html"))
+            self.message.attach(MIMEText(plain_text))
 
     def _compose_confirmation_request(self, confirmation_id, days_remaining):
         self.message["Subject"] = "Please confirm your email!"   # TEMPORARY
@@ -182,10 +169,8 @@ class Email:
                 confirmation_id=confirmation_id,
                 days_remaining=days_remaining,
             )
-        texts = MIMEMultipart()
-        texts.attach(MIMEText(rich_text, "html"))
-        texts.attach(MIMEText(plain_text))
-        self.message.attach(texts)
+        self.message.attach(MIMEText(rich_text, "html"))
+        self.message.attach(MIMEText(plain_text))
 
     def _compose_user_welcome(self):
         self.message["Subject"] = "You just joined something awesome!"   # TEMPORARY
@@ -197,7 +182,5 @@ class Email:
             plain_text = text_file.read().format(
                 user_name=self.user_name,
             )
-        texts = MIMEMultipart()
-        texts.attach(MIMEText(rich_text, "html"))
-        texts.attach(MIMEText(plain_text))
-        self.message.attach(texts)
+        self.message.attach(MIMEText(rich_text, "html"))
+        self.message.attach(MIMEText(plain_text))
