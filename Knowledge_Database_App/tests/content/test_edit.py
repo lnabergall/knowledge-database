@@ -9,8 +9,9 @@ Note: Tests are numbered to force a desired execution order.
 
 from datetime import datetime
 from math import ceil
-from unittest import TestCase, skipIf
+from unittest import TestCase
 
+from Knowledge_Database_App.tests import skipIfTrue
 from Knowledge_Database_App.content.content import Content
 from Knowledge_Database_App.content.edit import Edit
 
@@ -55,7 +56,7 @@ class ContentEditTest(TestCase):
         self.part_id = self.piece.text.text_id
         self.failure = False
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_01_create(self):
         try:
             self.edit = Edit(
@@ -90,7 +91,7 @@ class ContentEditTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_02_start_vote(self):
         try:
             self.edit.start_vote()
@@ -105,7 +106,7 @@ class ContentEditTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_03_retrieve(self):
         try:
             self.edit = Edit(edit_id=self.edit.edit_id)
@@ -134,7 +135,7 @@ class ContentEditTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_04_edits_validating(self):
         try:
             edit_indicator = Edit.edits_validating([self.content_id])
@@ -148,7 +149,7 @@ class ContentEditTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_05_bulk_retrieve(self):
         try:
             user_validating_edits, count1 = Edit.bulk_retrieve(
@@ -242,7 +243,7 @@ class ContentEditTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_06_validate(self):
         try:
             self.edit.validate()
@@ -261,7 +262,7 @@ class ContentEditTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_07_conflict(self):
         try:
             conflict = self.edit.conflict
@@ -275,7 +276,7 @@ class ContentEditTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_08_json_ready(self):
         try:
             json_ready_version = self.edit.json_ready

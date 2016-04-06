@@ -8,8 +8,9 @@ Note: Tests are numbered to force a desired execution order.
 """
 
 from datetime import datetime
-from unittest import TestCase, skipIf
+from unittest import TestCase
 
+from Knowledge_Database_App.tests import skipIfTrue
 from Knowledge_Database_App.storage.action_queries import delete_user
 from Knowledge_Database_App.user.admin import Admin
 from Knowledge_Database_App.user.report import Report
@@ -34,7 +35,7 @@ class ReportTest(TestCase):
         if self.stored:
             delete_user(self.admin.user_id, permanently=True)
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_01_create(self):
         try:
             self.report = Report(content_id=self.content_id,
@@ -59,7 +60,7 @@ class ReportTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_02_submit(self):
         try:
             self.report.submit()
@@ -80,7 +81,7 @@ class ReportTest(TestCase):
             else:
                 self.stored = True
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_03_bulk_retrieve(self):
         try:
             admin_reports = Report.bulk_retrieve(
@@ -125,7 +126,7 @@ class ReportTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_04_resolve(self):
         try:
             self.report.resolve(self.admin_report)
@@ -156,7 +157,7 @@ class ReportTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_05_json_ready(self):
         try:
             json_ready_dict = self.report.json_ready

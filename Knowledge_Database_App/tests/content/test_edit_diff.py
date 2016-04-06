@@ -7,8 +7,9 @@ functions, not exceptional cases.
 Note: Tests are numbered to force a desired execution order.
 """
 
-from unittest import TestCase, skipIf
+from unittest import TestCase
 
+from Knowledge_Database_App.tests import skipIfTrue
 from Knowledge_Database_App.content import edit_diff as diff
 
 
@@ -30,7 +31,7 @@ class EditDiffTest(TestCase):
         self.empty_edit_diff = diff.compute_diff(self.original_part_text, "")
         self.failure = False
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_01_compute_diff(self):
         try:
             self.edit_diff = diff.compute_diff(self.original_part_text,
@@ -49,7 +50,7 @@ class EditDiffTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_02_restore(self):
         try:
             original = diff.restore(edit_diff)
@@ -65,7 +66,7 @@ class EditDiffTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_03_calculate_metrics(self):
         try:
             insertions, deletions = diff.calculate_metrics(self.edit_diff)
@@ -80,7 +81,7 @@ class EditDiffTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_04_conflict(self):
         try:
             conflict1 = diff.conflict(self.edit_diff, self.empty_edit_diff)
@@ -96,7 +97,7 @@ class EditDiffTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_05_merge(self):
         try:
             merged_diff_common = diff.merge([self.edit_diff,

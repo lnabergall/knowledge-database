@@ -8,8 +8,9 @@ Note: Tests are numbered to force a desired execution order.
 """
 
 from datetime import datetime
-from unittest import TestCase, skipIf
+from unittest import TestCase
 
+from Knowledge_Database_App.tests import skipIfTrue
 from Knowledge_Database_App.content.content import Content
 from Knowledge_Database_App.content.edit import Edit
 from Knowledge_Database_App.content.vote import AuthorVote
@@ -49,7 +50,7 @@ class ContentVoteTest(TestCase):
         )
         self.edit.start_vote()
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_01_create(self):
         try:
             self.vote = AuthorVote("in-progress", self.edit.edit_id,
@@ -68,7 +69,7 @@ class ContentVoteTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_02_vote_summary(self):
         # Tests complete vote summary formatting process,
         # including both serialization and deserialization.
@@ -85,7 +86,7 @@ class ContentVoteTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_03_bulk_retrieve(self):
         try:
             edit_votes = AuthorVote.bulk_retrieve(
@@ -119,7 +120,7 @@ class ContentVoteTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_04_votes_needed(self):
         try:
             votes_needed_dict = AuthorVote.votes_needed(
@@ -135,7 +136,7 @@ class ContentVoteTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_05_json_ready(self):
         try:
             json_ready_version = self.vote.json_ready
@@ -157,7 +158,7 @@ class ContentVoteTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_06_save(self):
         try:
             self.vote.save()

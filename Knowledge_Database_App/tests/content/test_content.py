@@ -9,8 +9,9 @@ Note: Tests are numbered to force a desired execution order.
 
 from datetime import datetime
 from math import ceil
-from unittest import TestCase, skipIf
+from unittest import TestCase
 
+from Knowledge_Database_App.tests import skipIfTrue
 from Knowledge_Database_App.content.content import Content
 
 
@@ -32,7 +33,7 @@ class ContentPieceTest(TestCase):
     def tearDown(self):
         self.piece._delete()
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_01_create(self):
         try:
             self.piece = Content(
@@ -72,7 +73,7 @@ class ContentPieceTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_02_store(self):
         try:
             self.piece.store()
@@ -90,7 +91,7 @@ class ContentPieceTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_03_retrieve(self):
         try:
             piece = Content(content_id=self.piece.content_id)
@@ -120,7 +121,7 @@ class ContentPieceTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_04_bulk_retrieve(self):
         arbitrary_user_id = 23
         try:
@@ -156,7 +157,7 @@ class ContentPieceTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_05_get_content_types(self):
         try:
             content_types = Content.get_content_types()
@@ -174,7 +175,7 @@ class ContentPieceTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_06_check_uniqueness(self):
         try:
             unique_name = Content.check_uniqueness(
@@ -209,7 +210,7 @@ class ContentPieceTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_07_filter_by(self):
         try:
             results = Content.filter_by("keyword", self.keywords[0])
@@ -251,7 +252,7 @@ class ContentPieceTest(TestCase):
                     self.failure = True
                     self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_08_search(self):
         try:
             results = Content.search("the force awakens")
@@ -293,7 +294,7 @@ class ContentPieceTest(TestCase):
                     self.failure = True
                     self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_09_autocomplete(self):
         try:
             keyword_completions = Content.autocomplete(
@@ -320,7 +321,7 @@ class ContentPieceTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_10_update(self):
         timestamp = datetime.utcnow()
         try:
@@ -340,7 +341,7 @@ class ContentPieceTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_11_json_ready(self):
         try:
             json_ready_version = self.piece.json_ready

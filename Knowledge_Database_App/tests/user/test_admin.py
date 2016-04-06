@@ -8,8 +8,9 @@ Note: Tests are numbered to force a desired execution order.
 """
 
 from datetime import datetime
-from unittest import TestCase, skipIf
+from unittest import TestCase
 
+from Knowledge_Database_App.tests import skipIfTrue
 from Knowledge_Database_App.storage.action_queries import delete_user
 from Knowledge_Database_App.user.user import RegisteredUser
 from Knowledge_Database_App.user.admin import Admin
@@ -28,7 +29,7 @@ class AdminTest(TestCase):
         if self.stored:
             delete_user(self.admin.user_id, permanently=True)
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_01_create(self):
         try:
             self.admin = Admin(email=self.email, user_name=self.user_name,
@@ -56,7 +57,7 @@ class AdminTest(TestCase):
             else:
                 delete_user(self.admin.user_id, permanently=True)
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_02_promote(self):
         try:
             user = RegisteredUser(email=self.email, password=self.password,
@@ -80,8 +81,7 @@ class AdminTest(TestCase):
                 self.admin = admin
                 self.stored = True
 
-
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_03_demote(self):
         try:
             self.admin.demote()
@@ -99,7 +99,7 @@ class AdminTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_04_json_ready(self):
         try:
             json_ready_dict = self.admin.json_ready

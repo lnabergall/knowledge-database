@@ -8,8 +8,9 @@ Note: Tests are numbered to force a desired execution order.
 """
 
 from datetime import datetime
-from unittest import TestCase, skipIf
+from unittest import TestCase
 
+from Knowledge_Database_App.tests import skipIfTrue
 from Knowledge_Database_App.content import redis_api
 
 
@@ -18,7 +19,7 @@ class RedisTest(TestCase):
     def setUp(self):
         self.failure = False
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_01_store_edit(self):
         timestamp = datetime.utcnow()
         try:
@@ -41,7 +42,7 @@ class RedisTest(TestCase):
             self.assertEqual(edit["author_type"], "U")
             self.assertEqual(edit["user_id"], -333)
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_02_store_vote(self):
         try:
             redis_api.store_vote(self.edit_id, -42, "Y; 2016-01-31 02:33:58.060915")
@@ -59,7 +60,7 @@ class RedisTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_03_get_edits(self):
         try:
             text_edits = redis_api.get_edits(text_id=-100)
@@ -85,7 +86,7 @@ class RedisTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_04_get_votes(self):
         try:
             votes = redis_api.get_votes(-1013)
@@ -102,7 +103,7 @@ class RedisTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_05_get_validation_data(self):
         try:
             validation_data = redis_api.get_validation_data(self.edit_id)
@@ -122,7 +123,7 @@ class RedisTest(TestCase):
                 self.failure = True
                 raise
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_06_delete_validation_data(self):
         try:
             redis_api.delete_validation_data(-1013, self.edit_id,

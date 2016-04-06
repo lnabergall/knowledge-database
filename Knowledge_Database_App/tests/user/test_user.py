@@ -8,8 +8,9 @@ Note: Tests are numbered to force a desired execution order.
 """
 
 from datetime import datetime
-from unittest import TestCase, skipIf
+from unittest import TestCase
 
+from Knowledge_Database_App.tests import skipIfTrue
 from Knowledge_Database_App.storage.action_queries import delete_user
 from Knowledge_Database_App.user.user import RegisteredUser
 
@@ -27,7 +28,7 @@ class UserTest(TestCase):
         if self.stored:
             delete_user(self.user.user_id, permanently=True)
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_01_create(self):
         try:
             self.user = RegisteredUser(
@@ -52,7 +53,7 @@ class UserTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_02_register(self):
         try:
             self.confirmation_id = self.user.register()
@@ -71,7 +72,7 @@ class UserTest(TestCase):
             else:
                 self.stored = True
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_03_login(self):
         try:
             user_from_id = RegisteredUser(user_id=self.user.user_id)
@@ -91,7 +92,7 @@ class UserTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_04_process_confirm(self):
         try:
             RegisteredUser.process_confirm(self.email, self.confirmation_id)
@@ -111,7 +112,7 @@ class UserTest(TestCase):
             else:
                 self.user = confirmed_user
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_05_remember_user(self):
         try:
             user_with_remember = RegisteredUser(
@@ -132,7 +133,7 @@ class UserTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_06_update(self):
         new_email = "bensolo121323@gmail.com"
         new_user_name = "Ben Solo"
@@ -160,7 +161,7 @@ class UserTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_07_json_ready(self):
         try:
             json_ready_dict = self.user.json_ready
@@ -186,7 +187,7 @@ class UserTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
 
-    @skipIf(self.failure, "Necessary previous test failed!")
+    @skipIfTrue("failure")
     def test_08_delete(self):
         try:
             RegisteredUser.delete(self.user.user_id)
