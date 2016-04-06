@@ -18,6 +18,7 @@ from passlib.apps import custom_app_context as pass_handler
 from passlib.utils import generate_password
 from validate_email import validate_email
 import dateutil.parser as dateparse
+from celery.contrib.methods import task_method
 
 from Knowledge_Database_App._email import send_email, Email
 from Knowledge_Database_App.content import redis_api
@@ -188,7 +189,7 @@ class RegisteredUser:
         else:
             self.user_id = user_id
 
-    @celery_app.task(name="user.send_welcome")
+    @celery_app.task(name="user.send_welcome", filter=task_method)
     def send_welcome(self):
         email = Email(self.email, self.user_name, welcome=True)
         try:
@@ -212,7 +213,7 @@ class RegisteredUser:
             args=[confirmation_id_hash], eta=expire_timestamp)
         return confirmation_id
 
-    @celery_app.task(name="user.request_confirm")
+    @celery_app.task(name="user.request_confirm", filter=task_method)
     def request_confirm(self, confirmation_id, days_until_expiration):
         email = Email(self.email, self.user_name,
                       days_remaining=days_until_expiration,
@@ -222,7 +223,7 @@ class RegisteredUser:
         except:
             raise
 
-    @celery_app.task(name="user.expire_confirm")
+    @celery_app.task(name="user.expire_confirm", filter=task_method)
     def expire_confirm(self, confirmation_id_hash):
         try:
             confirmation_dict = redis_api.get_confirm_info(self.email)

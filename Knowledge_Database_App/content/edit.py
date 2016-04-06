@@ -18,6 +18,7 @@ import re
 from datetime import datetime, timedelta
 from collections import namedtuple
 import dateutil.parser as dateparse
+from celery.contrib.methods import task_method
 
 from Knowledge_Database_App import _email as mail
 from Knowledge_Database_App.storage import (orm_core as orm,
@@ -606,7 +607,7 @@ class Edit:
             self.validation_status = "validating"
             self.edit_id = edit_id
 
-    @celery_app.task(name="edit.validate")
+    @celery_app.task(name="edit.validate", filter=task_method)
     def validate(self):
         """
         Validates the edit based on the distribution of author votes
@@ -819,7 +820,7 @@ class Edit:
         self._notify.apply_async(args=["author_rejection"],
                                  kwargs={"author_info": author_info})
 
-    @celery_app.task(name="edit._notify")
+    @celery_app.task(name="edit._notify", filter=task_method)
     def _notify(self, email_type, days_remaining=None, author_info=None):
         """
         Args:
