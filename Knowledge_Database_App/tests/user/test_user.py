@@ -31,7 +31,7 @@ class UserTest(TestCase):
     @skipIfTrue("failure")
     def test_01_create(self):
         try:
-            self.user = RegisteredUser(
+            self.__class__.user = RegisteredUser(
                 email=self.email, password=self.password,
                 user_name=self.user_name)
         except Exception as e:
@@ -39,13 +39,14 @@ class UserTest(TestCase):
             self.fail(str(e))
         else:
             try:
-                self.assertEqual(self.user.email, self.email)
-                self.assertEqual(self.user.user_name, self.user_name)
-                self.assertNotEqual(self.user.pass_hash, self.password)
-                self.assertIsInstance(self.user.pass_hash_type, str)
-                self.assertEqual(self.user.user_type, "standard")
-                self.assertIsNotNone(self.user.remember_id)
-                self.assertIsInstance(self.user.timestamp, datetime)
+                self.assertEqual(self.__class__.user.email, self.email)
+                self.assertEqual(self.__class__.user.user_name,
+                                 self.user_name)
+                self.assertNotEqual(self.__class__.user.pass_hash, self.password)
+                self.assertIsInstance(self.__class__.user.pass_hash_type, str)
+                self.assertEqual(self.__class__.user.user_type, "standard")
+                self.assertIsNotNone(self.__class__.user.remember_id)
+                self.assertIsInstance(self.__class__.user.timestamp, datetime)
             except AssertionError:
                 self.failure = True
                 raise
@@ -56,13 +57,13 @@ class UserTest(TestCase):
     @skipIfTrue("failure")
     def test_02_register(self):
         try:
-            self.confirmation_id = self.user.register()
+            self.__class__.confirmation_id = self.__class__.user.register()
         except Exception as e:
             self.failure = True
             self.fail(str(e))
         else:
             try:
-                self.assertIsInstance(self.user.user_id, int)
+                self.assertIsInstance(self.__class__.user.user_id, int)
             except AssertionError:
                 self.failure = True
                 raise
@@ -75,7 +76,7 @@ class UserTest(TestCase):
     @skipIfTrue("failure")
     def test_03_login(self):
         try:
-            user_from_id = RegisteredUser(user_id=self.user.user_id)
+            user_from_id = RegisteredUser(user_id=self.__class__.user.user_id)
             user_from_login = RegisteredUser(email=self.email,
                                              password=self.password)
         except Exception as e:
@@ -83,8 +84,8 @@ class UserTest(TestCase):
             self.fail(str(e))
         else:
             try:
-                self.assertEqual(self.user, user_from_id)
-                self.assertEqual(self.user, user_from_login)
+                self.assertEqual(self.__class__.user, user_from_id)
+                self.assertEqual(self.__class__.user, user_from_login)
             except AssertionError:
                 self.failure = True
                 raise
@@ -95,14 +96,17 @@ class UserTest(TestCase):
     @skipIfTrue("failure")
     def test_04_process_confirm(self):
         try:
-            RegisteredUser.process_confirm(self.email, self.confirmation_id)
+            RegisteredUser.process_confirm(
+                self.email, self.__class__.confirmation_id)
         except Exception as e:
             self.failure = True
             self.fail(str(e))
         else:
             try:
-                confirmed_user = RegisteredUser(user_id=self.user.user_id)
-                self.assertIsInstance(confirmed_user.confirmed_timestamp, datetime)
+                confirmed_user = RegisteredUser(
+                    user_id=self.__class__.user.user_id)
+                self.assertIsInstance(
+                    confirmed_user.confirmed_timestamp, datetime)
             except AssertionError:
                 self.failure = True
                 raise
@@ -110,7 +114,7 @@ class UserTest(TestCase):
                 self.failure = True
                 self.fail(str(e))
             else:
-                self.user = confirmed_user
+                self.__class__.user = confirmed_user
 
     @skipIfTrue("failure")
     def test_05_remember_user(self):
@@ -125,7 +129,7 @@ class UserTest(TestCase):
                 user = RegisteredUser(
                     remember_id=user_with_remember.remember_id,
                     remember_token=user_with_remember.remember_token)
-                self.assertEqual(user, self.user)
+                self.assertEqual(user, self.__class__.user)
             except AssertionError:
                 self.failure = True
                 raise
@@ -139,21 +143,24 @@ class UserTest(TestCase):
         new_user_name = "Ben Solo"
         new_password = "hansolo123"
         try:
-            RegisteredUser.update(self.user.user_id,
+            RegisteredUser.update(self.__class__.user.user_id,
                                   new_user_name=new_user_name)
-            RegisteredUser.update(self.user.user_id, new_email=new_email)
-            RegisteredUser.update(self.user.user_id, new_password=new_password)
+            RegisteredUser.update(self.__class__.user.user_id,
+                                  new_email=new_email)
+            RegisteredUser.update(self.__class__.user.user_id,
+                                  new_password=new_password)
         except Exception as e:
             self.failure = True
             self.fail(str(e))
         else:
             try:
-                self.user = RegisteredUser(user_id=self.user.user_id)
-                self.assertEqual(self.user.email, new_email)
-                self.assertEqual(self.user.user_name, new_user_name)
+                self.__class__.user = RegisteredUser(
+                    user_id=self.__class__.user.user_id)
+                self.assertEqual(self.__class__.user.email, new_email)
+                self.assertEqual(self.__class__.user.user_name, new_user_name)
                 user_logged_in = RegisteredUser(email=new_email,
                                                 password=new_password)
-                self.assertEqual(user_logged_in, self.user)
+                self.assertEqual(user_logged_in, self.__class__.user)
             except AssertionError:
                 self.failure = True
                 raise
@@ -164,22 +171,24 @@ class UserTest(TestCase):
     @skipIfTrue("failure")
     def test_07_json_ready(self):
         try:
-            json_ready_dict = self.user.json_ready
+            json_ready_dict = self.__class__.user.json_ready
         except Exception as e:
             self.failure = True
             self.fail(str(e))
         else:
             try:
-                self.assertEqual(json_ready_dict["user_id"], self.user.user_id)
+                self.assertEqual(json_ready_dict["user_id"],
+                                 self.__class__.user.user_id)
                 self.assertEqual(json_ready_dict["user_name"],
-                                 self.user.user_name)
+                                 self.__class__.user.user_name)
                 self.assertEqual(json_ready_dict["user_type"],
-                                 self.user.user_type)
-                self.assertEqual(json_ready_dict["email"], self.user.email)
+                                 self.__class__.user.user_type)
+                self.assertEqual(json_ready_dict["email"],
+                                 self.__class__.user.email)
                 self.assertEqual(json_ready_dict["timestamp"],
-                                 self.user.timestamp)
+                                 self.__class__.user.timestamp)
                 self.assertEqual(json_ready_dict["deleted_timestamp"],
-                                 self.user.deleted_timestamp)
+                                 self.__class__.user.deleted_timestamp)
             except AssertionError:
                 self.failure = True
                 raise
@@ -190,13 +199,13 @@ class UserTest(TestCase):
     @skipIfTrue("failure")
     def test_08_delete(self):
         try:
-            RegisteredUser.delete(self.user.user_id)
+            RegisteredUser.delete(self.__class__.user.user_id)
         except Exception as e:
             self.failure = True
             self.fail(str(e))
         else:
             try:
-                deleted_user = RegisteredUser(user_id=self.user.user_id)
+                deleted_user = RegisteredUser(user_id=self.__class__.user.user_id)
                 self.assertIsInstance(deleted_user.deleted_timestamp, datetime)
             except AssertionError:
                 self.failure = True
