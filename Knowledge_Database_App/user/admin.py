@@ -33,7 +33,7 @@ class Admin(RegisteredUser):
     @classmethod
     def promote(cls, user_id):
         try:
-            self.storage_handler.call(action.change_user_type,
+            cls.storage_handler.call(action.change_user_type,
                                       user_id, "admin")
         except:
             raise

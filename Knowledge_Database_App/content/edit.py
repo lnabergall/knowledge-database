@@ -207,7 +207,7 @@ class Edit:
                 config.SMALL_PART_MIN_CHARS >
                 len(edit_text) - edit_text.count(" "))):
             raise ContentError("Keyword out of allowed character count range!")
-        elif content_part == "content_type" not in self.content_type_choices:
+        elif content_part == "content_type" not in content_type_choices:
             raise ContentError("Content type not recognized!")
 
     def _retrieve_from_storage(self, edit_id=None, redis_edit_id=None):

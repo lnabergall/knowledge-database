@@ -240,7 +240,7 @@ class RegisteredUser:
     def process_confirm(cls, email, confirmation_id):
         try:
             confirmation_dict = redis_api.get_confirm_info(email)
-            user_id = self.storage_handler.call(
+            user_id = cls.storage_handler.call(
                 select.get_user, email=email).user_id
         except:
             raise
@@ -278,25 +278,25 @@ class RegisteredUser:
         """
         if new_user_name is not None:
             try:
-                self.storage_handler.call(action.update_user, user_id,
-                                          new_user_name=new_user_name)
+                cls.storage_handler.call(action.update_user, user_id,
+                                         new_user_name=new_user_name)
             except:
                 raise
         elif new_email is not None:
             try:
-                self.storage_handler.call(action.update_user, user_id,
-                                          new_email=new_email)
+                cls.storage_handler.call(action.update_user, user_id,
+                                         new_email=new_email)
             except:
                 raise
         elif new_password is not None:
             try:
-                self.storage_handler.call(action.update_user, user_id,
-                                          new_password=new_password)
+                cls.storage_handler.call(action.update_user, user_id,
+                                         new_password=new_password)
             except:
                 raise
         elif confirmed_timestamp is not None:
             try:
-                self.storage_handler.call(action.update_user, user_id,
+                cls.storage_handler.call(action.update_user, user_id,
                     confirmed_timestamp=confirmed_timestamp)
             except:
                 raise
@@ -306,10 +306,9 @@ class RegisteredUser:
     @classmethod
     def delete(cls, user_id):
         deleted_timestamp = datetime.utcnow()
-        storage_handler = orm.StorageHandler()
         try:
-            storage_handler.call(action.delete_user, user_id,
-                                 deleted_timestamp)
+            cls.storage_handler.call(action.delete_user, user_id,
+                                     deleted_timestamp)
         except:
             raise
 
