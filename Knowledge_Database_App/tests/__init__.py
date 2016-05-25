@@ -6,7 +6,7 @@ Unit test suite-wide functions and classes.
 def skipIfTrue(flag):
     def deco(f):
         def wrapper(self, *args, **kwargs):
-            if getattr(self, flag):
+            if getattr(self.__class__, flag):
                 self.skipTest("Necessary previous test failed!")
             else:
                 f(self, *args, **kwargs)
