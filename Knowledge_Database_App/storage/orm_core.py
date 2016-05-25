@@ -22,7 +22,7 @@ Classes:
 from sqlalchemy import (create_engine, Column, Integer, BigInteger,
                         DateTime, ForeignKey, Table, UniqueConstraint)
 from sqlalchemy import Text as Text_
-from sqlalchemy.orm import sessionmaker, relationship, backref
+from sqlalchemy.orm import sessionmaker, scoped_session, relationship, backref
 from sqlalchemy.orm.query import Query as _Query
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -39,7 +39,7 @@ def _create_schema():
 
 def start_session():
     engine = create_engine(KDB_url, echo=False)
-    return sessionmaker(bind=engine, query_cls=Query)()
+    return scoped_session(sessionmaker(bind=engine, query_cls=Query))()
 
 
 class Query(_Query):
