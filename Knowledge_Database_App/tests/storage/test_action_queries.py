@@ -152,7 +152,7 @@ class ActionQueryTest(TestCase, StorageTest):
             self.assertIn(self.test_data["citations"][0].citation_text,
                           [citation.citation_text for citation in citations])
 
-    def remove_content_part(self):
+    def test_remove_content_part(self):
         try:
             self.call(action.remove_content_part, self.test_data["content_id"],
                       self.test_data["keyword_id"], "keyword")
