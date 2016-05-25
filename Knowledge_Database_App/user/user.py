@@ -100,7 +100,7 @@ class RegisteredUser:
                         "Email address does not match any user!")
                 else:
                     authenticated = pass_handler.verify(
-                        password, user_object.pash_hash)
+                        password, user_object.pass_hash)
                     if authenticated:
                         self._transfer(user_object)
                         if remember_user:
