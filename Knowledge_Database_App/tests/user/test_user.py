@@ -24,15 +24,13 @@ class UserTest(TestCase):
         cls.user_name = "Kylo Ren"
         cls.email = "kyloren121323@gmail.com"
         cls.password = "darthvader123"
-        cls.failure = False
-        cls.stored = False
 
     @classmethod
     def tearDownClass(cls):
         if cls.stored:
             delete_user(cls.user.user_id, permanently=True)
 
-    @skipIf(failure == True, "Previous test failed!")
+    @skipIf(failure, "Previous test failed!")
     def test_01_create(self):
         try:
             self.__class__.user = RegisteredUser(
@@ -60,7 +58,7 @@ class UserTest(TestCase):
                 self.__class__.failure = True
                 self.fail(str(e))
 
-    @skipIf(failure == True, "Previous test failed!")
+    @skipIf(failure, "Previous test failed!")
     def test_02_register(self):
         self.__class__.failure = True
         try:
@@ -80,7 +78,7 @@ class UserTest(TestCase):
             else:
                 self.__class__.stored = True
 
-    @skipIf(failure == True, "Previous test failed!")
+    @skipIf(failure, "Previous test failed!")
     def test_03_login(self):
         try:
             user_from_id = RegisteredUser(user_id=self.__class__.user.user_id)
@@ -100,7 +98,7 @@ class UserTest(TestCase):
                 self.__class__.failure = True
                 self.fail(str(e))
 
-    @skipIf(failure == True, "Previous test failed!")
+    @skipIf(failure, "Previous test failed!")
     def test_04_process_confirm(self):
         try:
             RegisteredUser.process_confirm(
@@ -123,7 +121,7 @@ class UserTest(TestCase):
             else:
                 self.__class__.user = confirmed_user
 
-    @skipIf(failure == True, "Previous test failed!")
+    @skipIf(failure, "Previous test failed!")
     def test_05_remember_user(self):
         try:
             user_with_remember = RegisteredUser(email=self.__class__.email, 
@@ -144,7 +142,7 @@ class UserTest(TestCase):
                 self.__class__.failure = True
                 self.fail(str(e))
 
-    @skipIf(failure == True, "Previous test failed!")
+    @skipIf(failure, "Previous test failed!")
     def test_06_update(self):
         new_email = "bensolo121323@gmail.com"
         new_user_name = "Ben Solo"
@@ -175,7 +173,7 @@ class UserTest(TestCase):
                 self.__class__.failure = True
                 self.fail(str(e))
 
-    @skipIf(failure == True, "Previous test failed!")
+    @skipIf(failure, "Previous test failed!")
     def test_07_json_ready(self):
         try:
             json_ready_dict = self.__class__.user.json_ready
@@ -203,7 +201,7 @@ class UserTest(TestCase):
                 self.__class__.failure = True
                 self.fail(str(e))
 
-    @skipIf(failure == True, "Previous test failed!")
+    @skipIf(failure, "Previous test failed!")
     def test_08_delete(self):
         try:
             RegisteredUser.delete(self.__class__.user.user_id)
