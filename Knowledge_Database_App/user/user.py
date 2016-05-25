@@ -277,21 +277,25 @@ class RegisteredUser:
             confirmed_timestamp: Datetime. Defaults to None.
         """
         if new_user_name is not None:
+            new_user_name = new_user_name.strip()
             try:
                 cls.storage_handler.call(action.update_user, user_id,
                                          new_user_name=new_user_name)
             except:
                 raise
         elif new_email is not None:
+            new_email = new_email.strip()
             try:
                 cls.storage_handler.call(action.update_user, user_id,
                                          new_email=new_email)
             except:
                 raise
         elif new_password is not None:
+            new_password = new_password.strip()
+            new_pass_hash = pass_handler.encrypt(new_password)
             try:
                 cls.storage_handler.call(action.update_user, user_id,
-                                         new_password=new_password)
+                                         new_pass_hash=new_pass_hash)
             except:
                 raise
         elif confirmed_timestamp is not None:
