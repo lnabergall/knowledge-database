@@ -293,9 +293,13 @@ class RegisteredUser:
         elif new_password is not None:
             new_password = new_password.strip()
             new_pass_hash = pass_handler.encrypt(new_password)
+            new_pass_hash_type = "sha512_crypt"
+            new_pass_salt = ""
             try:
                 cls.storage_handler.call(action.update_user, user_id,
-                                         new_pass_hash=new_pass_hash)
+                    new_pass_hash=new_pass_hash,
+                    new_pass_hash_type=new_pass_hash_type,
+                    new_pass_salt=new_pass_salt)
             except:
                 raise
         elif confirmed_timestamp is not None:
