@@ -19,4 +19,4 @@ class StorageTest(StorageHandler):
 
     def teardown(self):
         self.session.rollback()
-        self.close()
+        self._close()
