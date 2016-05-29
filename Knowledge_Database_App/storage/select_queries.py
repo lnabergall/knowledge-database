@@ -361,7 +361,7 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
         else:
             return accepted_edit
     else:
-        InputError("No arguments!")
+        raise InputError("No arguments!")
 
     return accepted_edits
 
