@@ -251,7 +251,8 @@ class ContentPieceCitation(Base):
                         primary_key=True)
     edited_citation_id = Column(Integer, ForeignKey("Citation.citation_id"),
                                 primary_key=True)
-    piece = relationship("ContentPiece", backref="piece_citations")
+    piece = relationship("ContentPiece", backref="piece_citations",
+                         foreign_keys=[content_id])
     citation = relationship("Citation", backref="citation_content_pieces",
                             foreign_keys=[citation_id])
     edited_citation = relationship("Citation", backref="editing_citations",
