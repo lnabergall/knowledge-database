@@ -25,7 +25,7 @@ from sqlalchemy import Text as Text_
 from sqlalchemy.orm import sessionmaker, scoped_session, relationship, backref
 from sqlalchemy.orm.query import Query as _Query
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.associationproxy import association_proxy as _association_proxy
 
 
 KDB_url = "postgresql+psycopg2://postgres:Cetera4247@localhost/kdb_develop"
@@ -60,6 +60,14 @@ class Query(_Query):
             return [x for (x,) in self.all()]
         except ValueError as e:
             raise MultipleValuesFound(str(e))
+
+
+def association_proxy(src, target):
+    def create(value):
+        target_cls = prox.target_class
+        return target_cls(**{target: value})
+    prox = _association_proxy(src, target, creator=create)
+    return prox
 
 
 class ActionError(Exception):
@@ -245,12 +253,13 @@ class Keyword(Base):
 class ContentPieceCitation(Base):
     __tablename__ = "Content_Citation_Association"
 
+    id = Column(Integer, primary_key=True)
     citation_id = Column(Integer, ForeignKey("Citation.citation_id"),
-                         primary_key=True)
+                         index=True)
     content_id = Column(Integer, ForeignKey("Content_Piece.content_id"),
-                        primary_key=True)
-    edited_citation_id = Column(Integer, ForeignKey("Citation.citation_id"),
-                                primary_key=True)
+                        index=True)
+    edited_citation_id = Column(Integer, ForeignKey("Citation.citation_id"), 
+                                index=True)
     piece = relationship("ContentPiece", backref="piece_citations",
                          foreign_keys=[content_id])
     citation = relationship("Citation", backref="citation_content_pieces",
