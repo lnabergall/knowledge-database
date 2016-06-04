@@ -215,7 +215,7 @@ class ContentType(Base):
     content_type = Column(Text_, unique=True)
 
     def __repr__(self):
-        return "<ContentType(type={})>".format(self.type)
+        return "<ContentType(type={})>".format(self.content_type)
 
 
 # Many-to-Many relationship between Keyword and ContentPiece
