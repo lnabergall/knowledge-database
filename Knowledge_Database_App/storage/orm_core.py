@@ -61,6 +61,16 @@ class Query(_Query):
         except ValueError as e:
             raise MultipleValuesFound(str(e))
 
+    def first(self):
+        """
+        Modified to return a Python scalar object.
+        """
+        result = super().first()
+        try:
+            return result[0]
+        except TypeError:
+            return result
+
 
 def association_proxy(src, target):
     def create(value):
