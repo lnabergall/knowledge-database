@@ -99,14 +99,13 @@ class StorageHandler:
     def call(self, function, *args, **kwargs):
         try:
             output = function(*args, session=self.session, **kwargs)
+            self.session.commit()
         except (NameError, ValueError, TypeError) as e:
             self.session.rollback()
             raise RuntimeError(str(e))
         except:
             self.session.rollback()
             raise
-        else:
-            self.session.commit()
 
         return output
 
