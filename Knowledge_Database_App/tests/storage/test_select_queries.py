@@ -15,6 +15,10 @@ from . import StorageTest
 
 class SelectQueryTest(TestCase, StorageTest):
 
+    def __init__(self, *args, **kwargs):
+        TestCase.__init__(self, *args, **kwargs)
+        StorageTest.__init__(self)
+
     def setUp(self):
         self.setup()
 
@@ -50,26 +54,26 @@ class SelectQueryTest(TestCase, StorageTest):
             }
 
     def test_get_content_piece(self):
-        id_tuple = self.session.query(orm.ContentPiece.content_id).first()
-        if not id_tuple:
+        id_ = self.session.query(orm.ContentPiece.content_id).first()
+        if not id_:
             return
         else:
             try:
-                content_piece = self.call(select.get_content_piece, id_tuple[0])
+                content_piece = self.call(select.get_content_piece, id_)
             except Exception as e:
                 self.fail(str(e))
             else:
                 self.assertIsInstance(content_piece, orm.ContentPiece)
-                self.assertEquals(content_piece.content_id, id_tuple[0])
+                self.assertEqual(content_piece.content_id, id_)
 
     def test_get_alternate_names(self):
-        id_tuple = self.session.query(orm.ContentPiece.content_id).first()
-        if not id_tuple:
+        id_ = self.session.query(orm.ContentPiece.content_id).first()
+        if not id_:
             return
         else:
             try:
                 alternate_names = self.call(
-                    select.get_alternate_names, id_tuple[0])
+                    select.get_alternate_names, id_)
             except Exception as e:
                 self.fail(str(e))
             else:
@@ -193,12 +197,12 @@ class SelectQueryTest(TestCase, StorageTest):
                         self.assertIsInstance(results[i][-1], orm.RejectedEdit)
 
     def test_user_votes(self):
-        id_tuple = self.session.query(orm.User.user_id).first()
-        if not id_tuple:
+        id_ = self.session.query(orm.User.user_id).first()
+        if not id_:
             return
         else:
             try:
-                votes = self.call(select.get_user_votes, id_tuple[0])
+                votes = self.call(select.get_user_votes, id_)
             except Exception as e:
                 self.fail(str(e))
             else:
@@ -272,17 +276,12 @@ class SelectQueryTest(TestCase, StorageTest):
             else:
                 self.assertIsInstance(info_with_email, tuple)
                 self.assertIsInstance(info_with_id, tuple)
-
-                self.assertIsInstance(info_with_email[0],
-                    orm.User.pass_hash_type)
-                self.assertIsInstance(info_with_email[1], orm.User.pass_salt)
-                self.assertIsInstance(info_with_email[2],
-                    orm.User.remember_hash_type)
-
-                self.assertIsInstance(info_with_id[0], orm.User.pass_hash_type)
-                self.assertIsInstance(info_with_id[1], orm.User.pass_salt)
-                self.assertIsInstance(info_with_id[2],
-                    orm.User.remember_hash_type)
+                self.assertIsInstance(info_with_email[0], (str, type(None)))
+                self.assertIsInstance(info_with_email[1], (str, type(None)))
+                self.assertIsInstance(info_with_email[2], (str, type(None)))
+                self.assertIsInstance(info_with_id[0], (str, type(None)))
+                self.assertIsInstance(info_with_id[1], (str, type(None)))
+                self.assertIsInstance(info_with_id[2], (str, type(None)))
 
     def test_get_user(self):
         parameters = self.session.query(orm.User.user_id, orm.User.email,

@@ -67,8 +67,9 @@ class Query(_Query):
         """
         result = super().first()
         try:
-            return result[0]
-        except TypeError:
+            if len(result) == 1:
+                return result[0]
+        except:
             return result
 
 
@@ -99,9 +100,13 @@ class StorageHandler:
         try:
             output = function(*args, session=self.session, **kwargs)
         except (NameError, ValueError, TypeError) as e:
+            self.session.rollback()
             raise RuntimeError(str(e))
         except:
+            self.session.rollback()
             raise
+        else:
+            self.session.commit()
 
         return output
 
@@ -113,6 +118,7 @@ class StorageHandler:
 content_authors = Table("content_authors", Base.metadata,
     Column("content_id", Integer, ForeignKey("Content_Piece.content_id")),
     Column("user_id", Integer, ForeignKey("User.user_id")),
+    UniqueConstraint("content_id", "user_id")
 )
 
 
@@ -378,6 +384,7 @@ class AcceptedEdit(Base):
 user_votes = Table("user_votes", Base.metadata,
     Column("vote_id", Integer, ForeignKey("Vote.vote_id")),
     Column("user_id", Integer, ForeignKey("User.user_id")),
+    UniqueConstraint("vote_id", "user_id")
 )
 
 

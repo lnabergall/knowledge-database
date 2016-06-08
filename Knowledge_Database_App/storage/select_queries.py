@@ -71,8 +71,7 @@ def get_content_piece(content_id, session=None):
             subqueryload(orm.ContentPiece.name),
             subqueryload(orm.ContentPiece.alternate_names),
             subqueryload(orm.ContentPiece.text),
-            subqueryload(orm.ContentPiece.keywords),
-            subqueryload(orm.ContentPiece.citations)).filter(
+            subqueryload(orm.ContentPiece.keywords)).filter(
             orm.ContentPiece.content_id == content_id).one()
     except (NoResultFound, MultipleResultsFound) as e:
         raise SelectError(str(e))
@@ -141,7 +140,8 @@ def get_alternate_names(content_id, session=None):
     """
     if session is None:
         session = orm.start_session()
-    alternate_names = session.query(orm.ContentPiece.alternate_names).filter(
+    alternate_names = session.query(orm.Name).join(
+        orm.ContentPiece, orm.Name.piece).filter(
         orm.ContentPiece.content_id == content_id).all()
     return alternate_names
 
@@ -473,7 +473,7 @@ def get_user_votes(user_id, session=None):
     """
     if session is None:
         session = orm.start_session()
-    votes = session.query(orm.Vote).join(orm.User).filter(
+    votes = session.query(orm.Vote).join(orm.User, orm.Vote.voters).filter(
         orm.User.user_id == user_id).all()
     return votes
 
