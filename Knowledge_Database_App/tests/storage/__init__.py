@@ -15,8 +15,7 @@ class StorageTest(StorageHandler):
     def call(self, function, *args, **kwargs):
         if function.__name__ in dir(action_queries):
             self.session.begin_nested()
-        return super().call(self, function, *args, **kwargs)
+        return super().call(function, *args, **kwargs)
 
     def teardown(self):
         self.session.rollback()
-        self._close()
