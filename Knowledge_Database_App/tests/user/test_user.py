@@ -60,7 +60,6 @@ class UserTest(TestCase):
 
     @skipIf(failure, "Previous test failed!")
     def test_02_register(self):
-        self.__class__.failure = True
         try:
             self.__class__.confirmation_id = self.__class__.user.register()
         except Exception as e:
