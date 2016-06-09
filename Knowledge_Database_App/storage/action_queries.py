@@ -34,6 +34,10 @@ class MissingDataError(Exception):
     """Exception raised when a query unexpectedly returns no results."""
 
 
+class UniquenessViolationError(Exception):
+    """Exception raised when a query violates a unique constraint."""
+
+
 def store_content_piece(user_id, name, text, content_type, keywords, timestamp,
                         citations=None, alternate_names=None, session=None):
     """
@@ -94,6 +98,7 @@ def delete_content_piece(content_id, deleted_timestamp, session=None):
             orm.ContentPiece.content_id == content_id).update(
             {orm.ContentPiece.deleted_timestamp: deleted_timestamp},
             synchronize_session=False)
+        session.flush()
     except Exception as e:
         raise ActionError(str(e))
 
@@ -112,6 +117,7 @@ def update_content_type(content_id, content_type, session=None):
             session = orm.start_session()
         content_piece = get_content_piece(content_id, session=session)
         content_piece.content_type = content_type
+        session.flush()
     except Exception as e:
         raise ActionError(str(e))
 
@@ -142,6 +148,7 @@ def store_content_part(content_part, content_id,
             content_piece.citations.append(content_part)
         else:
             raise InputError("Invalid argument!")
+        session.flush()
     except Exception as e:
         raise ActionError(str(e))
 
@@ -176,6 +183,7 @@ def remove_content_part(content_id, part_id, content_part, session=None):
                 synchronize_session=False)
         else:
             raise InputError("Invalid argument!")
+        session.flush()
     except (NoResultFound, StaleDataError, ObjectDeletedError) as e:
         raise MissingDataError(str(e))
     except Exception as e:
@@ -204,6 +212,7 @@ def update_content_part(part_id, content_part, part_text, session=None):
                 {orm.Text.text: part_text}, synchronize_session=False)
         else:
             raise InputError("Invalid argument!")
+        session.flush()
     except Exception as e:
         raise ActionError(str(e))
 
@@ -402,6 +411,11 @@ def store_new_user(user_type, user_name, email, pass_hash,
                         timestamp=timestamp)
         session.add(user)
         session.flush()
+    except IntegrityError as e:
+        if e.orig.pgcode == UNIQUE_CONSTRAINT_VIOLATION:
+            raise UniquenessViolationError(str(e))
+        else:
+            raise
     except Exception as e:
         raise ActionError(str(e))
     else:
@@ -459,6 +473,7 @@ def update_user(user_id, new_user_name=None, new_email=None,
                 synchronize_session=False)
         else:
             raise InputError("Invalid arguments!")
+        session.flush()
     except Exception as e:
         raise ActionError(str(e))
 
@@ -477,6 +492,7 @@ def change_user_type(user_id, user_type, session=None):
             session = orm.start_session()
         session.query(orm.User).filter(orm.User.user_id == user_id).update(
             {orm.User.user_type: user_type}, synchronize_session=False)
+        session.flush()
     except Exception as e:
         raise ActionError(str(e))
 
@@ -501,6 +517,7 @@ def delete_user(user_id, deleted_timestamp=None, permanently=False, session=None
             session.query(orm.User).filter(orm.User.user_id == user_id).update(
                 {orm.User.deleted_timestamp: deleted_timestamp},
                 synchronize_session=False)
+        session.flush()
     except Exception as e:
         raise ActionError(str(e))
 
