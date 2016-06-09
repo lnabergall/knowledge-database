@@ -759,7 +759,7 @@ def get_admin_ids(session=None):
     if session is None:
         session = orm.start_session()
     admin_ids = session.query(orm.User.user_id).filter(
-        orm.User.user_type == "admin").all()
+        orm.User.user_type == "admin").values()
     return admin_ids
 
 
