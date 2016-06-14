@@ -27,13 +27,18 @@ class MissingKeyError(Exception):
     """Exception to raise when a key is missing."""
 
 
-redis = StrictRedis()
+redis = StrictRedis(decode_responses=True)
 
 
 def _setup_id_base():
     # Only call once.
     redis.setnx("next_edit_id", 1)
     redis.setnx("next_report_id", 1)
+
+
+def _reset_db():
+    redis.flushdb()
+    _setup_id_base()
 
 
 def store_edit(content_id, edit_text, edit_rationale, content_part, part_id,
@@ -59,7 +64,7 @@ def store_edit(content_id, edit_text, edit_rationale, content_part, part_id,
         while True:
             try:
                 pipe.watch("next_edit_id")
-                edit_id = pipe.get("next_edit_id")
+                edit_id = int(pipe.get("next_edit_id"))
                 next_edit_id = edit_id + 1
                 pipe.multi()
                 pipe.set("next_edit_id", next_edit_id).execute()
@@ -162,7 +167,7 @@ def store_report(content_id, report_text, report_type, admin_id,
         while True:
             try:
                 pipe.watch("next_report_id")
-                report_id = pipe.get("next_report_id")
+                report_id = int(pipe.get("next_report_id"))
                 next_report_id = report_id + 1
                 pipe.multi()
                 pipe.set("next_report_id", next_report_id).execute()
@@ -172,7 +177,6 @@ def store_report(content_id, report_text, report_type, admin_id,
                 raise
             else:
                 break
-
         # Now store the report with the report id
         if author_id is not None:
             pipe.lpush("user_reports:" + str(author_id), report_id)
@@ -241,7 +245,7 @@ def get_admin_assignments(admin_ids):
         if len(admin_ids) != len(admin_assignments):
             raise RuntimeError      # If this raises on testing will need to recode
 
-    return {admin_ids[i]: admin_assignments[i] for i in range(admin_ids)}
+    return {admin_ids[i]: admin_assignments[i] for i in range(len(admin_ids))}
 
 
 def delete_report(report_id):
@@ -255,7 +259,7 @@ def delete_report(report_id):
         if report_dict["author_type"] == "U":
             pipe.lrem("user_reports:" + str(user_id), 0, report_id)
         pipe.lrem("admin_reports:" + str(admin_id), 0, report_id)
-        pipe.delete("report:" + str(report))
+        pipe.delete("report:" + str(report_id))
 
 
 def get_edits(content_id=None, content_ids=None, user_id=None, voter_id=None,

@@ -10,7 +10,7 @@ Classes:
 
     RegisteredUser
 """
-
+from time import sleep
 import re
 from random import SystemRandom
 from datetime import datetime, timedelta
@@ -141,15 +141,9 @@ class RegisteredUser:
                 self.remember_id = SystemRandom().getrandbits(48)
 
     def __eq__(self, other):
-        return self.user_id == other.user_id or (self.email == other.email and
-                self.pass_hash == other.pass_hash and
-                self.pass_hash_type == other.pass_hash_type and
-                self.user_name == other.user_name and
-                self.timestamp == other.timestamp and
-                self.remember_id == other.remember_id and
-                self.user_type == other.user_type and
-                self.remember_token_hash == other.remember_token_hash and
-                self.remember_hash_type == other.remember_hash_type)
+        return (self.user_id == other.user_id or 
+            self.email == other.email or 
+            self.remember_id == other.remember_id)
 
     @staticmethod
     def _check_legal(email, password, user_name):
@@ -166,11 +160,13 @@ class RegisteredUser:
         self.user_name = stored_user_object.user_name
         self.email = stored_user_object.email
         self.confirmed_timestamp = stored_user_object.confirmed_timestamp
+        self.pass_hash = stored_user_object.pass_hash
         self.pass_hash_type = stored_user_object.pass_hash_type
+        self.remember_id = stored_user_object.remember_id
+        self.remember_token_hash = stored_user_object.remember_token_hash
         self.remember_hash_type = stored_user_object.remember_hash_type
         self.timestamp = stored_user_object.timestamp
         self.deleted_timestamp = stored_user_object.deleted_timestamp
-        self.remember_id = stored_user_object.remember_id
 
     def register(self):
         self.store()

@@ -10,13 +10,13 @@ from unittest import TestCase
 
 import Knowledge_Database_App.storage.select_queries as select
 import Knowledge_Database_App.storage.orm_core as orm
-from . import StorageTest
+from . import StorageTest, PostgresTest
 
 
-class SelectQueryTest(TestCase, StorageTest):
+class SelectQueryTest(PostgresTest, StorageTest):
 
     def __init__(self, *args, **kwargs):
-        TestCase.__init__(self, *args, **kwargs)
+        PostgresTest.__init__(self, *args, **kwargs)
         StorageTest.__init__(self)
 
     def setUp(self):

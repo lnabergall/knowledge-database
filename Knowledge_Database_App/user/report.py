@@ -86,7 +86,7 @@ class Report:
         return self.report_id == other.report_id or (
                 self.content_id == other.content_id and
                 self.report_text == other.report_text and
-                self.report_type == other.report_text and
+                self.report_type == other.report_type and
                 self.author_type == other.author_type and
                 self.author_id == other.author_id and
                 self.admin_report == other.admin_report and
@@ -100,14 +100,16 @@ class Report:
 
     def _transfer(self, report_object):
         if self.report_status == "open":
-            self.report_id = report_object["report_id"]
-            self.content_id = report_object["content_id"]
-            self.report_text = report_object["report_text"]
-            self.report_type = report_object["report_type"]
-            self.admin_id = report_object["admin_id"]
-            self.author_type = report_object["author_type"]
-            self.author_id = report_object.get("author_id", default=None)
-            self.timestamp = report_object["timestamp"]
+            self.report_id = int(report_object.get("report_id"))
+            self.content_id = int(report_object.get("content_id"))
+            self.report_text = report_object.get("report_text")
+            self.report_type = report_object.get("report_type")
+            self.admin_id = int(report_object.get("admin_id"))
+            self.author_type = report_object.get("author_type")
+            self.author_id = report_object.get("author_id")
+            if self.author_id:
+                self.author_id = int(self.author_id)
+            self.timestamp = dateparse.parse(report_object.get("timestamp"))
         elif self.report_status == "resolved":
             self.report_id = report_object.report_id
             self.report_text = report_object.report_text
@@ -139,7 +141,7 @@ class Report:
                 if report_status == "open":
                     report_objects = redis_api.get_reports(user_id=user_id)
                 elif report_status == "resolved":
-                    report_objects = self.storage_handler.call(
+                    report_objects = cls.storage_handler.call(
                         select.get_user_reports, user_id=user_id)
             except:
                 raise
@@ -148,7 +150,7 @@ class Report:
                 if report_status == "open":
                     report_objects = redis_api.get_reports(admin_id=admin_id)
                 elif report_status == "resolved":
-                    report_objects = self.storage_handler.call(
+                    report_objects = cls.storage_handler.call(
                         select.get_user_reports, admin_id=admin_id)
             except:
                 raise
@@ -157,7 +159,7 @@ class Report:
                 if report_status == "open":
                     report_objects = redis_api.get_reports(content_id=content_id)
                 elif report_status == "resolved":
-                    report_objects = self.storage_handler.call(
+                    report_objects = cls.storage_handler.call(
                         select.get_user_reports, content_id=content_id)
             except:
                 raise
@@ -166,13 +168,12 @@ class Report:
                 if report_status == "open":
                     raise NotImplementedError
                 elif report_status == "resolved":
-                    report_objects = self.storage_handler.call(
+                    report_objects = cls.storage_handler.call(
                         select.get_user_reports, ip_address=ip_address)
             except:
                 raise
         else:
             raise select.InputError("Missing argument!")
-
         if page_num != 0:
             reports = [Report(report_status=report_status,
                               report_object=report_object)
@@ -199,9 +200,9 @@ class Report:
             for admin_id in admin_assignments:
                 reports_assigned = len(admin_assignments[admin_id])
                 admin_ids = assignment_counts.get(reports_assigned, [])
-                admin_ids.append(admin_ids)
+                admin_ids.append(admin_id)
                 assignment_counts[reports_assigned] = admin_ids
-            counts = assignment_counts.keys()
+            counts = list(assignment_counts.keys())
             counts.sort()
             self.admin_id = choice(assignment_counts[counts[0]])
 
@@ -227,7 +228,7 @@ class Report:
             report_id = self.storage_handler.call(action.store_user_report,
                 self.content_id, self.report_text, self.report_type, 
                 self.admin_report, self.timestamp, self.res_timestamp, 
-                self.admin_id, self.author_type, user_id=self.user_id)
+                self.admin_id, self.author_type, user_id=self.author_id)
             redis_api.delete_report(self.report_id)
         except:
             raise

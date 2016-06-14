@@ -15,7 +15,7 @@ class Admin(RegisteredUser):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if kwargs["user_name"] is not None:
+        if kwargs.get("user_name") is not None:
             self.user_type = "admin"
         else:
             if self.user_type != "admin":
@@ -34,7 +34,7 @@ class Admin(RegisteredUser):
     def promote(cls, user_id):
         try:
             cls.storage_handler.call(action.change_user_type,
-                                      user_id, "admin")
+                                     user_id, "admin")
         except:
             raise
 

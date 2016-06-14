@@ -11,24 +11,27 @@ from datetime import datetime
 from unittest import TestCase, skipIf
 
 from Knowledge_Database_App.tests import skipIfTrue
+from Knowledge_Database_App.tests.storage import PostgresTest
+from Knowledge_Database_App.tests.content.test_redis import RedisTest
 from Knowledge_Database_App.storage.action_queries import delete_user
 from Knowledge_Database_App.user.user import RegisteredUser
 
 
-class UserTest(TestCase):
+class UserTest(PostgresTest, RedisTest):
     failure = False
-    stored = False
 
     @classmethod
     def setUpClass(cls):
+        PostgresTest.setUpClass.__func__(cls)
+        RedisTest.setUpClass.__func__(cls)
         cls.user_name = "Kylo Ren"
         cls.email = "kyloren121323@gmail.com"
         cls.password = "darthvader123"
 
     @classmethod
     def tearDownClass(cls):
-        if cls.stored:
-            delete_user(cls.user.user_id, permanently=True)
+        PostgresTest.tearDownClass.__func__(cls)
+        RedisTest.tearDownClass.__func__(cls)
 
     @skipIf(failure, "Previous test failed!")
     def test_01_create(self):
@@ -74,8 +77,6 @@ class UserTest(TestCase):
             except Exception as e:
                 self.__class__.failure = True
                 self.fail(str(e))
-            else:
-                self.__class__.stored = True
 
     @skipIf(failure, "Previous test failed!")
     def test_03_login(self):

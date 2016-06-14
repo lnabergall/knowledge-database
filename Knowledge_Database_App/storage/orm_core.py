@@ -22,24 +22,13 @@ Classes:
 from sqlalchemy import (create_engine, Column, Integer, BigInteger,
                         DateTime, ForeignKey, Table, UniqueConstraint)
 from sqlalchemy import Text as Text_
+from sqlalchemy.engine import reflection
+from sqlalchemy.schema import (MetaData, Table, DropTable, 
+                               ForeignKeyConstraint, DropConstraint)
 from sqlalchemy.orm import sessionmaker, scoped_session, relationship, backref
 from sqlalchemy.orm.query import Query as _Query
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.associationproxy import association_proxy as _association_proxy
-
-
-KDB_url = "postgresql+psycopg2://postgres:Cetera4247@localhost/kdb_develop"
-Base = declarative_base()
-
-
-def _create_schema():
-    engine = create_engine(KDB_url, echo=False)
-    Base.metadata.create_all(engine)
-
-
-def start_session():
-    engine = create_engine(KDB_url, echo=False)
-    return scoped_session(sessionmaker(bind=engine, query_cls=Query))()
 
 
 class Query(_Query):
@@ -71,6 +60,42 @@ class Query(_Query):
                 return result[0]
         except:
             return result
+
+
+KDB_url = "postgresql+psycopg2://postgres:Cetera4247@localhost/kdb_develop"
+Base = declarative_base()
+engine = create_engine(KDB_url, pool_size=50, echo=False)
+session_factory = sessionmaker(bind=engine, query_cls=Query)
+
+
+def _create_schema():
+    Base.metadata.create_all(engine)
+
+
+def _reset_database():
+    with engine.begin() as connection:
+        inspector = reflection.Inspector.from_engine(engine)
+        metadata = MetaData()
+        tables = []
+        all_foreign_keys = []
+        for table_name in inspector.get_table_names():
+            foreign_keys = []
+            for fk in inspector.get_foreign_keys(table_name):
+                if not fk['name']:
+                    continue
+                foreign_keys.append(ForeignKeyConstraint((), (), name=fk['name']))
+            table = Table(table_name, metadata, *foreign_keys)
+            tables.append(table)
+            all_foreign_keys.extend(foreign_keys)
+        for fkc in all_foreign_keys:
+            connection.execute(DropConstraint(fkc))
+        for table in tables:
+            connection.execute(DropTable(table))
+    Base.metadata.create_all(engine)
+
+
+def start_session():
+    return scoped_session(session_factory)()
 
 
 def association_proxy(src, target):

@@ -11,26 +11,28 @@ from datetime import datetime
 from unittest import TestCase, skipIf
 
 from Knowledge_Database_App.tests import skipIfTrue
+from Knowledge_Database_App.tests.storage import PostgresTest
+from Knowledge_Database_App.tests.content.test_redis import RedisTest
 from Knowledge_Database_App.storage.action_queries import delete_user
 from Knowledge_Database_App.user.user import RegisteredUser
 from Knowledge_Database_App.user.admin import Admin
 
 
-class AdminTest(TestCase):
+class AdminTest(PostgresTest, RedisTest):
     failure = False
-    stored = False
 
     @classmethod
     def setUpClass(cls):
+        PostgresTest.setUpClass.__func__(cls)
+        RedisTest.setUpClass.__func__(cls)
         cls.user_name = "Kylo Ren"
         cls.email = "kyloren121323@gmail.com"
         cls.password = "darthvader123"
 
     @classmethod
     def tearDownClass(cls):
-        if cls.stored:
-            Admin.storage_handler.call(
-                delete_user, cls.admin.user_id, permanently=True)
+        PostgresTest.tearDownClass.__func__(cls)
+        RedisTest.tearDownClass.__func__(cls)
 
     @skipIf(failure, "Previous test failed!")
     def test_01_create(self):
@@ -38,7 +40,7 @@ class AdminTest(TestCase):
             self.__class__.admin = Admin(email=self.__class__.email,
                                          user_name=self.__class__.user_name,
                                          password=self.__class__.password)
-            self.admin.register()
+            self.__class__.admin.register()
         except Exception as e:
             self.__class__.failure = True
             self.fail(str(e))
@@ -62,7 +64,8 @@ class AdminTest(TestCase):
                 self.__class__.failure = True
                 self.fail(str(e))
             else:
-                delete_user(self.__class__.admin.user_id, permanently=True)
+                Admin.storage_handler.call(
+                    delete_user, self.__class__.admin.user_id, permanently=True)
 
     @skipIf(failure, "Previous test failed!")
     def test_02_promote(self):
@@ -87,7 +90,6 @@ class AdminTest(TestCase):
                 self.fail(str(e))
             else:
                 self.__class__.admin = admin
-                self.__class__.stored = True
 
     @skipIf(failure, "Previous test failed!")
     def test_03_demote(self):
