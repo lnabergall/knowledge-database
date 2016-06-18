@@ -97,14 +97,14 @@ class ReportTest(PostgresTest, RedisTest):
     def test_03_bulk_retrieve(self):
         try:
             admin_reports = Report.bulk_retrieve(
-                admin_id=self.__class__.admin.user_id, page_num=0)
+                admin_id=self.__class__.report.admin_id, page_num=0)
             content_reports = Report.bulk_retrieve(
                 content_id=self.__class__.content_id, page_num=0)
             with self.assertRaises(NotImplementedError):
                 author_reports = Report.bulk_retrieve(
                     ip_address=self.__class__.author_type, page_num=0)
             admin_reports_resolved = Report.bulk_retrieve(
-                admin_id=self.__class__.admin.user_id,
+                admin_id=self.__class__.report.admin_id,
                 report_status="resolved", page_num=0)
             content_reports_resolved = Report.bulk_retrieve(
                 content_id=self.__class__.content_id,
@@ -152,7 +152,7 @@ class ReportTest(PostgresTest, RedisTest):
                 self.assertEqual(self.__class__.report.report_status, 
                                  "resolved")
                 admin_reports_resolved = Report.bulk_retrieve(
-                    admin_id=self.__class__.admin.user_id,
+                    admin_id=self.__class__.report.admin_id,
                     report_status="resolved", page_num=0)
                 content_reports_resolved = Report.bulk_retrieve(
                     content_id=self.__class__.content_id,
