@@ -17,7 +17,6 @@ from datetime import datetime, timedelta
 from passlib.apps import custom_app_context as pass_handler
 from passlib.utils import generate_password
 from validate_email import validate_email
-import dateutil.parser as dateparse
 from celery.contrib.methods import task_method
 
 from Knowledge_Database_App._email import send_email, Email
@@ -227,8 +226,7 @@ class RegisteredUser:
             raise
         else:
             if confirmation_dict and (max(confirmation_dict.items(),
-                    key=lambda item: dateparse.parse(item[1]))[0] ==
-                    confirmation_id_hash):
+                    key=lambda item: item[1])[0] == confirmation_id_hash):
                 redis_api.expire_confirm(self.email)
                 RegisteredUser.delete(self.user_id)
 

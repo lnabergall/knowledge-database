@@ -2,19 +2,25 @@
 Storage for edits and votes active in the validation process.
 Uses redis.
 
+Classes:
+
+    CustomStrictRedis
+
 Exceptions:
 
-    DuplicateVoteError
+    DuplicateVoteError, MissingKeyError
 
 Functions:
 
     store_edit, store_vote, store_confirm, get_confirm_info,
-    expire_confirm, store_report, get_report, get_admin_assignments, 
+    expire_confirm, store_report, get_reports, get_admin_assignments, 
     delete_report, get_edits, get_votes, get_validation_data, 
     delete_validation_data
 """
 
+import dateutil.parser as dateparse
 from redis import StrictRedis, WatchError
+from redis.client import BasePipeline
 
 from Knowledge_Database_App.storage.action_queries import InputError
 
@@ -27,7 +33,81 @@ class MissingKeyError(Exception):
     """Exception to raise when a key is missing."""
 
 
-redis = StrictRedis(decode_responses=True)
+class CustomStrictRedis(StrictRedis):
+    """
+    Customized StrictRedis superclass with type interpretation 
+    and decoding via a modified version of the parse_response method.
+    """
+
+    def parse_response(self, connection, command_name, **options):
+        response = super().parse_response(connection, command_name, **options)
+        return CustomStrictRedis.decode_response(response)
+
+    @staticmethod
+    def decode_response(response):
+        response_type = type(response)
+        if response_type != bool:
+            try:
+                response = int(response)
+            except (TypeError, ValueError):  
+                try:
+                    if response_type == bytes:
+                        response = response.decode("utf-8")
+                        try:
+                            response_parsed = dateparse.parse(response)
+                        except ValueError:
+                            pass
+                        else:
+                            if str(response_parsed) == response:
+                                response = response_parsed
+                    elif response_type == list:
+                        for i in range(len(response)):
+                            response[i] = CustomStrictRedis.decode_response(
+                                response[i])
+                    elif response_type == dict:
+                        keys = list(response.keys())
+                        for key in keys:
+                            decoded_value = CustomStrictRedis.decode_response(
+                                response[key])
+                            decoded_key = CustomStrictRedis.decode_response(key)
+                            response[decoded_key] = decoded_value
+                            del response[key]
+                except (TypeError, ValueError, AttributeError):
+                    raise NotImplementedError   # Programming error
+
+        return response
+
+    def pipeline(self, transaction=True, shard_hint=None):
+        return CustomStrictPipeline(
+            self.connection_pool, 
+            self.response_callbacks, 
+            transaction, 
+            shard_hint
+        )
+
+
+class CustomBasePipeline(BasePipeline):
+    """
+    Customized BasePipeline superclass with type interpretation 
+    and decoding.
+    """
+
+    def parse_response(self, connection, command_name, **options):
+        result = CustomStrictRedis.parse_response(
+            self, connection, command_name, **options)
+        if command_name in self.UNWATCH_COMMANDS:
+            self.watching = False
+        elif command_name == 'WATCH':
+            self.watching = True
+        return result
+
+
+class CustomStrictPipeline(CustomBasePipeline, CustomStrictRedis):
+    """Pipeline for the CustomStrictRedis class."""
+    pass
+
+
+redis = CustomStrictRedis()
 
 
 def _setup_id_base():
@@ -135,17 +215,17 @@ def store_vote(edit_id, voter_id, vote_and_time):
 
 
 def store_confirm(email, confirmation_id_hash, expire_timestamp):
-    redis.hset("user_email:" + email, confirmation_id_hash,
+    redis.hset("user_email:" + str(email), confirmation_id_hash,
                str(expire_timestamp))
 
 
 def get_confirm_info(email):
-    confirmation_dict = redis.hgetall("user_email:" + email)
+    confirmation_dict = redis.hgetall("user_email:" + str(email))
     return confirmation_dict
 
 
 def expire_confirm(email):
-    redis.delete("user_email:" + email)
+    redis.delete("user_email:" + str(email))
 
 
 def store_report(content_id, report_text, report_type, admin_id, 
@@ -260,6 +340,7 @@ def delete_report(report_id):
             pipe.lrem("user_reports:" + str(user_id), 0, report_id)
         pipe.lrem("admin_reports:" + str(admin_id), 0, report_id)
         pipe.delete("report:" + str(report_id))
+        pipe.execute()
 
 
 def get_edits(content_id=None, content_ids=None, user_id=None, voter_id=None,

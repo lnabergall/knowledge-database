@@ -8,7 +8,6 @@ Classes:
 
 from random import choice
 from datetime import datetime, timedelta
-import dateutil.parser as dateparse
 
 from Knowledge_Database_App.content import redis_api
 from Knowledge_Database_App.content.edit import is_ip_address
@@ -109,7 +108,7 @@ class Report:
             self.author_id = report_object.get("author_id")
             if self.author_id:
                 self.author_id = int(self.author_id)
-            self.timestamp = dateparse.parse(report_object.get("timestamp"))
+            self.timestamp = report_object.get("timestamp")
         elif self.report_status == "resolved":
             self.report_id = report_object.report_id
             self.report_text = report_object.report_text

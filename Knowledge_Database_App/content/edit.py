@@ -17,7 +17,6 @@ Functions:
 import re
 from datetime import datetime, timedelta
 from collections import namedtuple
-import dateutil.parser as dateparse
 from celery.contrib.methods import task_method
 
 from Knowledge_Database_App import _email as mail
@@ -277,12 +276,11 @@ class Edit:
                                    if edit_object["edit_rationale"] else None)
             self.content_part = edit_object["content_part"]
             self.part_id = edit_object["part_id"]
-            self.timestamp = dateparse.parse(edit_object["timestamp"])
+            self.timestamp = edit_object["timestamp"]
             self.author_type = edit_object["author_type"]
             if self.author_type == "U":
                 self.author = UserData(user_id=edit_object.author.user_id)
-            self.start_timestamp = dateparse.parse(
-                edit_object["start_timestamp"])
+            self.start_timestamp = edit_object["start_timestamp"]
         else:
             self.content_id = edit_object.content_id
             self.edit_id = edit_object.edit_id
