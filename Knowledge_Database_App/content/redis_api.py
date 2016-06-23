@@ -33,6 +33,38 @@ class MissingKeyError(Exception):
     """Exception to raise when a key is missing."""
 
 
+def decode_response(response):
+    response_type = type(response)
+    if response_type != bool:
+        try:
+            response = int(response)
+        except (TypeError, ValueError):  
+            try:
+                if response_type == bytes:
+                    response = response.decode("utf-8")
+                    try:
+                        response_parsed = dateparse.parse(response)
+                    except ValueError:
+                        pass
+                    else:
+                        if str(response_parsed) == response:
+                            response = response_parsed
+                elif response_type == list:
+                    for i in range(len(response)):
+                        response[i] = decode_response(response[i])
+                elif response_type == dict:
+                    keys = list(response.keys())
+                    for key in keys:
+                        decoded_value = decode_response(response[key])
+                        decoded_key = decode_response(key)
+                        response[decoded_key] = decoded_value
+                        del response[key]
+            except (TypeError, ValueError, AttributeError):
+                raise NotImplementedError   # Programming error
+
+    return response
+
+
 class CustomStrictRedis(StrictRedis):
     """
     Customized StrictRedis superclass with type interpretation 
@@ -41,41 +73,7 @@ class CustomStrictRedis(StrictRedis):
 
     def parse_response(self, connection, command_name, **options):
         response = super().parse_response(connection, command_name, **options)
-        return CustomStrictRedis.decode_response(response)
-
-    @staticmethod
-    def decode_response(response):
-        response_type = type(response)
-        if response_type != bool:
-            try:
-                response = int(response)
-            except (TypeError, ValueError):  
-                try:
-                    if response_type == bytes:
-                        response = response.decode("utf-8")
-                        try:
-                            response_parsed = dateparse.parse(response)
-                        except ValueError:
-                            pass
-                        else:
-                            if str(response_parsed) == response:
-                                response = response_parsed
-                    elif response_type == list:
-                        for i in range(len(response)):
-                            response[i] = CustomStrictRedis.decode_response(
-                                response[i])
-                    elif response_type == dict:
-                        keys = list(response.keys())
-                        for key in keys:
-                            decoded_value = CustomStrictRedis.decode_response(
-                                response[key])
-                            decoded_key = CustomStrictRedis.decode_response(key)
-                            response[decoded_key] = decoded_value
-                            del response[key]
-                except (TypeError, ValueError, AttributeError):
-                    raise NotImplementedError   # Programming error
-
-        return response
+        return decode_response(response)
 
     def pipeline(self, transaction=True, shard_hint=None):
         return CustomStrictPipeline(

@@ -52,7 +52,13 @@ def search(query_string, page_num=1):
         fields=["name^5", "alternate_names^5", "text^1",
                 "content_type^3", "keywords^2", "citations^1"]
     )
-    bigram_query = Match(query=query_string, fields=["text.bigrams"], boost=0.4)
+    bigram_query = Q({
+        "match": {
+            "text.bigrams" : {
+                "query": query_string, "boost": 0.4}
+            }
+        }
+    )
     content_search = SearchableContentPiece.search()
     content_search = content_search[10*(page_num-1) : 10*page_num]
     content_search = content_search.query(query).query(bigram_query)
@@ -183,21 +189,21 @@ def autocomplete(content_part, query_string):
     if content_part == "name":
         autocomplete_search = autocomplete_search.suggest(
             "suggestions", query_string,
-            completion={"field": "name.suggest", "fuzzy": True, "size": 10}
+            completion={"field": "name_suggest", "fuzzy": True, "size": 10}
         ).suggest(
             "alt_suggestions", query_string,
-            completion={"field": "alternate_names.suggest",
+            completion={"field": "alternate_names_suggest",
                         "fuzzy": True, "size": 10}
         )
     elif content_part == "keyword":
         autocomplete_search = autocomplete_search.suggest(
             "suggestions", query_string,
-            completion={"field": "keywords.suggest", "fuzzy": True, "size": 10}
+            completion={"field": "keywords_suggest", "fuzzy": True, "size": 10}
         )
     elif content_part == "citation":
         autocomplete_search = autocomplete_search.suggest(
             "suggestions", query_string,
-            completion={"field": "citations.suggest", "fuzzy": True, "size": 10}
+            completion={"field": "citations_suggest", "fuzzy": True, "size": 10}
         )
     else:
         raise InputError("Invalid argument!")
@@ -205,16 +211,15 @@ def autocomplete(content_part, query_string):
     # Execute the search and reformat the result.
     response = autocomplete_search.execute()
     completions = []
-    if content_part == "name":
-        suggestions = response.suggest.suggestions.options \
-            + response.suggest.alt_suggestions.options
-        for suggestion in suggestions:
-            completions.append({
-                "completion": suggestion.text,
-                "content_id": suggestion.payload.content_id
-            })
-    elif content_part == "keyword" or content_part == "citation":
-        for suggestion in response.suggest.suggitions.options:
-            completions.append({"completion": suggestion.text})
+    if response:
+        if content_part == "name":
+            for suggestion in suggestions:
+                completions.append({
+                    "completion": suggestion.text,
+                    "content_id": suggestion.payload.content_id
+                })
+        elif content_part == "keyword" or content_part == "citation":
+            for suggestion in response.suggest.suggitions.options:
+                completions.append({"completion": suggestion.text})
 
     return completions

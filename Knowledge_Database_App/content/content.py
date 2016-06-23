@@ -642,7 +642,7 @@ class Content:
                 cls.storage_handler.call(action.update_content_type,
                                           content_id, content_type)
                 index.update_content_piece(content_id, content_part,
-                                           content_type.content_type)
+                    part_string=content_type.content_type)
             except:
                 raise
         elif update_type == "add":

@@ -23,16 +23,20 @@ from elasticsearch_dsl import (DocType, String, Completion,
 from elasticsearch_dsl.connections import connections
 
 from Knowledge_Database_App.storage.select_queries import InputError
+from Knowledge_Database_App.content.redis_api import decode_response
 
 
-KDB_cluster_url = "127.0.0.1:9200"
+KDB_cluster_url = "localhost:9200"
 connections.create_connection(hosts=[KDB_cluster_url])
 content = Index("content")
 
 
 def _create_index():
-    # Call only once.
     content.create()
+
+
+def _delete_index():
+    content.delete(ignore=404)
 
 
 bigram_analyzer = analyzer(
@@ -59,35 +63,41 @@ class SearchableContentPiece(DocType):
         citations: List of strings.
     """
     name = String(
-        fields={"raw": String(index="not_analyzed")},
-        properties={"suggest": Completion(payloads=True,
-                                          preserve_separators=False,
-                                          preserve_position_increments=False)}
+        fields={"raw": String(index="not_analyzed")}
     )
+    name_suggest = Completion(payloads=True,
+                              preserve_separators=False,
+                              preserve_position_increments=False)
     alternate_names = String(
         multi=True,
         fields={"raw": String(multi=True, index="not_analyzed")},
-        properties={"suggest": Completion(multi=True, payloads=True,
-                                          preserve_separators=False,
-                                          preserve_position_increments=False)},
-        position_offset_gap=100
+        position_increment_gap=100
     )
+    alternate_names_suggest = Completion(multi=True, payloads=True,
+                                         preserve_separators=False,
+                                         preserve_position_increments=False)
     text = String(fields={"bigrams": String(analyzer=bigram_analyzer)})
     content_type = String()
     keywords = String(
         multi=True,
-        fields={"raw": String(multi=True, index="not_analyzed")},
-        properties={"suggest": Completion(multi=True,
-                                          preserve_separators=False,
-                                          preserve_position_increments=False)}
+        fields={"raw": String(multi=True, index="not_analyzed")}
     )
+    keywords_suggest = Completion(multi=True,
+                                  preserve_separators=False,
+                                  preserve_position_increments=False)
     citations = String(
         multi=True,
-        fields={"raw": String(multi=True, index="not_analyzed")},
-        properties={"suggest": Completion(multi=True,
-                                          preserve_separators=False,
-                                          preserve_position_increments=False)}
+        fields={"raw": String(multi=True, index="not_analyzed")}
     )
+    citations_suggest = Completion(multi=True,
+                                   preserve_separators=False,
+                                   preserve_position_increments=False)
+
+    @classmethod
+    def get(cls, *args, **kwargs):
+        response = super().get(*args, **kwargs)
+        response = decode_response(response)
+        return response
 
 
 class IndexAccessError(NotFoundError):
@@ -114,16 +124,16 @@ def index_content_piece(content_id, name_string, alternate_name_strings,
         alternate_names=alternate_name_strings, text=text_string,
         content_type=content_type_string, keywords=keyword_strings,
         citations=citation_strings)
-    content_piece.name.suggest = {
+    content_piece.name_suggest = {
         "input": name_string,
         "payload": {"content_id": content_id}
     }
-    content_piece.alternate_names.suggest = {
+    content_piece.alternate_names_suggest = {
         "input": alternate_name_strings,
         "payload": {"content_id": content_id}
     }
-    content_piece.keywords.suggest = {"input": keyword_strings}
-    content_piece.citations.suggest = {"input": citation_strings}
+    content_piece.keywords_suggest = {"input": keyword_strings}
+    content_piece.citations_suggest = {"input": citation_strings}
     content_piece.meta.id = content_id
     content_piece.save()
 
@@ -143,16 +153,13 @@ def add_to_content_piece(content_id, content_part, part_string):
     else:
         if content_part == "alternate_name":
             content_piece.alternate_names.append(part_string)
-            content_piece.alternate_names.suggest.append({
-                "input": part_string,
-                "payload": {"content_id": content_id}
-            })
+            content_piece.alternate_names_suggest["input"].append(part_string)
         elif content_part == "keyword":
             content_piece.keywords.append(part_string)
-            content_piece.keywords.suggest.append({"input": part_string})
+            content_piece.keywords_suggest["input"].append(part_string)
         elif content_part == "citation":
             content_piece.citations.append(part_string)
-            content_piece.citations.suggest.append({"input": part_string})
+            content_piece.citations_suggest["input"].append(part_string)
         else:
             raise InputError("Invalid arguments!")
         content_piece.save()
@@ -174,13 +181,13 @@ def update_content_piece(content_id, content_part, part_string=None,
     else:
         if content_part == "name":
             content_piece.name = part_string
-            content_piece.name.suggest = {
+            content_piece.name_suggest = {
                 "input": part_string,
                 "payload": {"content_id": content_id}
             }
         elif content_part == "alternate_name":
             content_piece.alternate_names = part_strings
-            content_piece.alternate_names.suggest = {
+            content_piece.alternate_names_suggest = {
                 "input": part_strings,
                 "payload": {"content_id": content_id}
             }
@@ -190,10 +197,10 @@ def update_content_piece(content_id, content_part, part_string=None,
             content_piece.content_type = part_string
         elif content_part == "keyword":
             content_piece.keywords = part_strings
-            content_piece.keywords.suggest = {"input": part_strings}
+            content_piece.keywords_suggest = {"input": part_strings}
         elif content_part == "citation":
             content_piece.citations = part_strings
-            content_piece.citations.suggest = {"input": part_strings}
+            content_piece.citations_suggest = {"input": part_strings}
         else:
             raise InputError("Invalid arguments!")
         content_piece.save()
@@ -205,7 +212,7 @@ def remove_content_piece(content_id):
         content_id: Integer.
     """
     try:
-        content_piece = SearchableContentPiece(id=content_id)
+        content_piece = SearchableContentPiece.get(id=content_id)
     except NotFoundError as e:
         raise IndexAccessError(str(e))
     else:
