@@ -8,7 +8,6 @@ Functions:
 
     search, filter_by, autocomplete
 """
-
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import MultiMatch, Match, Term, Q
 
@@ -97,16 +96,22 @@ def search(query_string, page_num=1):
     response = content_search.execute()
     query_result = {"count": response.hits.total, "results": []}
     for hit in response:
+        highlighted_name = None
+        highlighted_alt_name = None
+        if "name" in dir(hit.meta.highlight):
+            highlighted_name = hit.meta.highlight.name
+        if "alternate_names" in dir(hit.meta.highlight):
+            highlighted_alt_name = hit.meta.highlight.alternate_names
         body = {
             "score": hit.meta.score,
-            "content_id": hit.meta.id,
+            "content_id": int(hit.meta.id),
             "name": hit.name,
             "alternate_names": hit.alternate_names,
             "content_part": hit.content_type,
             "keywords": hit.keywords,
             "highlights": {
-                "name": hit.meta.highlight.name,
-                "alternate_names": hit.meta.highlight.alternate_names,
+                "name": highlighted_name,
+                "alternate_names": highlighted_alt_name,
                 "text": hit.meta.highlight.text
             }
         }
@@ -153,12 +158,13 @@ def filter_by(content_part, part_string, page_num=1):
                  Q("bool", filter=[Q("term", alternate_names=part_string)]))
     else:
         raise InputError("Missing arguments!")
-    response = search.query(query).execute()
+    search = search.query(query)
+    response = search.execute()
     results = {"count": response.hits.total, "results": []}
     for hit in response:
         body = {
             "score": hit.meta.score,
-            "content_id": hit.meta.id,
+            "content_id": int(hit.meta.id),
             "name": hit.name,
             "alternate_names": hit.alternate_names,
             "text_fragment": hit.text[:201],
@@ -212,14 +218,21 @@ def autocomplete(content_part, query_string):
     response = autocomplete_search.execute()
     completions = []
     if response:
+        if len(response.suggest.suggestions) > 1:
+            raise NotImplementedError
         if content_part == "name":
-            for suggestion in suggestions:
-                completions.append({
-                    "completion": suggestion.text,
-                    "content_id": suggestion.payload.content_id
-                })
+            for result in response.suggest.suggestions:
+                for suggestion in result.options:
+                    completions.append({
+                        "completion": suggestion.text,
+                        "content_id": int(suggestion.payload.content_id)
+                    })
         elif content_part == "keyword" or content_part == "citation":
-            for suggestion in response.suggest.suggitions.options:
-                completions.append({"completion": suggestion.text})
+            for result in response.suggest.suggestions:
+                for suggestion in result.options:
+                    completions.append({"completion": suggestion.text})
 
     return completions
+
+# TODO: Implement and combine name and alternate name suggestions,
+# likely via a combined 'names' field on SearchableContentPiece 

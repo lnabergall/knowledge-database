@@ -1,5 +1,5 @@
 """
-Base Unit Test classes for handling PostgreSQL and Redis database
+Base Unit Test classes for handling PostgreSQL database
 resetting before and after unit testing. 
 """
 
@@ -50,15 +50,15 @@ class PostgresTest(TestCase):
                          last_edited_timestamp=timestamp, timestamp=timestamp)
                 ]
             content_piece.text = orm.Text(text="Emperor Sheev Palpatine was " + 
-                "a Dark Lord of the Sith.", last_edited_timestamp=timestamp, 
-                timestamp=timestamp)
+                "a Dark Lord of the Sith who ruled the Galactic Empire.", 
+                last_edited_timestamp=timestamp, timestamp=timestamp)
             content_piece.content_type = content_type
             content_piece.keywords = [
                 orm.Keyword(keyword="sith", timestamp=timestamp),
                 orm.Keyword(keyword="dark side", timestamp=timestamp)
             ]
             content_piece.citations = [
-                orm.Citation(citation_text="Lucas, George. Star Wars:" + 
+                orm.Citation(citation_text="Lucas, George. Star Wars: " + 
                              "Revenge of the Sith. 2003.", timestamp=timestamp)
             ]
             cls._session.add(content_piece)

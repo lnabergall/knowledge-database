@@ -1,5 +1,5 @@
 """
-Base Unit Test classes for handling Elasticsearch index
+Base Unit Test classes for handling Elasticsearch index 
 resetting before and after unit testing.
 """
 
@@ -12,9 +12,11 @@ class ElasticsearchTest(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        print("Elasticsearch setup")
         index._delete_index()
         index._create_index()
 
     @classmethod
     def tearDownClass(cls):
+        print("Elasticsearch teardown")
         index._delete_index()

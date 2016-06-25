@@ -90,15 +90,7 @@ def get_content_pieces(user_id, session=None):
     if session is None:
         session = orm.start_session()
     content_pieces = session.query(orm.ContentPiece).options(
-        subqueryload(orm.ContentPiece.first_author),
-        subqueryload(orm.ContentPiece.authors),
-        subqueryload(orm.ContentPiece.content_type),
-        subqueryload(orm.ContentPiece.name),
-        subqueryload(orm.ContentPiece.alternate_names),
-        subqueryload(orm.ContentPiece.text),
-        subqueryload(orm.ContentPiece.keywords),
-        subqueryload(orm.ContentPiece.citations)).join(
-        orm.User, orm.ContentPiece.authors).filter(
+        subqueryload("*")).join(orm.User, orm.ContentPiece.authors).filter(
         orm.User.user_id == user_id).all()
     return content_pieces
 
@@ -116,14 +108,16 @@ def get_names(content_id=None, content_ids=None, session=None):
         session = orm.start_session()
     if content_id is not None:
         try:
-            name = session.query(orm.ContentPiece.name).filter(
+            name = session.query(orm.Name).join(
+                orm.ContentPiece, orm.Name.piece_).filter(
                 orm.ContentPiece.content_id == content_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
+            sleep(5)
             raise SelectError(str(e))
         return name
     elif content_ids is not None:
-        names = session.query(orm.ContentPiece.content_id,
-            orm.ContentPiece.name).filter(
+        names = session.query(orm.Name).join(
+            orm.ContentPiece, orm.Name.piece_).filter(
             orm.ContentPiece.content_id.in_(content_ids)).all()
         return names
     else:
@@ -178,7 +172,8 @@ def get_keywords(content_id, session=None):
     """
     if session is None:
         session = orm.start_session()
-    keywords = session.query(orm.ContentPiece.keywords).filter(
+    keywords = session.query(orm.Keyword).join(
+        orm.ContentPiece, orm.Keyword.pieces).filter(
         orm.ContentPiece.content_id == content_id).all()
     return keywords
 
@@ -219,16 +214,19 @@ def get_citations(content_id, citation_id=None,
     if session is None:
         session = orm.start_session()
     if citation_id is not None and content_id is not None:
-        citations = session.query(orm.Citation.edited_citations).filter(
-            orm.Citation.citation_id == citation_id).filter(
-            orm.Citation.pieces.has(content_id=content_id)).all()
+        citations = session.query(orm.Citation).join(
+            orm.ContentPieceCitation, orm.Citation.edited_citation).filter(
+            orm.ContentPieceCitation.citation_id == citation_id).filter(
+            orm.ContentPieceCitation.content_id == content_id).all()
     elif edited_citation_id is not None and content_id is not None:
-        citations = session.query(orm.Citation.editing_citations).filter(
-            orm.Citation.citation_id == edited_citation_id).filter(
-            orm.Citation.pieces.has(content_id=content_id)).all()
+        citations = session.query(orm.Citation).join(
+            orm.ContentPieceCitation, orm.Citation.editing_citations).filter(
+            orm.ContentPieceCitation.edited_citation_id == edited_citation_id).filter(
+            orm.ContentPieceCitation.content_id == content_id).all()
     elif content_id is not None:
-        citations = session.query(orm.ContentPiece.citations).filter(
-            orm.ContentPiece.content_id == content_id).all()
+        citations = session.query(orm.Citation).join(
+            orm.ContentPieceCitation, orm.Citation.citation_content_pieces).filter(
+            orm.ContentPieceCitation.content_id == content_id).all()
     else:
         raise InputError("Invalid argument!")
 

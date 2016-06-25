@@ -71,7 +71,7 @@ class Name:
 
     def __repr__(self):
         return (">Name(name_id={name_id}, name={name}, "
-                + "name_type={name_type}, timestamp={timestamp}"
+                + "name_type={name_type}, timestamp={timestamp}, "
                 + "last_edited_timestamp={last_edited_timestamp})<").format(
             name_id=self.name_id,
             name=self.name,
@@ -165,7 +165,7 @@ class Text:
     def storage_object(self):
         return orm.Text(text_id=self.text_id, text=self.text,
                         timestamp=self.timestamp, 
-                        last_edited_timestamp=last_edited_timestamp)
+                        last_edited_timestamp=self.last_edited_timestamp)
 
 
 class UserData:
@@ -476,7 +476,7 @@ class Content:
         if content_part == "name":
             try:
                 name = cls.storage_handler.call(
-                    select.get_name, content_id=content_id)
+                    select.get_names, content_id=content_id)
                 alternate_names = cls.storage_handler.call(
                     select.get_alternate_names, content_id)
             except:
@@ -487,7 +487,7 @@ class Content:
         elif content_part == "keyword":
             try:
                 keywords = cls.storage_handler.call(select.get_keywords,
-                                                     content_id)
+                                                    content_id)
             except:
                 raise
             else:
@@ -496,7 +496,7 @@ class Content:
         elif content_part == "citation":
             try:
                 citations = cls.storage_handler.call(select.get_citations,
-                                                      content_id)
+                                                     content_id)
             except:
                 raise
             else:
