@@ -116,9 +116,12 @@ def get_names(content_id=None, content_ids=None, session=None):
             raise SelectError(str(e))
         return name
     elif content_ids is not None:
-        names = session.query(orm.Name).join(
-            orm.ContentPiece, orm.Name.piece_).filter(
-            orm.ContentPiece.content_id.in_(content_ids)).all()
+        if content_ids:
+            names = session.query(orm.Name).join(
+                orm.ContentPiece, orm.Name.piece_).filter(
+                orm.ContentPiece.content_id.in_(content_ids)).all()
+        else:
+            names = []
         return names
     else:
         raise InputError("Missing argument!")
@@ -337,9 +340,12 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
             orm.ContentPiece).filter(
             orm.ContentPiece.content_id == content_id).all()
     elif content_ids is not None:
-        accepted_edits = session.query(orm.AcceptedEdit).join(
-            orm.ContentPiece).filter(
-            orm.ContentPiece.content_id.in_(content_ids)).all()
+        if content_ids:
+            accepted_edits = session.query(orm.AcceptedEdit).join(
+                orm.ContentPiece).filter(
+                orm.ContentPiece.content_id.in_(content_ids)).all()
+        else:
+            accepted_edits = []
     elif edit_id is not None:
         try:
             accepted_edit = session.query(orm.AcceptedEdit).options(
@@ -434,9 +440,12 @@ def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
             orm.ContentPiece).filter(
             orm.ContentPiece.content_id == content_id).all()
     elif content_ids is not None:
-        rejected_edits = session.query(orm.RejectedEdit).join(
-            orm.ContentPiece).filter(
-            orm.ContentPiece.content_id.in_(content_ids)).all()
+        if content_ids:
+            rejected_edits = session.query(orm.RejectedEdit).join(
+                orm.ContentPiece).filter(
+                orm.ContentPiece.content_id.in_(content_ids)).all()
+        else:
+            rejected_edits = []
     elif edit_id is not None:
         try:
             rejected_edit = session.query(orm.RejectedEdit).options(
@@ -707,9 +716,12 @@ def get_user_info(content_id=None, user_id=None, accepted_edit_id=None,
             return info_tuples
     elif user_ids is not None:
         try:
-            info_tuples = session.query(orm.User.user_id,
-                orm.User.user_name, orm.User.email).filter(
-                orm.User.user_id.in_(user_ids)).all()
+            if user_ids:
+                info_tuples = session.query(orm.User.user_id,
+                    orm.User.user_name, orm.User.email).filter(
+                    orm.User.user_id.in_(user_ids)).all()
+            else:
+                info_tuples = []
         except MultipleValuesFound as e:
             raise SelectError(str(e))
         else:
