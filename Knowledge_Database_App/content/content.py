@@ -466,14 +466,15 @@ class Content:
         Args:
             content_id: Integer.
             part_string: String.
-            content_part: String, accepts 'name', 'keyword', or 'citation'.
+            content_part: String, accepts 'name', 'alternate_name', 
+                keyword', or 'citation'.
         Returns:
             Boolean indicating whether the name, keyword, or citation is
             unique among the content piece's (identified by content_id)
             names (incl. alternate names), keywords, or citations,
             respectively.
         """
-        if content_part == "name":
+        if content_part == "name" or content_part == "alternate_name":
             try:
                 name = cls.storage_handler.call(
                     select.get_names, content_id=content_id)

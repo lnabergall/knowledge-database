@@ -26,6 +26,7 @@ from Knowledge_Database_App.storage import (orm_core as orm,
 from . import redis_api
 from . import edit_diff as diff
 from . import vote as author_vote
+from . import content_config as config
 from .celery_app import celery_app
 from .content import Content, Name, UserData
 
@@ -148,7 +149,9 @@ class Edit:
                     original_part_text is None or not author_type or
                     not start_timestamp):
                 raise select.InputError("Required arguments not provided!")
-            if not Content.check_uniqueness(content_id, edit_text, content_part):
+            if ((content_part == "name" or content_part == "alternate_name" or 
+                    content_part == "keyword" or content_part == "citation") and 
+                    not Content.check_uniqueness(content_id, edit_text, content_part)):
                 raise DuplicateError("Edit duplicates another content part!")
             self.validation_status = "pending"
             self.timestamp = datetime.utcnow()
@@ -165,13 +168,14 @@ class Edit:
             self.edit_rationale = edit_rationale
 
         if validation_status != "pending":
-            insertions, deletions = diff.calculate_metrics(edit_text)
-            original_text = diff.restore(self.edit_text)
-            original_chars = len(original_text) - original_text.count(" ")
+            insertions, deletions = diff.calculate_metrics(self.edit_text)
+            self.original_part_text = diff.restore(self.edit_text)
+            original_chars = (len(self.original_part_text) - 
+                              self.original_part_text.count(" "))
             applied_chars = None
             if self.applied_edit_text is not None:
                 applied_text = diff.restore(
-                    self.applied_edit_text, version="edited")
+                    self.applied_edit_text, version="edit")
                 applied_chars = len(applied_text) - applied_text.count(" ")
             self.edit_metrics = EditMetrics(
                 original_chars=original_chars,
@@ -279,7 +283,7 @@ class Edit:
             self.timestamp = edit_object["timestamp"]
             self.author_type = edit_object["author_type"]
             if self.author_type == "U":
-                self.author = UserData(user_id=edit_object.author.user_id)
+                self.author = UserData(user_id=edit_object["user_id"])
             self.start_timestamp = edit_object["start_timestamp"]
         else:
             self.content_id = edit_object.content_id
@@ -563,7 +567,7 @@ class Edit:
             else:
                 edits = sorted(edits, key=lambda edit: edit.validated_timestamp, 
                                reverse=True)
-            if edit_count:
+            if return_count:
                 return edits, edit_count
             else:
                 return edits
@@ -574,12 +578,12 @@ class Edit:
         the edit, and schedules periodic validation and additional
         notifications.
         """
+        self.save()
         if not self.validate():
-            self.save()
             self.validate.apply_async(eta=self.timestamp+timedelta(days=5))
             self.validate.apply_async(eta=self.timestamp+timedelta(days=10))
             author_info = self.storage_handler.call(
-                select.get_user_info, content_id=content_id)
+                select.get_user_info, content_id=self.content_id)
             self._notify.apply_async(args=["edit_submitted"],
                 kwargs={"author_info": author_info})
             self._notify.apply_async(args=["vote_reminder"],
@@ -644,7 +648,7 @@ class Edit:
                 return self._accept(votes)
 
         if against_vote_count >= author_count/2 or days_since_creation >= 10:
-            self._reject(votes)
+            return self._reject(votes)
 
     def _accept(self, votes):
         """
@@ -722,14 +726,17 @@ class Edit:
                 and edit not in conflicting_edits
             ]
             if not conflicting_edits:
-                if (accepted_edits_same_base[0].applied_edit_text
-                        == self.edit_text):
-                    return self.edit_text
+                if accepted_edits_same_base:
+                    if (accepted_edits_same_base[0].applied_edit_text
+                            == self.edit_text):
+                        return self.edit_text
+                    else:
+                        return diff.merge([
+                            accepted_edits_same_base[0].applied_edit_text,
+                            self.edit_text
+                        ])
                 else:
-                    return diff.merge([
-                        accepted_edits_same_base[0].applied_edit_text,
-                        self.edit_text
-                    ])
+                    return self.edit_text
             else:
                 new_diff = diff.merge(
                     [prior_accepted_edits[0].applied_edit_text, self.edit_text],
@@ -741,11 +748,14 @@ class Edit:
                     raise diff.DiffComputationError(
                         "Something went wrong, cannot compute a merge!")
                 else:
-                    if conflicting_edits[0].applied_edit_text == new_diff:
-                        return new_diff
+                    if conflicting_edits:
+                        if conflicting_edits[0].applied_edit_text == new_diff:
+                            return new_diff
+                        else:
+                            return diff.merge(
+                                [conflicting_edits[0].applied_edit_text, new_diff])
                     else:
-                        return diff.merge(
-                            [conflicting_edits[0].applied_edit_text, new_diff])
+                        return new_diff
 
     def apply_edit(self):
         if not self.edit_text:
@@ -900,6 +910,8 @@ class Edit:
 
     @property
     def conflict(self):
+        acc_conflict = False
+        val_conflict = False
         if not self.original_part_text:
             return False
         if (self.validation_status == "accepted" or
@@ -987,17 +999,20 @@ class Edit:
             edit for edit in validating_edits
             if edit not in validating_conflicting_edits
         ]
-        new_diff = diff.merge(
-                [prior_accepted_edits[0].applied_edit_text, self.edit_text],
-                base="first_diff")
-        original_part_text = diff.restore(new_diff)
+        if not prior_accepted_edits:
+            new_diff = self.edit_text
+            original_part_text = self.original_part_text
+        else:
+            new_diff = diff.merge(
+                    [prior_accepted_edits[0].applied_edit_text, self.edit_text],
+                    base="first_diff")
+            original_part_text = diff.restore(new_diff)
         if not accepted_conflicting_edits:
-            if accepted_edits_same_base[0].applied_edit_text == self.edit_text:
-                acc_conflict = False
-            else:
-                acc_conflict = diff.conflict(
-                    accepted_edits_same_base[0].applied_edit_text,
-                    self.edit_text)
+            if accepted_edits_same_base:
+                if accepted_edits_same_base[0].applied_edit_text != self.edit_text:
+                    acc_conflict = diff.conflict(
+                        accepted_edits_same_base[0].applied_edit_text,
+                        self.edit_text)
         else:
             remaining_conflicts = [edit for edit in accepted_conflicting_edits
                 if diff.restore(edit.edit_text) != original_part_text]
@@ -1005,16 +1020,15 @@ class Edit:
                 raise diff.DiffComputationError(
                     "Something went wrong, cannot compute a merge!")
             else:
-                if accepted_conflicting_edits[0].applied_edit_text == new_diff:
-                    acc_conflict = False
-                else:
-                    acc_conflict = diff.conflict(
-                        accepted_conflicting_edits[0].applied_edit_text,
-                        new_diff)
+                if accepted_conflicting_edits:
+                    if accepted_conflicting_edits[0].applied_edit_text != new_diff:
+                        acc_conflict = diff.conflict(
+                            accepted_conflicting_edits[0].applied_edit_text,
+                            new_diff)
         if not validating_conflicting_edits:
             val_conflict = any([
-                diff.conflict(edit.applied_edit_text, self.edit_text)
-                if edit.applied_edit_text != self.edit_text else False
+                diff.conflict(edit.edit_text, self.edit_text)
+                if edit.edit_text != self.edit_text else False
                 for edit in validating_edits_same_base
             ])
         else:

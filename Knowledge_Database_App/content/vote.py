@@ -17,7 +17,7 @@ import dateutil.parser as dateparse
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select)
 from . import redis_api
-from .content import Content, ApplicationError
+from .content import Content, ApplicationError, UserData
 
 
 class VoteStatusError(Exception):
@@ -60,8 +60,7 @@ class AuthorVote:
 
     def __init__(self, vote_status, edit_id, vote, voter_id,
                  timestamp=None, close_timestamp=None):
-        if (not content_id or not edit_id or
-                (vote != "Y" and vote != "N") or not voter_id or
+        if (not edit_id or (vote != "Y" and vote != "N") or not voter_id or
                 (vote_status is not None and vote_status != "in-progress"
                 and vote_status != "ended")):
             raise select.InputError("Invalid arguments!")
@@ -75,6 +74,16 @@ class AuthorVote:
             self.author = UserData(user_id=voter_id)
 
     @classmethod
+    def get_vote_summary(cls, votes):
+        close_timestamp = votes[0].close_timestamp
+        vote_summary = (str(close_timestamp) + " "
+                        if close_timestamp is not None else "")
+        for vote in votes:
+            vote_summary += ("<" + vote.vote + ", " + str(vote.author.user_id) +
+                             ", " + str(vote.timestamp) + ">, ")
+        return vote_summary[:-2]
+
+    @classmethod
     def unpack_vote_summary(cls, vote_summary):
         if vote_summary[0] != "<":
             cutoff_index = vote_summary.find("<")   # Should not be -1
@@ -85,7 +94,7 @@ class AuthorVote:
             for vote_string in vote_summary.split("<")
         ]
         vote_dict = {
-            int(vote_list[0]): vote_list[1] + str("; ") + vote_list[2]
+            int(vote_list[1]): vote_list[0] + str("; ") + vote_list[2]
             for vote_list in vote_lists[1:]
         }
         return vote_dict
@@ -146,7 +155,7 @@ class AuthorVote:
              ...}
         """
         if vote_status == "in-progress":
-            if edit_id is None:
+            if edit_id is not None:
                 vote_dict = cls._retrieve_from_redis(edit_id)
                 votes = [AuthorVote(vote_status, edit_id, value[0],
                                     key, timestamp=dateparse.parse(value[3:]))
@@ -158,7 +167,7 @@ class AuthorVote:
                     raise
                 else:
                     votes = {edit_id: [AuthorVote(vote_status, edit_id, value[0],
-                              key, timestamp=datetime.parse(value[3:]))
+                              key, timestamp=dateparse.parse(value[3:]))
                               for key, value in vote_dict.items()]
                              for edit_id, vote_dict in vote_dicts.items()}
             else:
@@ -217,16 +226,6 @@ class AuthorVote:
 
         return votes
 
-    @classmethod
-    def get_vote_summary(cls, votes):
-        close_timestamp = votes[0].close_timestamp
-        vote_summary = (str(close_timestamp) + " "
-                        if close_timestamp is not None else "")
-        for vote in votes:
-            vote_summary += ("<" + vote.vote + ", " + str(vote.author.user_id) +
-                             ", " + str(vote.timestamp) + ">, ")
-        return vote_summary[:-2]
-
     def check_vote_order(self):
         """
         Returns:
@@ -276,7 +275,7 @@ class AuthorVote:
         else:
             try:
                 redis_api.store_vote(self.edit_id, self.author.user_id,
-                                 self.vote + "; " + str(self.timestamp))
+                                     self.vote + "; " + str(self.timestamp))
             except redis_api.DuplicateVoteError:
                 raise redis_api.DuplicateVoteError(
                     "Vote already submitted by user " +
