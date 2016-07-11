@@ -8,6 +8,7 @@
 \usepackage{titlesec}
 \usepackage[backend=bibtex]{biblatex}
 \usepackage{hyperref}
+\usepackage{url}
 \usepackage[]{footmisc}
 \usepackage{mathrsfs}
 \usepackage{graphicx}
@@ -16,6 +17,9 @@
 \usepackage{textcomp}
 \usepackage{color}
 \usepackage[table]{xcolor}
+\usepackage{enumitem}
+\setlistdepth{9}
+\newlist{myEnumerate}{enumerate}{9}
 \titleformat{\section}{\normalsize\scshape\center}{\thesection}{1em}{}
 \titleformat{\subsection}{\normalsize\scshape\center}{\thesubsection}{1em}{}
 \makeatletter
@@ -540,11 +544,9 @@ The following is a rough layout of the Storage Query API.
 
 \subsection{Content}
 
-
 Since most application functions (submitting content pieces, searching and retrieving content pieces, etc.) expect immediate retrieval and delivery of data, most of the Content API will be synchronous. Certain functions though, most notably parts of the edit validation and voting process and the delivery of update notifications and reminders to authors, should be asynchronous and run outside of the main request-response event loop. 
 
 Hence, Celery will be used for asynchronous task execution, with RabbitMQ selected as the broker. Redis\footnote{Configured for maximum persistance by writing every change to disk.} will be used to store results, but manually, not via Celery's result store mechanisms. Redis is chosen over the PostgreSQL database because Redis is more optimized for read and write performance.
-
 
 
 \subsubsection{Edit Validation and Voting}
@@ -559,7 +561,6 @@ Asynchronous processing will almost exclusively\footnote{It will also be used fo
 
 % need to add ways for an edit to be quickly rejected
 % also remember to reference the original text with each edit in case of multiple edits made in conflicting time periods
-
 
 
 \subsubsection{Backend-linking API Layout}
@@ -637,7 +638,6 @@ The following roughly documents the layout of the backend-linking Content API; w
 An email package separate from the Content API will provide email notification functionality and a diff module will provide for the calculation of edit diffs and the merging of edits with existing content parts to produce new versions. A Redis module will also provide for the storage, retrieval, and deletion of edits and votes from Redis.
 
 
-
 \subsubsection{Client-facing API Layout}
 
 The following roughly documents the layout of the client-facing Content View API. Whereas the backend-linking Content API provided classes and methods closely mapping application objects and their related functions, properties, and operations, the Content View API will essentially map to the ``pages" actually requested by clients; in other words, it will provide a ``view" of the backend for the client-communicating RESTful Pyramid API to consume. 
@@ -710,6 +710,7 @@ The following roughly documents the layout of the User API.
 \end{enumerate}
 \end{enumerate}
 
+
 \subsubsection{Client-facing API Layout}
 
 \begin{enumerate}
@@ -732,11 +733,125 @@ The following roughly documents the layout of the User API.
 
 
 
+
 \section{Pyramid Web Layer}
+\urlstyle{sf}
 
-The following approximately documents the public web API, built using the Pyramid framework. To reduce redundancy and promote a functionally-optimal stack layout, the web API will be implemented as a thin layer on top of the client-facing Content and User APIs primarily only handling request routing, templating, data serialization, and response transmission.
+The following approximately documents the public web layer, built using the Pyramid framework. To reduce redundancy and promote a functionally-optimal stack layout, the web layer will be implemented as a thin layer on top of the client-facing Content and User APIs primarily only handling request routing, templating, data serialization, and response transmission. The web layer will be split into two separate components, the web API and the UI server. 
+\\
+\\
+Note that we will assume a top-level domain of \url{https://kdb.com} and denote a placeholder for an attribute, say id, by \url{ {id} }.
 
+\subsection{Web API}
+\setlist{parsep=0pt,listparindent=\parindent}
 
+Approximate RESTful web API reference:
+
+\begin{myEnumerate}
+\item[] API Endpoint -- \url{https://api.kdb.com}
+\begin{myEnumerate}
+\item[] \url{/content}
+\begin{myEnumerate}
+\item[] GET -- Retrieve a list of all content pieces, paginated with 10 results per page \par and sorted by timestamp of creation
+\item[] GET \url{?sort={parameter}} -- Retrieve a list of all content pieces, paginated with \par 10 results per page and sorted in descending order by \{parameter\} \par (created\_at, last\_edited\_at)
+\item[] GET \url{?{part}={string}} -- Retrieve a list of all content pieces with a \{part\} \par (keyword, content type, name, or citation) matching \{string\}, paginated \par with 10 results per page and sorted by timestamp of creation
+\item[] GET \url{?q={string}} -- Search all content pieces by query \{string\}, resulting list \par of top matching 1000 content pieces is paginated with 10 results per page \par and sorted in descending order by query match strength
+\item[] POST -- Creates a new content piece
+\item[] \url{/{id}}
+\begin{enumerate}
+\item[] GET -- Retrieve the content piece with content\_id \{id\}
+\item[] \url{/authors} 
+\begin{enumerate}
+\item[] GET -- Retrieves a list of all authors of this content piece
+\end{enumerate}
+\item[] \url{/edits} \begin{enumerate}
+\item[] GET -- Retrieve a list of validating edits (sorted in descending order by \par creation date) and a list of closed edits (accepted and rejected, \par sorted in descending order by validation date), both paginated with \par 10 results per page. Also include the a count of the number of \par validating edits and the number of closed edits
+\item[] \url{/{id}}
+\begin{enumerate}
+\item[] GET -- Retrieve the edit of this content piece with edit\_id \{id\}
+\item[] GET \url{?check_conflict={bool}} -- Retrieve the edit of this content piece \par with edit\_id \{id\} and, if its a validating edit and \{bool\} is true, \par include a boolean conflict indicator (indicating whether this edit \par likely conflicts with other validating edits) % Since checking for conflicts could be a time-intensive operation (e.g. taking many tens or hundreds of milliseconds)
+\item[] \url{/vote}
+\begin{enumerate}
+\item[] POST -- Submit a vote for or against this edit
+\end{enumerate}
+\end{enumerate}
+\end{enumerate}
+\item[] \url{/edit_activity}
+\begin{enumerate}
+\item[] GET -- For this content piece, retrieves a list of all authors, and two \par paginated lists (with 10 results per page): the first contains recent \par currently validating edits and the second contains recent closed \par edits, including both accepted and rejected edits. Also includes a \par list indicating which validating edits the requesting author still \par needs to vote on
+\end{enumerate}
+\end{enumerate}
+\item[] \url{/names}
+\begin{enumerate}
+\item[] GET \url{?complete={string}} -- Retrieve a list in descending order of the \par 10 best matching name or alternate name completions of the fragment \par \{string\} 
+\end{enumerate}
+\item[] \url{/content_types}
+\begin{enumerate}
+\item[] GET -- Retrieve a list of all content types
+\end{enumerate}
+\item[] \url{/keywords}
+\begin{enumerate}
+\item[] GET -- Retrieve a list of all keywords, paginated with 50 results per page \par and sorted in descending alphabetical order.
+\item[] GET \url{?complete={string}} -- Retrieve a list in descending order of the \par 10 best matching keyword completions of the fragment \{string\} 
+\end{enumerate}
+\item[] \url{/citations}
+\begin{enumerate}
+\item[] GET -- Retrieve a list of all citations, paginated with 50 results per page \par and sorted in descending alphabetical order by first author last name.
+\item[] GET \url{?complete={string}} -- Retrieve a list in descending order of the \par 10 best matching citation completions of the fragment \{string\} 
+\end{enumerate}
+\end{myEnumerate}
+%\item[] \url{/edits}
+%\begin{enumerate}
+%\item[] 
+%\item[] 
+%\item[] 
+%\item[] 
+%\item[] 
+%\end{enumerate}
+\item[] \url{/users}
+\begin{enumerate}
+\item[] POST -- Registers a new user
+\item[] PATCH -- Alter the state of this user. Options include changing the password, \par username, or email address, or confirming an email address. 
+\item[] DELETE -- Delete a user account	% Requires resubmitting login info: email + password
+\item[] \url{/sessions}
+\begin{enumerate}
+\item[] POST -- Create a new session 	% i.e. login
+\item[] DELETE -- Delete a session	% i.e. logout
+\end{enumerate}
+\item[] \url{/{id}}
+\begin{enumerate}
+\item[] GET -- Redirects to \url{/recent_activity}
+\item[] \url{/recent_activity}
+\begin{enumerate}
+\item[] GET -- 
+\end{enumerate}
+\item[] \url{/content}
+\begin{enumerate}
+\item[] GET -- 
+\end{enumerate}
+\item[] \url{/edits}
+\begin{enumerate}
+\item[] GET -- 
+\end{enumerate}
+\end{enumerate}
+\end{enumerate}
+\item[] \url{/admins}
+\begin{enumerate}
+\item[] 
+\item[] 
+\item[] 
+\item[] 
+\end{enumerate}
+\item[] \url{/reports}
+\begin{enumerate}
+\item[] GET -- Get a list of the most 10 recent reports. 
+\item[] POST -- Submit a new report.
+\item[] 
+\item[] 
+\item[] 
+\end{enumerate}
+\end{myEnumerate}
+\end{myEnumerate}
 
 
 \end{document} 
