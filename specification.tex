@@ -765,7 +765,7 @@ Approximate RESTful web API reference:
 \item[] GET -- Retrieves a list of all authors of this content piece
 \end{enumerate}
 \item[] \url{/edits} \begin{enumerate}
-\item[] GET -- Retrieve a list of validating edits (sorted in descending order by \par creation date) and a list of closed edits (accepted and rejected, \par sorted in descending order by validation date), both paginated with \par 10 results per page. Also include the a count of the number of \par validating edits and the number of closed edits
+\item[] GET -- Retrieve a list of recent validating edits (sorted in descending \par order by creation date) and a list of recently closed edits (accepted \par and rejected, sorted in descending order by validation date), both \par paginated with 10 results per page. Also include a count of the \par number of validating edits and the number of closed edits
 \item[] \url{/{id}}
 \begin{enumerate}
 \item[] GET -- Retrieve the edit of this content piece with edit\_id \{id\}
@@ -823,21 +823,24 @@ Approximate RESTful web API reference:
 \item[] GET -- Redirects to \url{/recent_activity}
 \item[] \url{/recent_activity}
 \begin{enumerate}
-\item[] GET -- 
+\item[] GET -- Retrieve a list of recent edit metadata for content pieces authored by this user, including closed and validating edits, paginated with 20 results per page and sorted in descending order by submission timestamp or, if present, validation timestamp
 \end{enumerate}
 \item[] \url{/content}
 \begin{enumerate}
-\item[] GET -- 
+\item[] GET -- Retrieve a list of metadata for all content pieces authored by this user, including validating edit and vote required indicators.
 \end{enumerate}
 \item[] \url{/edits}
 \begin{enumerate}
-\item[] GET -- 
+\item[] GET -- Retrieve a list of this user's validating edits and a list of this user's closed edits, both sorted in descending chronological order, as well as the sizes of both lists
 \end{enumerate}
 \end{enumerate}
 \end{enumerate}
 \item[] \url{/admins}
 \begin{enumerate}
-\item[] 
+\item[] \url{/{id}}
+\begin{enumerate}
+\item[] GET -- Redirects to \url{/users/{id}}
+\end{enumerate}
 \item[] 
 \item[] 
 \item[] 
@@ -845,6 +848,7 @@ Approximate RESTful web API reference:
 \item[] \url{/reports}
 \begin{enumerate}
 \item[] GET -- Get a list of the most 10 recent reports. 
+\item[] GET \url{?{id_type}={id}&report_status={status}} -- 
 \item[] POST -- Submit a new report.
 \item[] 
 \item[] 
