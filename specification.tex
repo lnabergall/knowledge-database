@@ -752,52 +752,52 @@ Approximate RESTful web API reference:
 \begin{myEnumerate}
 \item[] \url{/content}
 \begin{myEnumerate}
-\item[] GET -- Retrieve a list of all content pieces, paginated with 10 results per page \par and sorted by timestamp of creation
-\item[] GET \url{?sort={parameter}} -- Retrieve a list of all content pieces, paginated with \par 10 results per page and sorted in descending order by \{parameter\} \par (created\_at, last\_edited\_at)
-\item[] GET \url{?{part}={string}} -- Retrieve a list of all content pieces with a \{part\} \par (keyword, content type, name, or citation) matching \{string\}, paginated \par with 10 results per page and sorted by timestamp of creation
-\item[] GET \url{?q={string}} -- Search all content pieces by query \{string\}, resulting list \par of top matching 1000 content pieces is paginated with 10 results per page \par and sorted in descending order by query match strength
-\item[] POST -- Creates a new content piece
+\item[] GET -- Retrieve a list of all content pieces, paginated with 10 results per page \par and sorted by timestamp of creation.
+\item[] GET \url{?sort={parameter}} -- Retrieve a list of all content pieces, paginated with \par 10 results per page and sorted in descending order by \{parameter\} \par (created\_at, last\_edited\_at).
+\item[] GET \url{?{part}={string}} -- Retrieve a list of all content pieces with a \{part\} \par (keyword, content type, name, or citation) matching \{string\}, paginated \par with 10 results per page and sorted by timestamp of creation.
+\item[] GET \url{?q={string}} -- Search all content pieces by query \{string\}, resulting list \par of top matching 1000 content pieces is paginated with 10 results per page \par and sorted in descending order by query match strength.
+\item[] POST -- Creates a new content piece.
 \item[] \url{/{id}}
 \begin{enumerate}
-\item[] GET -- Retrieve the content piece with content\_id \{id\}
+\item[] GET -- Retrieve the content piece with content\_id \{id\}.
 \item[] \url{/authors} 
 \begin{enumerate}
-\item[] GET -- Retrieves a list of all authors of this content piece
+\item[] GET -- Retrieves a list of all authors of this content piece.
 \end{enumerate}
 \item[] \url{/edits} \begin{enumerate}
-\item[] GET -- Retrieve a list of recent validating edits (sorted in descending \par order by creation date) and a list of recently closed edits (accepted \par and rejected, sorted in descending order by validation date), both \par paginated with 10 results per page. Also include a count of the \par number of validating edits and the number of closed edits
+\item[] GET -- Retrieve a list of recent validating edits (sorted in descending \par order by creation date) and a list of recently closed edits (accepted \par and rejected, sorted in descending order by validation date), both \par paginated with 10 results per page. Also include a count of the \par number of validating edits and the number of closed edits.
 \item[] \url{/{id}}
 \begin{enumerate}
 \item[] GET -- Retrieve the edit of this content piece with edit\_id \{id\}
-\item[] GET \url{?check_conflict={bool}} -- Retrieve the edit of this content piece \par with edit\_id \{id\} and, if its a validating edit and \{bool\} is true, \par include a boolean conflict indicator (indicating whether this edit \par likely conflicts with other validating edits) % Since checking for conflicts could be a time-intensive operation (e.g. taking many tens or hundreds of milliseconds)
+\item[] GET \url{?check_conflict={bool}} -- Retrieve the edit of this content piece \par with edit\_id \{id\} and, if its a validating edit and \{bool\} is true, \par include a boolean conflict indicator (indicating whether this edit \par likely conflicts with other validating edits). % Since checking for conflicts could be a time-intensive operation (e.g. taking many tens or hundreds of milliseconds)
 \item[] \url{/vote}
 \begin{enumerate}
-\item[] POST -- Submit a vote for or against this edit
+\item[] POST -- Submit a vote for or against this edit.
 \end{enumerate}
 \end{enumerate}
 \end{enumerate}
 \item[] \url{/edit_activity}
 \begin{enumerate}
-\item[] GET -- For this content piece, retrieves a list of all authors, and two \par paginated lists (with 10 results per page): the first contains recent \par currently validating edits and the second contains recent closed \par edits, including both accepted and rejected edits. Also includes a \par list indicating which validating edits the requesting author still \par needs to vote on
+\item[] GET -- For this content piece, retrieves a list of all authors, and two \par paginated lists (with 10 results per page): the first contains recent \par currently validating edits and the second contains recent closed \par edits, including both accepted and rejected edits. Also includes a \par list indicating which validating edits the requesting author still \par needs to vote on.
 \end{enumerate}
 \end{enumerate}
 \item[] \url{/names}
 \begin{enumerate}
-\item[] GET \url{?complete={string}} -- Retrieve a list in descending order of the \par 10 best matching name or alternate name completions of the fragment \par \{string\} 
+\item[] GET \url{?complete={string}} -- Retrieve a list in descending order of the \par 10 best matching name or alternate name completions of the fragment \par \{string\}.
 \end{enumerate}
 \item[] \url{/content_types}
 \begin{enumerate}
-\item[] GET -- Retrieve a list of all content types
+\item[] GET -- Retrieve a list of all content types.
 \end{enumerate}
 \item[] \url{/keywords}
 \begin{enumerate}
 \item[] GET -- Retrieve a list of all keywords, paginated with 50 results per page \par and sorted in descending alphabetical order.
-\item[] GET \url{?complete={string}} -- Retrieve a list in descending order of the \par 10 best matching keyword completions of the fragment \{string\} 
+\item[] GET \url{?complete={string}} -- Retrieve a list in descending order of the \par 10 best matching keyword completions of the fragment \{string\}.
 \end{enumerate}
 \item[] \url{/citations}
 \begin{enumerate}
 \item[] GET -- Retrieve a list of all citations, paginated with 50 results per page \par and sorted in descending alphabetical order by first author last name.
-\item[] GET \url{?complete={string}} -- Retrieve a list in descending order of the \par 10 best matching citation completions of the fragment \{string\} 
+\item[] GET \url{?complete={string}} -- Retrieve a list in descending order of the \par 10 best matching citation completions of the fragment \{string\}.
 \end{enumerate}
 \end{myEnumerate}
 %\item[] \url{/edits}
@@ -810,20 +810,20 @@ Approximate RESTful web API reference:
 %\end{enumerate}
 \item[] \url{/users}
 \begin{enumerate}
-\item[] POST -- Registers a new user
-\item[] PATCH -- Alter the state of this user. Options include changing the password, \par username, or email address, or confirming an email address. 
-\item[] DELETE -- Delete a user account	% Requires resubmitting login info: email + password
+\item[] POST -- Register a new user.
+\item[] PATCH -- Alter the state of this user. Options include changing the password, \par username, or email address, or confirming an email address.
+\item[] DELETE -- Delete a user account.	% Requires resubmitting login info: email + password
 \item[] \url{/sessions}
 \begin{enumerate}
-\item[] POST -- Create a new session 	% i.e. login
-\item[] DELETE -- Delete a session	% i.e. logout
+\item[] POST -- Create a new session. 	% i.e. login
+\item[] DELETE -- Delete a session.	% i.e. logout
 \end{enumerate}
 \item[] \url{/{id}}
 \begin{enumerate}
 \item[] GET -- Redirects to \url{/recent_activity}
 \item[] \url{/recent_activity}
 \begin{enumerate}
-\item[] GET -- Retrieve a list of recent edit metadata for content pieces authored by this user, including closed and validating edits, paginated with 20 results per page and sorted in descending order by submission timestamp or, if present, validation timestamp
+\item[] GET -- Retrieve a list of recent edit metadata for content pieces authored by this user, including closed and validating edits, paginated with 20 results per page and sorted in descending order by submission timestamp or, if present, validation timestamp.
 \end{enumerate}
 \item[] \url{/content}
 \begin{enumerate}
@@ -831,7 +831,7 @@ Approximate RESTful web API reference:
 \end{enumerate}
 \item[] \url{/edits}
 \begin{enumerate}
-\item[] GET -- Retrieve a list of this user's validating edits and a list of this user's closed edits, both sorted in descending chronological order, as well as the sizes of both lists
+\item[] GET -- Retrieve a list of this user's validating edits and a list of this user's closed edits, both sorted in descending chronological order, as well as the sizes of both lists.
 \end{enumerate}
 \end{enumerate}
 \end{enumerate}
@@ -839,20 +839,21 @@ Approximate RESTful web API reference:
 \begin{enumerate}
 \item[] \url{/{id}}
 \begin{enumerate}
-\item[] GET -- Redirects to \url{/users/{id}}
+\item[] GET -- Redirects to \url{/users/{id}}.
 \end{enumerate}
-\item[] 
-\item[] 
-\item[] 
 \end{enumerate}
 \item[] \url{/reports}
 \begin{enumerate}
-\item[] GET -- Get a list of the most 10 recent reports. 
-\item[] GET \url{?{id_type}={id}&report_status={status}} -- 
+\item[] GET -- Get a list of the most 10 recent reports.
+\item[] GET \url{?{id_type}={id}&report_status={status}} -- Retrieve a list of all user \par reports with \{id\_type\} (user\_id, admin\_id, content\_id, or ip\_address) \par matching \{id\} and report status matching \{status\} (open or resolved), \par paginated with 10 items per page and sorted in descending chronological \par order by creation timestamp or, if present, resolution timestamp.
 \item[] POST -- Submit a new report.
-\item[] 
-\item[] 
-\item[] 
+\item[] \url{/{id}}
+\begin{enumerate}
+\item[] \url{/admin_reports}
+\begin{enumerate}
+\item[] POST -- Submit a new admin report detailing the resolution of this report.
+\end{enumerate}
+\end{enumerate}
 \end{enumerate}
 \end{myEnumerate}
 \end{myEnumerate}

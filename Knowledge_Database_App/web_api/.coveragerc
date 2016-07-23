@@ -1,0 +1,3 @@
+[run]
+source = web_api
+omit = web_api/test*
