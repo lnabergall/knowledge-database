@@ -10,16 +10,10 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 
 requires = [
     'pyramid',
-    'pyramid_chameleon',
+    'pyramid_jinja2',
     'pyramid_debugtoolbar',
     'waitress',
-    ]
-
-tests_require = [
-    'WebTest >= 1.3.1',  # py3 compat
-    'pytest',  # includes virtualenv
-    'pytest-cov',
-    ]
+]
 
 setup(name='web_api',
       version='0.0',
@@ -38,10 +32,9 @@ setup(name='web_api',
       packages=find_packages(),
       include_package_data=True,
       zip_safe=False,
-      extras_require={
-          'testing': tests_require,
-      },
       install_requires=requires,
+      tests_require=requires,
+      test_suite="web_api",
       entry_points="""\
       [paste.app_factory]
       main = web_api:main

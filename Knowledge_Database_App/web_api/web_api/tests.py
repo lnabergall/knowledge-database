@@ -1,29 +1,20 @@
 import unittest
-
 from pyramid import testing
+from pyramid.i18n import TranslationStringFactory
+
+_ = TranslationStringFactory('web_api')
 
 
 class ViewTests(unittest.TestCase):
-    def setUp(self):
-        self.config = testing.setUp()
 
+    def setUp(self):
+        testing.setUp()
+        
     def tearDown(self):
         testing.tearDown()
 
     def test_my_view(self):
-        from .views import my_view
+        from web_api.views import my_view
         request = testing.DummyRequest()
-        info = my_view(request)
-        self.assertEqual(info['project'], 'web_api')
-
-
-class FunctionalTests(unittest.TestCase):
-    def setUp(self):
-        from web_api import main
-        app = main({})
-        from webtest import TestApp
-        self.testapp = TestApp(app)
-
-    def test_root(self):
-        res = self.testapp.get('/', status=200)
-        self.assertTrue(b'Pyramid' in res.body)
+        response = my_view(request)
+        self.assertEqual(response['project'], 'web_api')
