@@ -1,4 +1,4 @@
-class MyResource(object):
+class MyResource:
     pass
 
 root = MyResource()
