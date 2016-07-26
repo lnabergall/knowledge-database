@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2015.1.11)  20 JUL 2016 19:25
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2015.1.11)  25 JUL 2016 17:08
 entering extended mode
 **specification.tex
 (E:\Lukas2\Knowledge_Database\specification.tex
@@ -1099,13 +1099,13 @@ File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <12> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 756.
  [24] [25]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 862.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 864.
 
 [26]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 862.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 864.
  (E:\Lukas2\Knowledge_Database\specification.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 862.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 862.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 864.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 864.
 Package rerunfilecheck Info: File `specification.out' has not changed.
 (rerunfilecheck)             Checksum: 2F0D7548A1B08DAC7181FA40010F3841;1153.
 Package logreq Info: Writing requests to 'specification.run.xml'.
@@ -1254,7 +1254,7 @@ am Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program
  Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Program Fi
 les (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti12.pfb><C:/Program File
 s (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on specification.pdf (26 pages, 230725 bytes).
+Output written on specification.pdf (26 pages, 230902 bytes).
 PDF statistics:
  381 PDF objects out of 1000 (max. 8388607)
  87 named destinations out of 1000 (max. 500000)

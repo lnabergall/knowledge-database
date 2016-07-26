@@ -770,8 +770,9 @@ Approximate RESTful web API reference:
 \begin{enumerate}
 \item[] GET -- Retrieve the edit of this content piece with edit\_id \{id\}
 \item[] GET \url{?check_conflict={bool}} -- Retrieve the edit of this content piece \par with edit\_id \{id\} and, if its a validating edit and \{bool\} is true, \par include a boolean conflict indicator (indicating whether this edit \par likely conflicts with other validating edits). % Since checking for conflicts could be a time-intensive operation (e.g. taking many tens or hundreds of milliseconds)
-\item[] \url{/vote}
+\item[] \url{/votes}
 \begin{enumerate}
+\item[] GET -- Retrieve the vote summary for this edit.
 \item[] POST -- Submit a vote for or against this edit.
 \end{enumerate}
 \end{enumerate}
@@ -849,6 +850,7 @@ Approximate RESTful web API reference:
 \item[] POST -- Submit a new report.
 \item[] \url{/{id}}
 \begin{enumerate}
+\item[] GET -- Retrieve the user report with report\_id \{id\}.
 \item[] \url{/admin_reports}
 \begin{enumerate}
 \item[] POST -- Submit a new admin report detailing the resolution of this report.
