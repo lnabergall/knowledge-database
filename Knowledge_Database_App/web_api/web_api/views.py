@@ -6,13 +6,6 @@ to the client.
 from pyramid.view import view_defaults, view_config
 from pyramid.i18n import TranslationStringFactory
 
-from Knowledge_Database_App.content.content_view import ContentView
-from Knowledge_Database_App.content.edit_view import EditView
-from Knowledge_Database_App.content.vote_view import VoteView
-from Knowledge_Database_App.user.user_view import UserView
-from Knowledge_Database_App.user.admin_view import AdminView
-from Knowledge_Database_App.user.report_view import ReportView
-
 
 _ = TranslationStringFactory('web_api')
 
@@ -21,7 +14,7 @@ def test_view(request):
     return {'project': 'web_api'}
 
 
-class Content:
+class ContentResourceView:
 
     def __init__(self, request):
         self.request = request
@@ -45,7 +38,7 @@ class Content:
         pass
 
 
-class ContentPiece:
+class ContentPieceResourceView:
 
     def __init__(self, request):
         self.request = request
@@ -72,7 +65,7 @@ class ContentPiece:
         pass
 
 
-class User:
+class UserResourceView:
 
     def __init__(self, request):
         self.request = request
@@ -105,7 +98,7 @@ class User:
         pass
 
 
-class Report:
+class ReportResourceView:
 
     def __init__(self, request):
         self.request = request
