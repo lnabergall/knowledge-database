@@ -9,6 +9,7 @@ Functions:
 from pyramid.config import Configurator
 from pyramid.authentication import SessionAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
+
 from web_api.resources import get_root
 
 
@@ -48,7 +49,8 @@ def main(global_config, **settings):
                     route_name="content",
                     attr="post",
                     request_method="POST",
-                    renderer="json")
+                    renderer="json",
+                    require_csrf=True)
 
     config.add_route("content_piece", "/content/{content_id}")
     config.add_view("web_api.views.ContentPieceResourceView",
@@ -88,7 +90,8 @@ def main(global_config, **settings):
                     route_name="edit_vote",
                     attr="post_edit_vote",
                     request_method="POST",
-                    renderer="json")
+                    renderer="json",
+                    require_csrf=True)
 
     config.add_route("piece_edit_activity", "/content/{content_id}/edit_activity")
     config.add_view("web_api.views.ContentPieceResourceView",
@@ -135,24 +138,28 @@ def main(global_config, **settings):
                     route_name="users",
                     attr="patch",
                     request_method="PATCH",
-                    renderer="json")
+                    renderer="json",
+                    require_csrf=True)
     config.add_view("web_api.views.UserResourceView",
                     route_name="users",
                     attr="delete",
                     request_method="DELETE",
-                    renderer="json")
+                    renderer="json",
+                    require_csrf=True)
 
     config.add_route("user_sessions", "/users/sessions")
     config.add_view("web_api.views.UserResourceView",
                     route_name="user_sessions",
                     attr="post_session",
                     request_method="POST",
-                    renderer="json")
+                    renderer="json",
+                    require_csrf=True)
     config.add_view("web_api.views.UserResourceView",
                     route_name="user_sessions",
                     attr="delete_session",
                     request_method="DELETE",
-                    renderer="json")
+                    renderer="json",
+                    require_csrf=True)
 
     config.add_route("user", "/users/{user_id}")
     config.add_view("web_api.views.UserResourceView",
@@ -213,6 +220,7 @@ def main(global_config, **settings):
                     route_name="admin_reports",
                     attr="post_admin_report",
                     request_method="POST",
-                    renderer="json")
+                    renderer="json",
+                    require_csrf=True)
 
     return config.make_wsgi_app()
