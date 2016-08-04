@@ -28,9 +28,9 @@ class UserView:
         except:
             raise
         else:
+            if user_name is not None:
+                user.register()
             self.user = user.json_ready
-        if user_name is not None:
-            user.register()
 
     @classmethod
     def confirm(cls, email, confirmation_id):
