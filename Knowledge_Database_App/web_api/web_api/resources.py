@@ -2,7 +2,7 @@
 Contains the resources associated with back-end application data objects.
 """
 
-from pyramid.security import Allow, Everyone, Authenticated
+from pyramid.security import Allow, Everyone, Authenticated, ALL_PERMISSIONS
 
 from Knowledge_Database_App.content.content_view import ContentView
 from Knowledge_Database_App.content.edit_view import EditView
@@ -10,39 +10,63 @@ from Knowledge_Database_App.content.vote_view import VoteView
 from Knowledge_Database_App.user.user_view import UserView
 from Knowledge_Database_App.user.admin_view import AdminView
 from Knowledge_Database_App.user.report_view import ReportView
+from Knowledge_Database_App.web_api.web_api.permissions import (
+    VIEW, CREATE, MODIFY, AUTHOR)
 
 
-class MyResource:
-    pass
+class Root:
 
-
-root = MyResource()
+    def __init__(self, request):
+        self.request = request
 
 
 def get_root(request):
-    return root
+    return Root(request)
 
 
-VIEW = "view"
-EDIT = "edit"
+def get_identifiers(user_id, request):
+    pass
+
+
+USER_ID_PREFIX = "user_id:"
+ADMIN = "admin"
 
 
 class ContentResource(ContentView):
 
     def __acl__(self):
-        pass
+        if self.content["authors"] is not None:
+            author_list = [(Allow, USER_ID_PREFIX + user["user_id"], AUTHOR)
+                           for user in self.content["authors"]]
+        else:
+            author_list = []
+        return [
+            (Allow, Everyone, VIEW),
+            (Allow, Authenticated, CREATE),
+            (Allow, ADMIN, ALL_PERMISSIONS)
+        ] + author_list
 
 
 class EditResource(EditView):
 
     def __acl__(self):
-        pass
+        return [
+            (Allow, Everyone, (VIEW, CREATE))
+        ]
 
 
 class VoteResource(VoteView):
 
     def __acl__(self):
-        pass
+        if self.content["authors"] is not None:
+            author_list = [(Allow, USER_ID_PREFIX + user["user_id"], AUTHOR)
+                           for user in self.content["authors"]]
+            # NOT WORKING, NEED TO ADD ACCESS TO CONTENT AUTHORS
+        else:
+            author_list = []
+        return [
+            (Allow, ADMIN, VIEW)
+        ] + author_list
 
 
 class UserResource(UserView):
@@ -60,4 +84,7 @@ class AdminResource(AdminView):
 class ReportResource(ReportView):
 
     def __acl__(self):
-        pass
+        return [
+            (Allow, Everyone, CREATE),
+            (Allow, ADMIN, VIEW)
+        ]
