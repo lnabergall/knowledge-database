@@ -64,12 +64,20 @@ class ContentResource(ContentView):
         ] + author_list
 
 
+def content_factory(request):
+    pass
+
+
 class EditResource(EditView):
 
     def __acl__(self):
         return [
             (Allow, Everyone, (VIEW, CREATE))
         ]
+
+
+def edit_factory(request):
+    pass
 
 
 class VoteResource(VoteView):
@@ -87,6 +95,10 @@ class VoteResource(VoteView):
         ] + author_list
 
 
+def vote_factory(request):
+    pass
+
+
 class UserResource(UserView):
 
     def __acl__(self):
@@ -98,6 +110,10 @@ class UserResource(UserView):
         ]
 
 
+def user_factory(request):
+    pass
+
+
 class AdminResource(AdminView):
 
     def __acl__(self):
@@ -107,10 +123,19 @@ class AdminResource(AdminView):
         ]
 
 
+def admin_factory(request):
+    pass
+
+
 class ReportResource(ReportView):
 
     def __acl__(self):
         return [
-            (Allow, Everyone, CREATE),
+            (Allow, Everyone, (CREATE, VIEW)),
             (Allow, ADMIN, ALL_PERMISSIONS)
         ]
+
+
+def report_factory(request):
+    pass
+

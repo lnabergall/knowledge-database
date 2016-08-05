@@ -55,6 +55,9 @@ class ContentPieceResourceView:
     def get_edit(self):
         pass
 
+    def post_edit(self):
+        pass
+
     def get_edit_vote(self):
         pass
 
