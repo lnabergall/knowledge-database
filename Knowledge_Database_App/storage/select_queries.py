@@ -50,29 +50,59 @@ class InputError(Exception):
     """
 
 
-def get_content_piece(content_id, session=None):
+def get_content_piece(content_id=None, accepted_edit_id=None,
+                      rejected_edit_id=None, session=None):
     """
     Args:
-        content_id: Integer.
+        content_id: Integer. Defaults to None.
+        accepted_edit_id: Integer. Defaults to None.
+        rejected_edit_id: Integer. Defaults to None.
         session: SQLAlchemy session. Defaults to None.
     Returns:
-        ContentPiece: if content piece matching content_id is found.
+        ContentPiece: if content piece matching content_id or associated
+            with accepted_edit_id or rejected_edit_id is found.
     Raises:
         SelectError: if content_id does not match any row in the
-            Content_Piece table.
+            Content_Piece table or accepted_edit_id or rejected_edit_id
+            are not associated with any content piece.
     """
     if session is None:
         session = orm.start_session()
     try:
-        content_piece = session.query(orm.ContentPiece).options(
-            subqueryload(orm.ContentPiece.first_author),
-            subqueryload(orm.ContentPiece.authors),
-            subqueryload(orm.ContentPiece.content_type),
-            subqueryload(orm.ContentPiece.name),
-            subqueryload(orm.ContentPiece.alternate_names),
-            subqueryload(orm.ContentPiece.text),
-            subqueryload(orm.ContentPiece.keywords)).filter(
-            orm.ContentPiece.content_id == content_id).one()
+        if content_id is not None:
+            content_piece = session.query(orm.ContentPiece).options(
+                subqueryload(orm.ContentPiece.first_author),
+                subqueryload(orm.ContentPiece.authors),
+                subqueryload(orm.ContentPiece.content_type),
+                subqueryload(orm.ContentPiece.name),
+                subqueryload(orm.ContentPiece.alternate_names),
+                subqueryload(orm.ContentPiece.text),
+                subqueryload(orm.ContentPiece.keywords)).filter(
+                orm.ContentPiece.content_id == content_id).one()
+        elif accepted_edit_id is not None:
+            content_piece = session.query(orm.ContentPiece).join(
+                orm.AcceptedEdit).options(
+                subqueryload(orm.ContentPiece.first_author),
+                subqueryload(orm.ContentPiece.authors),
+                subqueryload(orm.ContentPiece.content_type),
+                subqueryload(orm.ContentPiece.name),
+                subqueryload(orm.ContentPiece.alternate_names),
+                subqueryload(orm.ContentPiece.text),
+                subqueryload(orm.ContentPiece.keywords)).filter(
+                orm.AcceptedEdit.edit_id == accepted_edit_id).one()
+        elif rejected_edit_id is not None:
+            content_piece = session.query(orm.ContentPiece).join(
+                orm.RejectedEdit).options(
+                subqueryload(orm.ContentPiece.first_author),
+                subqueryload(orm.ContentPiece.authors),
+                subqueryload(orm.ContentPiece.content_type),
+                subqueryload(orm.ContentPiece.name),
+                subqueryload(orm.ContentPiece.alternate_names),
+                subqueryload(orm.ContentPiece.text),
+                subqueryload(orm.ContentPiece.keywords)).filter(
+                orm.RejectedEdit.edit_id == rejected_edit_id).one()
+        else:
+            raise InputError("Missing argument!")
     except (NoResultFound, MultipleResultsFound) as e:
         raise SelectError(str(e))
     else:
@@ -622,6 +652,13 @@ def get_user_encrypt_info(email=None, remember_id=None, session=None):
 
 
 def get_author_count(content_id, session=None):
+    """
+    Args:
+        content_id: Integer.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        The number of authors of the content piece matching content_id.
+    """
     if session is None:
         session = orm.start_session()
     try:

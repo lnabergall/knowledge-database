@@ -25,13 +25,16 @@ class ContentView:
         autocomplete, recent_activity, validation_data
     """
 
-    def __init__(self, content_id=None, first_author_name=None, 
+    def __init__(self, content_id=None, accepted_edit_id=None,
+                 rejected_edit_id=None, first_author_name=None,
                  first_author_id=None, content_type=None, name=None,
                  alternate_names=None, text=None, keywords=None, 
                  citations=None, submit=False):
         """
         Args:
             content_id: Integer. Defaults to None.
+            accepted_edit_id: Integer. Defaults to None.
+            rejected_edit_id: Integer. Defaults to None.
             first_author_name: String. Defaults to None.
             first_author_id: Integer. Defaults to None.
             content_type: String. Defaults to None.
@@ -42,9 +45,12 @@ class ContentView:
             citations: List of Strings. Defaults to None.
             submit: Boolean. Defaults to False.
         """
-        if content_id is not None:
+        if (content_id is not None or accepted_edit_id is not None or
+                rejected_edit_id is not None):
             try:
-                content = Content(content_id=content_id)
+                content = Content(content_id=content_id,
+                                  accepted_edit_id=accepted_edit_id,
+                                  rejected_edit_id=rejected_edit_id)
             except:
                 raise
             else:

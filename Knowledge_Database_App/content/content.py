@@ -273,13 +273,16 @@ class Content:
     citations = None                # List of Strings.
     notification = None
 
-    def __init__(self, content_id=None, first_author_name=None,
+    def __init__(self, content_id=None, accepted_edit_id=None,
+                 rejected_edit_id=None, first_author_name=None,
                  first_author_id=None, content_type=None, name=None,
                  alternate_names=None, text=None, keywords=None,
                  citations=None, content_piece=None):
         """
         Args:
             content_id: Integer.
+            accepted_edit_id: Integer.
+            rejected_edit_id: Integer.
             first_author_name: String.
             first_author_id: Integer.
             content_type: String.
@@ -290,10 +293,13 @@ class Content:
             citations: List of Strings.
             content_piece: ContentPiece object.
         """
-        if content_id is not None:
+        if (content_id is not None or accepted_edit_id is not None or
+                rejected_edit_id is not None):
             try:
                 content_piece = self.storage_handler.call(
-                    select.get_content_piece, content_id=content_id)
+                    select.get_content_piece, content_id=content_id,
+                    accepted_edit_id=accepted_edit_id,
+                    rejected_edit_id=rejected_edit_id)
             except:
                 raise
             else:
