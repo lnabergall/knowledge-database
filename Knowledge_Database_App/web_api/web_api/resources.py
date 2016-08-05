@@ -4,6 +4,7 @@ Contains the resources associated with back-end application data objects.
 
 from pyramid.security import Allow, Everyone, Authenticated, ALL_PERMISSIONS
 
+from Knowledge_Database_App.content.edit import is_ip_address
 from Knowledge_Database_App.content.content_view import ContentView
 from Knowledge_Database_App.content.edit_view import EditView
 from Knowledge_Database_App.content.vote_view import VoteView
@@ -11,7 +12,7 @@ from Knowledge_Database_App.user.user_view import UserView
 from Knowledge_Database_App.user.admin_view import AdminView
 from Knowledge_Database_App.user.report_view import ReportView
 from Knowledge_Database_App.web_api.web_api.permissions import (
-    VIEW, CREATE, MODIFY, AUTHOR)
+    VIEW, CREATE, MODIFY, DELETE, AUTHOR)
 
 
 class Root:
@@ -24,11 +25,27 @@ def get_root(request):
     return Root(request)
 
 
+def format_identifier(user_id):
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        if is_ip_address(user_id):
+            return "ip_address:" + str(user_id)
+    except:
+        raise
+    else:
+        return "user_id:" + str(user_id)
+
+
 def get_identifiers(user_id, request):
-    pass
+    try:
+        formatted_id = format_identifier(user_id)
+    except:
+        return None
+    else:
+        return [formatted_id]
 
 
-USER_ID_PREFIX = "user_id:"
 ADMIN = "admin"
 
 
@@ -36,7 +53,7 @@ class ContentResource(ContentView):
 
     def __acl__(self):
         if self.content["authors"] is not None:
-            author_list = [(Allow, USER_ID_PREFIX + user["user_id"], AUTHOR)
+            author_list = [(Allow, format_identifier(user["user_id"]), AUTHOR)
                            for user in self.content["authors"]]
         else:
             author_list = []
@@ -58,10 +75,11 @@ class EditResource(EditView):
 class VoteResource(VoteView):
 
     def __acl__(self):
-        if self.content["authors"] is not None:
-            author_list = [(Allow, USER_ID_PREFIX + user["user_id"], AUTHOR)
-                           for user in self.content["authors"]]
-            # NOT WORKING, NEED TO ADD ACCESS TO CONTENT AUTHORS
+        edit = EditView(self.vote["edit_id"], validation_status="validating")
+        content = ContentView(content_id=edit.edit["content_id"])
+        if content["authors"] is not None:
+            author_list = [(Allow, format_identifier(user["user_id"]),
+                            (VIEW, AUTHOR)) for user in content["authors"]]
         else:
             author_list = []
         return [
@@ -72,13 +90,21 @@ class VoteResource(VoteView):
 class UserResource(UserView):
 
     def __acl__(self):
-        pass
+        return [
+            (Deny, Authenticated, CREATE),
+            (Allow, Everyone, CREATE),
+            (Allow, format_identifier(self.user["user_id"]),
+             (VIEW, MODIFY, DELETE)),
+        ]
 
 
 class AdminResource(AdminView):
 
     def __acl__(self):
-        pass
+        return [
+            (Allow, format_identifier(self.admin["user_id"]),
+             (VIEW, MODIFY, DELETE)),
+        ]
 
 
 class ReportResource(ReportView):
@@ -86,5 +112,5 @@ class ReportResource(ReportView):
     def __acl__(self):
         return [
             (Allow, Everyone, CREATE),
-            (Allow, ADMIN, VIEW)
+            (Allow, ADMIN, ALL_PERMISSIONS)
         ]
