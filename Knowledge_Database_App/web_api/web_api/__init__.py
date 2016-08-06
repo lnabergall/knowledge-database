@@ -7,12 +7,13 @@ Functions:
 """
 
 from pyramid.config import Configurator
-from pyramid.authentication import SessionAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 
 from Knowledge_Database_App.web_api.web_api import resources
 from Knowledge_Database_App.web_api.web_api.permissions import (
     VIEW, CREATE, MODIFY, DELETE, AUTHOR)
+from Knowledge_Database_App.web_api.web_api.authentication import (
+    CustomSessionAuthPolicy)
 
 
 def main(global_config, **settings):
@@ -24,7 +25,7 @@ def main(global_config, **settings):
     """
     settings.setdefault("jinja2.i18n.domain", "web_api")
 
-    authentication_policy = SessionAuthenticationPolicy(
+    authentication_policy = CustomSessionAuthPolicy(
         callback=resources.get_identifiers)
     authorization_policy = ACLAuthorizationPolicy()
 

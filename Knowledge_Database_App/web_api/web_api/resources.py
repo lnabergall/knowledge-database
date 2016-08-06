@@ -65,7 +65,34 @@ class ContentResource(ContentView):
 
 
 def content_factory(request):
-    pass
+    data = {
+        "content_id": (request.params.get("content_id") or
+                       request.json_body.get("content_id")),
+        "accepted_edit_id": (request.params.get("accepted_edit_id") or
+                       request.json_body.get("accepted_edit_id")),
+        "rejected_edit_id": (request.params.get("rejected_edit_id") or
+                       request.json_body.get("rejected_edit_id")),
+        "content_type": (request.params.get("content_type") or
+                       request.json_body.get("content_type")),
+        "name": (request.params.get("name") or
+                       request.json_body.get("name")),
+        "alternate_names": (request.params.get("alternate_names") or
+                       request.json_body.get("alternate_names")),
+        "text": (request.params.get("text") or
+                       request.json_body.get("text")),
+        "keywords": (request.params.get("keywords") or
+                       request.json_body.get("keywords")),
+        "citations": (request.params.get("citations") or
+                       request.json_body.get("citations")),
+        "submit": (request.params.get("submit") or
+                       request.json_body.get("submit") or False),
+    }
+    user_id = request.authenticated_userid
+    if user_id is None:
+        return None
+    else:
+        data["first_author_id"] = user_id
+        return ContentResource(**data)
 
 
 class EditResource(EditView):
