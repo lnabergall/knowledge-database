@@ -274,16 +274,15 @@ class Content:
     notification = None
 
     def __init__(self, content_id=None, accepted_edit_id=None,
-                 rejected_edit_id=None, first_author_name=None,
-                 first_author_id=None, content_type=None, name=None,
-                 alternate_names=None, text=None, keywords=None,
-                 citations=None, content_piece=None):
+                 rejected_edit_id=None, first_author_id=None,
+                 content_type=None, name=None, alternate_names=None,
+                 text=None, keywords=None, citations=None,
+                 content_piece=None):
         """
         Args:
             content_id: Integer.
             accepted_edit_id: Integer.
             rejected_edit_id: Integer.
-            first_author_name: String.
             first_author_id: Integer.
             content_type: String.
             name: String.
@@ -309,13 +308,12 @@ class Content:
             self._transfer(content_piece)
             self.stored = True
         else:
-            if (not first_author_id or not first_author_name or
-                    not content_type or not name or not text or not keywords):
+            if (not first_author_id or not content_type or not name or
+                    not text or not keywords):
                 raise action.InputError("Required arguments not provided!")
             self.timestamp = datetime.utcnow()
             self.last_edited_timestamp = self.timestamp
-            self.first_author = UserData(user_id=first_author_id,
-                                         user_name=first_author_name)
+            self.first_author = UserData(user_id=first_author_id)
             self.authors = [self.first_author]
             self.content_type = content_type
             self.name = Name(name=name, name_type="primary",

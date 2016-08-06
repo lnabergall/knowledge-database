@@ -26,16 +26,14 @@ class ContentView:
     """
 
     def __init__(self, content_id=None, accepted_edit_id=None,
-                 rejected_edit_id=None, first_author_name=None,
-                 first_author_id=None, content_type=None, name=None,
-                 alternate_names=None, text=None, keywords=None, 
-                 citations=None, submit=False):
+                 rejected_edit_id=None, first_author_id=None,
+                 content_type=None, name=None, alternate_names=None,
+                 text=None, keywords=None, citations=None, submit=False):
         """
         Args:
             content_id: Integer. Defaults to None.
             accepted_edit_id: Integer. Defaults to None.
             rejected_edit_id: Integer. Defaults to None.
-            first_author_name: String. Defaults to None.
             first_author_id: Integer. Defaults to None.
             content_type: String. Defaults to None.
             name: String. Defaults to None.
@@ -57,8 +55,7 @@ class ContentView:
                 self.content = content.json_ready
         else:
             try:
-                content = Content(first_author_name=first_author_name,
-                                  first_author_id=first_author_id, 
+                content = Content(first_author_id=first_author_id,
                                   content_type=content_type, name=name,
                                   alternate_names=alternate_names, text=text,
                                   keywords=keywords, citations=citations)
