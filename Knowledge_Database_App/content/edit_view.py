@@ -38,7 +38,7 @@ class EditView:
                 'content_type', 'keyword', or 'citation'. Defaults to None.
             part_id: Integer. Defaults to None.
             original_part_text: String. Defaults to None.
-            author_type: String, accepts 'admin' or 'standard'.
+            author_type: String, expects 'U' or an IP address.
                 Defaults to None.
             author_id: Integer. Defaults to None.
             start_timestamp: Datetime. Defaults to None.
