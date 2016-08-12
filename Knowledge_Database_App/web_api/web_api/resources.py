@@ -66,26 +66,26 @@ class ContentResource(ContentView):
 
 def content_factory(request):
     data = {
-        "content_id": (request.params.get("content_id") or
+        "content_id": (request.params.getone("content_id") or
                        request.json_body.get("content_id")),
-        "accepted_edit_id": (request.params.get("accepted_edit_id") or
-                       request.json_body.get("accepted_edit_id")),
-        "rejected_edit_id": (request.params.get("rejected_edit_id") or
-                       request.json_body.get("rejected_edit_id")),
-        "content_type": (request.params.get("content_type") or
-                       request.json_body.get("content_type")),
-        "name": (request.params.get("name") or
-                       request.json_body.get("name")),
-        "alternate_names": (request.params.get("alternate_names") or
-                       request.json_body.get("alternate_names")),
-        "text": (request.params.get("text") or
-                       request.json_body.get("text")),
-        "keywords": (request.params.get("keywords") or
-                       request.json_body.get("keywords")),
-        "citations": (request.params.get("citations") or
-                       request.json_body.get("citations")),
-        "submit": (request.params.get("submit") or
-                       request.json_body.get("submit") or False),
+        "accepted_edit_id": (request.params.getone("accepted_edit_id") or
+                             request.json_body.get("accepted_edit_id")),
+        "rejected_edit_id": (request.params.getone("rejected_edit_id") or
+                             request.json_body.get("rejected_edit_id")),
+        "content_type": (request.params.getone("content_type") or
+                         request.json_body.get("content_type")),
+        "name": (request.params.getone("name") or
+                 request.json_body.get("name")),
+        "alternate_names": (request.params.getone("alternate_names") or
+                            request.json_body.get("alternate_names")),
+        "text": (request.params.getone("text") or
+                 request.json_body.get("text")),
+        "keywords": (request.params.getone("keywords") or
+                     request.json_body.get("keywords")),
+        "citations": (request.params.getone("citations") or
+                      request.json_body.get("citations")),
+        "submit": (request.params.getone("submit") or
+                   request.json_body.get("submit") or False),
     }
     user_id = request.authenticated_userid
     if user_id is None:
@@ -104,7 +104,36 @@ class EditResource(EditView):
 
 
 def edit_factory(request):
-    pass
+    data = {
+        "edit_id": (request.params.getone("edit_id") or
+                    request.json_body.get("edit_id")),
+        "validation_status": (request.params.getone("validation_status") or
+                              request.json_body.get("validation_status")),
+        "content_id": (request.params.getone("content_id") or
+                       request.json_body.get("content_id")),
+        "edit_text": (request.params.getone("edit_text") or
+                      request.json_body.get("edit_text")),
+        "edit_rationale": (request.params.getone("edit_rationale") or
+                           request.json_body.get("edit_rationale")),
+        "content_part": (request.params.getone("content_part") or
+                         request.json_body.get("content_part")),
+        "part_id": (request.params.getone("part_id") or
+                    request.json_body.get("part_id")),
+        "original_part_text": (request.params.getone("original_part_text") or
+                               request.json_body.get("original_part_text")),
+        "start_timestamp": (request.params.getone("start_timestamp") or
+                            request.json_body.get("start_timestamp")),
+        "submit": (request.params.getone("submit") or
+                   request.json_body.get("submit") or False),
+    }
+    user_id = request.unauthenticated_userid
+    auth_user_id = request.authenticated_userid
+    if user_id is None:
+        return None
+    else:
+        data["author_id"] = auth_user_id
+        data["author_type"] = "U" if auth_user_id else user_id
+        return EditResource(**data)
 
 
 class VoteResource(VoteView):
@@ -123,7 +152,24 @@ class VoteResource(VoteView):
 
 
 def vote_factory(request):
-    pass
+    data = {
+        "vote_status": (request.params.getone("vote_status") or
+                        request.json_body.get("vote_status")),
+        "edit_id": (request.params.getone("edit_id") or
+                    request.json_body.get("edit_id")),
+        "vote": (request.params.getone("vote") or
+                 request.json_body.get("vote")),
+        "timestamp": (request.params.getone("timestamp") or
+                      request.json_body.get("timestamp")),
+        "close_timestamp": (request.params.getone("close_timestamp") or
+                            request.json_body.get("close_timestamp")),
+    }
+    voter_id = request.authenticated_userid
+    if voter_id is None:
+        return None
+    else:
+        data["voter_id"] = voter_id
+        return VoteResource(**data)
 
 
 class UserResource(UserView):
@@ -138,7 +184,26 @@ class UserResource(UserView):
 
 
 def user_factory(request):
-    pass
+    data = {
+        "email": (request.params.getone("email") or
+                  request.json_body.get("email")),
+        "password": (request.params.getone("password") or
+                     request.json_body.get("password")),
+        "user_name": (request.params.getone("user_name") or
+                      request.json_body.get("user_name")),
+        "remember_id": (request.params.getone("remember_id") or
+                        request.json_body.get("remember_id")),
+        "remember_token": (request.params.getone("remember_token") or
+                           request.json_body.get("remember_token")),
+        "remember_user": (request.params.getone("remember_user") or
+                          request.json_body.get("remember_user") or False),
+    }
+    user_id = request.authenticated_userid
+    if user_id is None:
+        return None
+    else:
+        data["user_id"] = user_id
+        return UserResource(**data)
 
 
 class AdminResource(AdminView):
@@ -151,7 +216,7 @@ class AdminResource(AdminView):
 
 
 def admin_factory(request):
-    pass
+    return user_factory(request)
 
 
 class ReportResource(ReportView):
@@ -164,5 +229,23 @@ class ReportResource(ReportView):
 
 
 def report_factory(request):
-    pass
-
+    data = {
+        "report_id": (request.params.getone("report_id") or
+                      request.json_body.get("report_id")),
+        "report_status": (request.params.getone("report_status") or
+                          request.json_body.get("report_status")),
+        "content_id": (request.params.getone("content_id") or
+                       request.json_body.get("content_id")),
+        "report_text": (request.params.getone("report_text") or
+                        request.json_body.get("report_text")),
+        "report_type": (request.params.getone("report_type") or
+                        request.json_body.get("report_type")),
+    }
+    user_id = request.unauthenticated_userid
+    auth_user_id = request.authenticated_userid
+    if user_id is None:
+        return None
+    else:
+        data["author_id"] = auth_user_id
+        data["author_type"] = "U" if auth_user_id else user_id
+        return ReportResource(**data)
