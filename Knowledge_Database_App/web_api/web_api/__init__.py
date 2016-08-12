@@ -43,7 +43,7 @@ def main(global_config, **settings):
                     renderer="templates/mytemplate.jinja2",
                     route_name="home")
 
-    config.add_route("content", "/content")
+    config.add_route("content", "/content", factory=resources.content_factory)
     config.add_view("web_api.views.ContentResourceView",
                     route_name="content",
                     attr="get",
@@ -60,7 +60,8 @@ def main(global_config, **settings):
                     permission=CREATE,
                     require_csrf=True)
 
-    config.add_route("content_piece", "/content/{content_id}")
+    config.add_route("content_piece", "/content/{content_id}",
+                     factory=resources.content_factory)
     config.add_view("web_api.views.ContentPieceResourceView",
                     route_name="content_piece",
                     attr="get",
@@ -69,7 +70,8 @@ def main(global_config, **settings):
                     context=resources.ContentResource,
                     permission=VIEW)
 
-    config.add_route("piece_authors", "/content/{content_id}/authors")
+    config.add_route("piece_authors", "/content/{content_id}/authors",
+                     factory=resources.content_factory)
     config.add_view("web_api.views.ContentPieceResourceView",
                     route_name="piece_authors",
                     attr="get_authors",
@@ -78,7 +80,8 @@ def main(global_config, **settings):
                     context=resources.ContentResource,
                     permission=VIEW)
 
-    config.add_route("piece_edits", "/content/{content_id}/edits")
+    config.add_route("piece_edits", "/content/{content_id}/edits",
+                     factory=resources.edit_factory)
     config.add_view("web_api.views.ContentPieceResourceView",
                     route_name="piece_edits",
                     attr="get_edits",
@@ -95,7 +98,8 @@ def main(global_config, **settings):
                     permission=CREATE,
                     require_csrf=True)
 
-    config.add_route("piece_edit", "/content/{content_id}/edits/{edit_id}")
+    config.add_route("piece_edit", "/content/{content_id}/edits/{edit_id}",
+                     factory=resources.edit_factory)
     config.add_view("web_api.views.ContentPieceResourceView",
                     route_name="piece_edit",
                     attr="get_edit",
@@ -104,7 +108,8 @@ def main(global_config, **settings):
                     context=resources.EditResource,
                     permission=VIEW)
 
-    config.add_route("edit_vote", "/content/{content_id}/edits/{edit_id}/votes")
+    config.add_route("edit_vote", "/content/{content_id}/edits/{edit_id}/votes",
+                     factory=resources.vote_factory)
     config.add_view("web_api.views.ContentPieceResourceView",
                     route_name="edit_vote",
                     attr="get_edit_vote",
@@ -121,7 +126,8 @@ def main(global_config, **settings):
                     permission=CREATE,
                     require_csrf=True)
 
-    config.add_route("piece_edit_activity", "/content/{content_id}/edit_activity")
+    config.add_route("piece_edit_activity", "/content/{content_id}/edit_activity",
+                     factory=resources.content_factory)
     config.add_view("web_api.views.ContentPieceResourceView",
                     route_name="piece_edit_activity",
                     attr="get_edit_activity",
@@ -130,7 +136,8 @@ def main(global_config, **settings):
                     context=resources.ContentResource,
                     permission=AUTHOR)
 
-    config.add_route("content_names", "/content/names")
+    config.add_route("content_names", "/content/names",
+                     factory=resources.content_factory)
     config.add_view("web_api.views.ContentResourceView",
                     route_name="content_names",
                     attr="get_names",
@@ -139,7 +146,8 @@ def main(global_config, **settings):
                     context=resources.ContentResource,
                     permission=VIEW)
 
-    config.add_route("content_types", "/content/content_types")
+    config.add_route("content_types", "/content/content_types",
+                     factory=resources.content_factory)
     config.add_view("web_api.views.ContentResourceView",
                     route_name="content_types",
                     attr="get_content_types",
@@ -148,7 +156,8 @@ def main(global_config, **settings):
                     context=resources.ContentResource,
                     permission=VIEW)
 
-    config.add_route("content_keywords", "/content/keywords")
+    config.add_route("content_keywords", "/content/keywords",
+                     factory=resources.content_factory)
     config.add_view("web_api.views.ContentResourceView",
                     route_name="content_keywords",
                     attr="get_keywords",
@@ -157,7 +166,8 @@ def main(global_config, **settings):
                     context=resources.ContentResource,
                     permission=VIEW)
 
-    config.add_route("content_citations", "/content/citations")
+    config.add_route("content_citations", "/content/citations",
+                     factory=resources.content_factory)
     config.add_view("web_api.views.ContentResourceView",
                     route_name="content_citations",
                     attr="get_citations",
@@ -166,7 +176,7 @@ def main(global_config, **settings):
                     context=resources.ContentResource,
                     permission=VIEW)
 
-    config.add_route("users", "/users")
+    config.add_route("users", "/users", factory=resources.user_factory)
     config.add_view("web_api.views.UserResourceView",
                     route_name="users",
                     attr="post",
@@ -191,7 +201,8 @@ def main(global_config, **settings):
                     permission=DELETE,
                     require_csrf=True)
 
-    config.add_route("user_sessions", "/users/sessions")
+    config.add_route("user_sessions", "/users/sessions",
+                     factory=resources.user_factory)
     config.add_view("web_api.views.UserResourceView",
                     route_name="user_sessions",
                     attr="post_session",
@@ -209,7 +220,8 @@ def main(global_config, **settings):
                     permission=MODIFY,
                     require_csrf=True)
 
-    config.add_route("user", "/users/{user_id}")
+    config.add_route("user", "/users/{user_id}",
+                     factory=resources.user_factory)
     config.add_view("web_api.views.UserResourceView",
                     route_name="user",
                     attr="get",
@@ -218,7 +230,8 @@ def main(global_config, **settings):
                     context=resources.UserResource,
                     permission=VIEW)
 
-    config.add_route("user_activity", "/users/{user_id}/recent_activity")
+    config.add_route("user_activity", "/users/{user_id}/recent_activity",
+                     factory=resources.user_factory)
     config.add_view("web_api.views.UserResourceView",
                     route_name="user_activity",
                     attr="get_recent_activity",
@@ -227,7 +240,8 @@ def main(global_config, **settings):
                     context=resources.UserResource,
                     permission=VIEW)
 
-    config.add_route("user_content", "/users/{user_id}/content")
+    config.add_route("user_content", "/users/{user_id}/content",
+                     factory=resources.user_factory)
     config.add_view("web_api.views.UserResourceView",
                     route_name="user_content",
                     attr="get_content",
@@ -236,7 +250,8 @@ def main(global_config, **settings):
                     context=resources.UserResource,
                     permission=VIEW)
 
-    config.add_route("user_edits", "/users/{user_id}/edits")
+    config.add_route("user_edits", "/users/{user_id}/edits",
+                     factory=resources.user_factory)
     config.add_view("web_api.views.UserResourceView",
                     route_name="user_edits",
                     attr="get_edits",
@@ -245,7 +260,7 @@ def main(global_config, **settings):
                     context=resources.UserResource,
                     permission=VIEW)
 
-    config.add_route("admin", "/admins/{id}")
+    config.add_route("admin", "/admins/{id}", factory=resources.admin_factory)
     config.add_view("web_api.views.UserResourceView",
                     route_name="user",
                     attr="get",
@@ -254,7 +269,7 @@ def main(global_config, **settings):
                     context=resources.AdminResource,
                     permission=VIEW)
 
-    config.add_route("reports", "/reports")
+    config.add_route("reports", "/reports", factory=resources.report_factory)
     config.add_view("web_api.views.ReportResourceView",
                     route_name="reports",
                     attr="get",
@@ -270,7 +285,8 @@ def main(global_config, **settings):
                     context=resources.ReportResource,
                     permission=CREATE)
 
-    config.add_route("report", "/reports/{report_id}")
+    config.add_route("report", "/reports/{report_id}",
+                     factory=resources.report_factory)
     config.add_view("web_api.views.ReportResourceView",
                     route_name="report",
                     attr="get_report",
@@ -279,7 +295,8 @@ def main(global_config, **settings):
                     context=resources.ReportResource,
                     permission=VIEW)
 
-    config.add_route("admin_reports", "/reports/{report_id}/admin_reports")
+    config.add_route("admin_reports", "/reports/{report_id}/admin_reports",
+                     factory=resources.report_factory)
     config.add_view("web_api.views.ReportResourceView",
                     route_name="admin_reports",
                     attr="post_admin_report",
