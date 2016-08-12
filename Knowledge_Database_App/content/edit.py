@@ -7,7 +7,7 @@ Classes:
 
 Exceptions:
 
-    DuplicateError
+    DuplicateError, SubmissionError
 
 Functions:
 
@@ -33,6 +33,13 @@ from .content import Content, Name, UserData
 
 class DuplicateError(Exception):
     """Exception raised when a content part is a duplicate of another."""
+
+
+class DataMatchingError(Exception):
+    """
+    Exception raised when the submission data does not match the
+    data in storage.
+    """
 
 
 EditMetrics = namedtuple("EditMetrics",
@@ -162,6 +169,7 @@ class Edit:
             self.content_id = content_id
             self.content_part = content_part
             self.part_id = part_id
+            self._validate(original_part_text)
             self.original_part_text = original_part_text
             Edit._check_legal(content_part, edit_text)
             self.edit_text = diff.compute_diff(original_part_text, edit_text)
@@ -183,6 +191,13 @@ class Edit:
                 insertions=insertions,
                 deletions=deletions,
             )
+
+    def _validate(self, original_part_text):
+        part_text = self.storage_handler.call(select.get_part_string,
+                                         self.part_id, self.content_part)
+        if original_part_text != part_text:
+            raise DataMatchingError("The input original part text does not "
+                                    "match the currently stored part text!")
 
     @staticmethod
     def _check_legal(content_part, edit_text):
@@ -911,7 +926,6 @@ class Edit:
     @property
     def conflict(self):
         acc_conflict = False
-        val_conflict = False
         if not self.original_part_text:
             return False
         if (self.validation_status == "accepted" or
