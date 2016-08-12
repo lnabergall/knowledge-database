@@ -10,9 +10,9 @@ Exceptions:
 
 Functions:
 
-    get_content_piece, get_content_pieces, get_names, get_alternate_names,
-    get_keyword, get_keywords, get_citation, get_citations,
-    get_content_type, get_content_types, get_accepted_edits,
+    get_content_piece, get_content_pieces, get_part_string, get_names,
+    get_alternate_names, get_keyword, get_keywords, get_citation,
+    get_citations, get_content_type, get_content_types, get_accepted_edits,
     get_rejected_edits, get_user_votes, get_accepted_votes,
     get_rejected_votes, get_user_encrypt_info, get_author_count, get_user,
     get_user_info, get_admin_ids, get_user_reports
@@ -123,6 +123,43 @@ def get_content_pieces(user_id, session=None):
         subqueryload("*")).join(orm.User, orm.ContentPiece.authors).filter(
         orm.User.user_id == user_id).all()
     return content_pieces
+
+
+def get_part_string(part_id, content_part, session=None):
+    """
+    Args:
+        part_id: Integer.
+        content_part: String, accepts 'text', 'name', 'alternate_name',
+            'content_type', 'keyword', or 'citation'.
+        session: SQLAlchemy session. Defaults to None.
+    Returns:
+        String of the content part of type content_part with
+        primary key part_id.
+    """
+    if session is None:
+        session = orm.start_session()
+    try:
+        if content_part == "text":
+            part_string = session.query(orm.Text.text).filter(
+                orm.Text.text_id == part_id).one()
+        elif content_part == "name" or content_part == "alternate_name":
+            part_string = session.query(orm.Name.name).filter(
+                orm.Name.name_id == part_id).one()
+        elif content_part == "citation":
+            part_string = session.query(orm.Citation.citation_text).filter(
+                orm.Citation.citation_id == part_id).one()
+        elif content_part == "content_type":
+            part_string = session.query(orm.ContentType.content_type).filter(
+                orm.ContentType.content_type_id == part_id).one()
+        elif content_part == "keyword":
+            part_string = session.query(orm.Keyword.keyword).filter(
+                orm.Keyword.keyword_id == part_id).one()
+        else:
+            raise InputError("Invalid argument!")
+    except (NoResultFound, MultipleResultsFound) as e:
+        raise SelectError(str(e))
+    else:
+        return part_string
 
 
 def get_names(content_id=None, content_ids=None, session=None):
