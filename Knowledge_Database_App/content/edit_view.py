@@ -52,6 +52,7 @@ class EditView:
                 raise
             else:
                 self.edit = self.edit_object.json_ready
+                self.__dict__.update(self.edit)
         else:
             try:
                 self.edit_object = Edit(validation_status=validation_status,
@@ -66,6 +67,7 @@ class EditView:
                 if submit:
                     self.edit_object.start_vote()
                 self.edit = self.edit_object.json_ready
+                self.__dict__.update(self.edit)
 
     @classmethod
     def bulk_retrieve(cls, content_id=None, user_id=None, content_part=None,

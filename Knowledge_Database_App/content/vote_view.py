@@ -46,6 +46,7 @@ class VoteView:
                 raise
             else:
                 self.vote = vote.json_ready
+                self.__dict__.update(self.vote)
 
     @classmethod
     def get_vote_results(cls, vote_status, edit_id, validation_status=None):

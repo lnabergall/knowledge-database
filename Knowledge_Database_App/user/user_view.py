@@ -31,6 +31,7 @@ class UserView:
             if user_name is not None:
                 user.register()
             self.user = user.json_ready
+            self.__dict__.update(self.user)
 
     @classmethod
     def confirm(cls, email, confirmation_id):

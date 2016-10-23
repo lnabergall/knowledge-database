@@ -53,6 +53,7 @@ class ContentView:
                 raise
             else:
                 self.content = content.json_ready
+                self.__dict__.update(self.content)
         else:
             try:
                 content = Content(first_author_id=first_author_id,
@@ -65,6 +66,7 @@ class ContentView:
                 if submit:
                     content.store()
                 self.content = content.json_ready
+                self.__dict__.update(self.content)
 
     @classmethod
     def user_content(cls, user_id, page_num=0):

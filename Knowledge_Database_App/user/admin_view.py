@@ -22,3 +22,4 @@ class AdminView:
             raise
         else:
             self.admin = admin.json_ready
+            self.__dict__.update(self.admin)

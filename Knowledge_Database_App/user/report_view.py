@@ -26,6 +26,7 @@ class ReportView:
         else:
             report.submit()
             self.report = report.json_ready
+            self.__dict__.update(self.report)
 
     @classmethod
     def bulk_retrieve(cls, user_id=None, admin_id=None, content_id=None,
