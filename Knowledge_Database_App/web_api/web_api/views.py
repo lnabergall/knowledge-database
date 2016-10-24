@@ -6,6 +6,9 @@ to the client.
 from pyramid.view import view_defaults, view_config
 from pyramid.i18n import TranslationStringFactory
 
+from Knowledge_Database_App.web_api.web_api.authentication import (
+    remember_authenticated)
+
 
 _ = TranslationStringFactory('web_api')
 
@@ -20,22 +23,40 @@ class ContentResourceView:
         self.request = request
 
     def get(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def post(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def get_names(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def get_content_types(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def get_keywords(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def get_citations(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
 
 class ContentPieceResourceView:
@@ -44,61 +65,154 @@ class ContentPieceResourceView:
         self.request = request
 
     def get(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def get_authors(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def get_edits(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def get_edit(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def post_edit(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def get_edit_vote(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def post_edit_vote(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def get_edit_activity(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
 
 class UserResourceView:
 
     def __init__(self, request):
         self.request = request
+        self.came_from = (self.request.params.get("came_from") or
+                          self.request.json_body.get("came_from"))
+        self.url = self.request.current_route_url
 
     def get(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            return self.get_recent_activity()
 
     def get_recent_activity(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def get_content(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def get_edits(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def post(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            self.request.response.status_code = 201
+            return {
+                "data": {
+                    "email": self.request.context.email,
+                    "password": self.request.context.password,
+                    "user_name": self.request.context.user_name,
+                },
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                    "go_to": self.request.route_url("user_sessions"),
+                },
+                "message": "A confirmation email will be sent to you " +
+                           "shortly to verify your email address prior " +
+                           "to login.",
+            }
 
     def patch(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def delete(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def post_session(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            if not self.request.authenticated_userid:
+                remember_authenticated(request, self.request.context.user_id)
+            return {
+                "data": {
+                    "email": self.request.context.email,
+                    "password": self.request.context.password,
+                    "user_name": self.request.context.user_name,
+                },
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                    "go_to": self.request.route_url("user",
+                        user_id=self.request.context.user_id),
+                },
+                "message": "Login successful.",
+            }
 
     def delete_session(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            if self.request.authenticated_userid:
+                self.request.session.invalidate()
+            return {
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                    "go_to": self.request.route_url("home"),
+                },
+                "message": "Logout successful."
+            }
 
 
 class ReportResourceView:
@@ -107,13 +221,25 @@ class ReportResourceView:
         self.request = request
 
     def get(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def post(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def get_report(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
 
     def post_admin_report(self):
-        pass
+        if self.request.exception:
+            pass
+        else:
+            pass
