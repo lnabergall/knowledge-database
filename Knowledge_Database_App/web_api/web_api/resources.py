@@ -179,11 +179,11 @@ class UserResource(UserView):
             (Deny, Authenticated, CREATE),
             (Allow, Everyone, CREATE),
             (Allow, format_identifier(self.user["user_id"]),
-             (VIEW, MODIFY, DELETE)),
+            (VIEW, MODIFY, DELETE)),
         ]
 
 
-def user_factory(request):
+def get_user_data(request):
     data = {
         "email": (request.params.getone("email") or
                   request.json_body.get("email")),
@@ -197,13 +197,24 @@ def user_factory(request):
                            request.json_body.get("remember_token")),
         "remember_user": (request.params.getone("remember_user") or
                           request.json_body.get("remember_user") or False),
+        "confirmation_id": (request.params.getone("confirmation_id") or
+                            request.json_body.get("confirmation_id")),
     }
+    return data
+
+
+def user_factory(request):
+    data = get_user_data(request)
     user_id = request.authenticated_userid
     if user_id is None:
         return None
     else:
         data["user_id"] = user_id
-        return UserResource(**data)
+        if request.method != "PATCH":
+            return UserResource(**data)
+        else:
+            request.set_property(get_user_data, "data", reify=True)
+            return UserResource(user_id=data["user_id"])
 
 
 class AdminResource(AdminView):
