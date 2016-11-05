@@ -120,6 +120,7 @@ class UserResourceView:
         self.came_from = (self.request.params.get("came_from") or
                           self.request.json_body.get("came_from"))
         self.url = self.request.current_route_url
+        self.user = self.request.context
 
     def get(self):
         if self.request.exception:
@@ -152,49 +153,99 @@ class UserResourceView:
             self.request.response.status_code = 201
             return {
                 "data": {
-                    "email": self.request.context.email,
-                    "password": self.request.context.password,
-                    "user_name": self.request.context.user_name,
+                    "email": self.user.email,
+                    "user_name": self.user.user_name,
                 },
                 "links": {
                     "came_from": self.came_from,
                     "url": self.url,
-                    "go_to": self.request.route_url("user_sessions"),
+                    "go_to": self.request.route_url("user_sessions"),   # Login
                 },
-                "message": "A confirmation email will be sent to you " +
-                           "shortly to verify your email address prior " +
-                           "to login.",
+                "message": ("Account registration successful. A confirmation "
+                            "email will be sent to you shortly to verify "
+                            "your email address."),
             }
 
     def patch(self):
         if self.request.exception:
             pass
         else:
-            pass
+            confirmation_id = request.data["confirmation_id"]
+            if confirmation_id:
+                try:
+                    self.user.confirm(self.user.email, confirmation_id)
+                except Exception as e:
+                    pass
+                else:
+                    return {
+                        "links": {
+                            "came_from": self.came_from,
+                            "url": self.url,
+                            "go_to": self.request.route_url("user_sessions"),  # Login
+                        },
+                        "message": "Account email address confirmed.",
+                    }
+            else:
+                try:
+                    if self.request.data["user_name"]:
+                        self.user.update(self.user.user_id,
+                            new_user_name=self.request.data["user_name"])
+                        message = "User name updated."
+                    elif self.request.data["email"]:
+                        self.user.update(self.user.user_id,
+                            new_email=self.request.data["email"])
+                        message = ("Email address updated. A confirmation "
+                                   "email will be sent to you shortly to verify "
+                                   "your email address.")
+                    elif self.request.data["password"]:
+                        self.user.update(self.user.user_id,
+                            new_password=self.request.data["password"])
+                        message = "Password updated."
+                except Exception as e:
+                    pass
+                else:
+                    return {
+                        "links": {
+                            "came_from": self.came_from,
+                            "url": self.url,
+                        },
+                        "message": message,
+                    }
+
 
     def delete(self):
         if self.request.exception:
             pass
         else:
-            pass
+            try:
+                self.user.delete(self.user.user_id)
+            except Exception as e:
+                pass
+            else:
+                return {
+                    "links": {
+                        "came_from": self.came_from,
+                        "url": self.url,
+                    },
+                    "message": "Account deactivated.",
+                }
 
     def post_session(self):
         if self.request.exception:
             pass
         else:
             if not self.request.authenticated_userid:
-                remember_authenticated(request, self.request.context.user_id)
+                remember_authenticated(request, self.user.user_id)
             return {
                 "data": {
-                    "email": self.request.context.email,
-                    "password": self.request.context.password,
-                    "user_name": self.request.context.user_name,
+                    "email": self.user.email,
+                    "user_name": self.user.user_name,
                 },
                 "links": {
                     "came_from": self.came_from,
                     "url": self.url,
                     "go_to": self.request.route_url("user",
-                        user_id=self.request.context.user_id),
+                        user_id=self.user.user_id),  # User home
                 },
                 "message": "Login successful.",
             }
@@ -209,7 +260,7 @@ class UserResourceView:
                 "links": {
                     "came_from": self.came_from,
                     "url": self.url,
-                    "go_to": self.request.route_url("home"),
+                    "go_to": self.request.route_url("home"),    # App home
                 },
                 "message": "Logout successful."
             }
