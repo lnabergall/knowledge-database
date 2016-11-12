@@ -170,7 +170,7 @@ class UserResourceView:
         if self.request.exception:
             pass
         else:
-            confirmation_id = request.data["confirmation_id"]
+            confirmation_id = self.request.data["confirmation_id"]
             if confirmation_id:
                 try:
                     self.user.confirm(self.user.email, confirmation_id)
@@ -187,6 +187,7 @@ class UserResourceView:
                     }
             else:
                 try:
+                    message = ""
                     if self.request.data["user_name"]:
                         self.user.update(self.user.user_id,
                             new_user_name=self.request.data["user_name"])
@@ -235,7 +236,7 @@ class UserResourceView:
             pass
         else:
             if not self.request.authenticated_userid:
-                remember_authenticated(request, self.user.user_id)
+                remember_authenticated(self.request, self.user.user_id)
             return {
                 "data": {
                     "email": self.user.email,
