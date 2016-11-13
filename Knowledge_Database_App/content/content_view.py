@@ -96,7 +96,7 @@ class ContentView:
                 else:
                     no_votes_needed_content.append(content[i])
 
-            return no_votes_needed_content + votes_needed_content
+            return  votes_needed_content + no_votes_needed_content
 
     @classmethod
     def get_content_types(cls):
