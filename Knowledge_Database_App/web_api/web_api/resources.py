@@ -2,7 +2,7 @@
 Contains the resources associated with back-end application data objects.
 """
 
-from pyramid.security import Allow, Everyone, Authenticated, ALL_PERMISSIONS
+from pyramid.security import Allow, Deny, Everyone, Authenticated, ALL_PERMISSIONS
 
 from Knowledge_Database_App.content.edit import is_ip_address
 from Knowledge_Database_App.content.content_view import ContentView
@@ -141,9 +141,9 @@ class VoteResource(VoteView):
     def __acl__(self):
         edit = EditView(self.vote["edit_id"], validation_status="validating")
         content = ContentView(content_id=edit.edit["content_id"])
-        if content["authors"] is not None:
+        if content.authors is not None:
             author_list = [(Allow, format_identifier(user["user_id"]),
-                            (VIEW, AUTHOR)) for user in content["authors"]]
+                            (VIEW, AUTHOR)) for user in content.authors]
         else:
             author_list = []
         return [
@@ -199,6 +199,8 @@ def get_user_data(request):
                           request.json_body.get("remember_user") or False),
         "confirmation_id": (request.params.getone("confirmation_id") or
                             request.json_body.get("confirmation_id")),
+        "page_num": (request.params.getone("page_num") or
+                     request.json_body.get("page_num")),
     }
     return data
 
@@ -210,7 +212,8 @@ def user_factory(request):
         return None
     else:
         data["user_id"] = user_id
-        if request.method != "PATCH":
+        if (request.method != "PATCH"
+                and request.matched_route.name != "user_content"):
             return UserResource(**data)
         else:
             request.set_property(get_user_data, "data", reify=True)

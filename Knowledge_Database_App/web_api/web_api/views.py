@@ -8,6 +8,7 @@ from pyramid.i18n import TranslationStringFactory
 
 from Knowledge_Database_App.web_api.web_api.authentication import (
     remember_authenticated)
+from Knowledge_Database_App.content.content_view import ContentView
 
 
 _ = TranslationStringFactory('web_api')
@@ -138,7 +139,17 @@ class UserResourceView:
         if self.request.exception:
             pass
         else:
-            pass
+            page_num = self.request.data["page_num"] or 0
+            user_content = ContentView.user_content(
+                user_id=self.user.user_id, page_num=page_num)
+            return {
+                "data": user_content,
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                },
+                "message": "Authored content metadata retrieved successfully."
+            }
 
     def get_edits(self):
         if self.request.exception:
