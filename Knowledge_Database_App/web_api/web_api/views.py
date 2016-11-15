@@ -133,7 +133,17 @@ class UserResourceView:
         if self.request.exception:
             pass
         else:
-            pass
+            page_num = self.request.data["page_num"] or 1
+            activity_data = ContentView.recent_activity(
+                user_id=self.user.user_id, page_num=page_num)
+            return {
+                "data": activity_data,
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                },
+                "message": "Recent activity metadata retrieved successfully."
+            }
 
     def get_content(self):
         if self.request.exception:

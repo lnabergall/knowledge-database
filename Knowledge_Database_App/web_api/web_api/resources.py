@@ -213,7 +213,8 @@ def user_factory(request):
     else:
         data["user_id"] = user_id
         if (request.method != "PATCH"
-                and request.matched_route.name != "user_content"):
+                and request.matched_route.name != "user_content"
+                and request.matched_route.name != "user_activity"):
             return UserResource(**data)
         else:
             request.set_property(get_user_data, "data", reify=True)
