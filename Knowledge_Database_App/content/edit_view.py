@@ -6,7 +6,10 @@ Classes:
     EditView
 """
 
+from datetime import datetime
+
 from .edit import Edit
+from .content import Content, Name
 
 
 class EditView:
@@ -93,6 +96,7 @@ class EditView:
                 rejected_edits, rej_edit_count = Edit.bulk_retrieve(
                     validation_status="rejected", user_id=user_id,
                     page_num=page_num, return_count=True)
+                content_ids = Content.bulk_retrieve(user_id=user_id, ids_only=True)
                 content_names = Name.bulk_retrieve(content_ids)
             except:
                 raise
