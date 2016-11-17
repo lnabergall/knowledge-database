@@ -46,7 +46,15 @@ class ContentResourceView:
         if self.request.exception:
             pass
         else:
-            pass
+            content_types = ContentView.get_content_types()
+            return {
+                "data": content_types,
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                },
+                "message": "Content types retrieved successfully."
+            }
 
     def get_keywords(self):
         if self.request.exception:
