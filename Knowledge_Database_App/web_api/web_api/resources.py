@@ -64,7 +64,7 @@ class ContentResource(ContentView):
         ] + author_list
 
 
-def content_factory(request):
+def get_content_data(request):
     data = {
         "content_id": (request.params.getone("content_id") or
                        request.json_body.get("content_id")),
@@ -87,12 +87,23 @@ def content_factory(request):
         "submit": (request.params.getone("submit") or
                    request.json_body.get("submit") or False),
     }
+    return data
+
+
+def content_factory(request):
+    data = get_content_data(request)
     user_id = request.authenticated_userid
     if user_id is None:
         return None
     else:
-        data["first_author_id"] = user_id
-        return ContentResource(**data)
+        if request.matched_route.name == "content" and request.method == "POST":
+            data["first_author_id"] = user_id
+        if request.matched_route.name != "get_content_types":
+            return ContentResource(**data)
+        else:
+            request.set_property(get_content_data, "data", reify=True)
+            return None
+
 
 
 class EditResource(EditView):
@@ -103,7 +114,7 @@ class EditResource(EditView):
         ]
 
 
-def edit_factory(request):
+def get_edit_data(request):
     data = {
         "edit_id": (request.params.getone("edit_id") or
                     request.json_body.get("edit_id")),
@@ -126,6 +137,11 @@ def edit_factory(request):
         "submit": (request.params.getone("submit") or
                    request.json_body.get("submit") or False),
     }
+    return data
+
+
+def edit_factory(request):
+    data = get_edit_data(request)
     user_id = request.unauthenticated_userid
     auth_user_id = request.authenticated_userid
     if user_id is None:
@@ -151,7 +167,7 @@ class VoteResource(VoteView):
         ] + author_list
 
 
-def vote_factory(request):
+def get_vote_data(request):
     data = {
         "vote_status": (request.params.getone("vote_status") or
                         request.json_body.get("vote_status")),
@@ -164,6 +180,11 @@ def vote_factory(request):
         "close_timestamp": (request.params.getone("close_timestamp") or
                             request.json_body.get("close_timestamp")),
     }
+    return data
+
+
+def vote_factory(request):
+    data = get_vote_data(request)
     voter_id = request.authenticated_userid
     if voter_id is None:
         return None
@@ -244,7 +265,7 @@ class ReportResource(ReportView):
         ]
 
 
-def report_factory(request):
+def get_report_data(request):
     data = {
         "report_id": (request.params.getone("report_id") or
                       request.json_body.get("report_id")),
@@ -257,6 +278,11 @@ def report_factory(request):
         "report_type": (request.params.getone("report_type") or
                         request.json_body.get("report_type")),
     }
+    return data
+
+
+def report_factory(request):
+    data = get_report_data(request)
     user_id = request.unauthenticated_userid
     auth_user_id = request.authenticated_userid
     if user_id is None:
