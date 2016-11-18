@@ -98,7 +98,8 @@ def content_factory(request):
     else:
         if request.matched_route.name == "content" and request.method == "POST":
             data["first_author_id"] = user_id
-        if request.matched_route.name != "get_content_types":
+        if (not request.matched_route.name.startswith("content_") or
+                request.matched_route.name == "content_piece"):
             return ContentResource(**data)
         else:
             request.set_property(get_content_data, "data", reify=True)

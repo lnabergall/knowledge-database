@@ -40,7 +40,16 @@ class ContentResourceView:
         if self.request.exception:
             pass
         else:
-            pass
+            names = ContentView.autocomplete(
+                "name", self.request.matchdict["complete"])
+            return {
+                "data": names,
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                },
+                "message": "Name completions retrieved successfully."
+            }
 
     def get_content_types(self):
         if self.request.exception:
@@ -60,13 +69,37 @@ class ContentResourceView:
         if self.request.exception:
             pass
         else:
-            pass
+            if self.request.matchdict.get("complete"):
+                keywords = ContentView.autocomplete(
+                    "keyword", self.request.matchdict["complete"])
+                return {
+                    "data": keywords,
+                    "links": {
+                        "came_from": self.came_from,
+                        "url": self.url,
+                    },
+                    "message": "Keyword completions retrieved successfully."
+                }
+            else:
+                pass
 
     def get_citations(self):
         if self.request.exception:
             pass
         else:
-            pass
+            if self.request.matchdict.get("complete"):
+                citations = ContentView.autocomplete(
+                    "citation", self.request.matchdict["complete"])
+                return {
+                    "data": citations,
+                    "links": {
+                        "came_from": self.came_from,
+                        "url": self.url,
+                    },
+                    "message": "Citation completions retrieved successfully."
+                }
+            else:
+                pass
 
 
 class ContentPieceResourceView:
