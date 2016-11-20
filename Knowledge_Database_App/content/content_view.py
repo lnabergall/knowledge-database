@@ -114,7 +114,7 @@ class ContentView:
         except:
             raise
         else:
-            return content_types
+            return content_parts
 
     @classmethod
     def search(cls, query, page_num=1):
