@@ -450,19 +450,36 @@ class Content:
             return []
 
     @classmethod
-    def get_content_types(cls):
+    def get_parts(cls, content_part, page_num=None, per_page=None):
         """
+        Args:
+            content_part: String, accepts 'content_type', 'keyword',
+                or 'citation'.
+            page_num: Integer. Defaults to None.
+            per_page: Integer. Defaults to None.
         Returns:
-            List of content type strings.
+            List of content part strings.
         """
         try:
-            content_types = cls.storage_handler.call(select.get_content_types)
-            content_types = [content_type.content_type
-                             for content_type in content_types]
+            if content_part == "content_type":
+                content_types = cls.storage_handler.call(select.get_content_types)
+                content_types = [content_type.content_type
+                                 for content_type in content_types]
+                return content_types
+            elif content_part == "keyword":
+                keywords = cls.storage_handler.call(
+                    select.get_keywords, page_num=page_num, per_page=per_page)
+                keywords = [keyword.keyword for keyword in keywords]
+                return keywords
+            elif content_part == "citation":
+                citations = cls.storage_handler.call(
+                    select.get_citations, page_num=page_num, per_page=per_page)
+                citations = [citation.citation_text for citation in citations]
+                return citations
+            else:
+                raise action.InputError("Invalid argument!")
         except:
             raise
-        else:
-            return content_types
 
     @classmethod
     def check_uniqueness(cls, content_id, part_string, content_part):

@@ -186,16 +186,20 @@ class ContentPieceTest(PostgresTest, RedisTest, ElasticsearchTest):
                 self.fail(str(e))
 
     @skipIf(failure, "Previous test failed!")
-    def test_05_get_content_types(self):
+    def test_05_get_parts(self):
         try:
-            content_types = Content.get_content_types()
+            content_types = Content.get_parts(content_part="content_type")
+            keywords = Content.get_parts(
+                content_part="keyword", page_num=1, per_page=50)
+            citations = Content.get_parts(
+                content_part="citations", page_num=1, per_page=50)
         except Exception as e:
             self.failure = True
             self.fail(str(e))
         else:
             try:
-                for content_type in content_types:
-                    self.assertIsInstance(content_type, str)
+                for part in content_types + keywords + citations:
+                    self.assertIsInstance(part, str)
             except AssertionError:
                 self.failure = True
                 raise

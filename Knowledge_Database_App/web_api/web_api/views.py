@@ -72,16 +72,22 @@ class ContentResourceView:
             if self.request.matchdict.get("complete"):
                 keywords = ContentView.autocomplete(
                     "keyword", self.request.matchdict["complete"])
-                return {
-                    "data": keywords,
-                    "links": {
-                        "came_from": self.came_from,
-                        "url": self.url,
-                    },
+                response = {
                     "message": "Keyword completions retrieved successfully."
                 }
             else:
-                pass
+                keywords = ContentView.get_parts(content_part="keyword",
+                                                 page_num=self.request.data["page_num"])
+                response = {"message": "Keywords retrieved successfully."}
+
+            response.update({
+                "data": keywords,
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                },
+            })
+            return response
 
     def get_citations(self):
         if self.request.exception:
@@ -90,16 +96,22 @@ class ContentResourceView:
             if self.request.matchdict.get("complete"):
                 citations = ContentView.autocomplete(
                     "citation", self.request.matchdict["complete"])
-                return {
-                    "data": citations,
-                    "links": {
-                        "came_from": self.came_from,
-                        "url": self.url,
-                    },
+                response = {
                     "message": "Citation completions retrieved successfully."
                 }
             else:
-                pass
+                citations = ContentView.get_parts(content_part="citation",
+                                                  page_num=self.request.data["page_num"])
+                response = {"message": "Citations retrieved successfully."}
+
+            response.update({
+                "data": citations,
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                },
+            })
+            return response
 
 
 class ContentPieceResourceView:

@@ -99,9 +99,18 @@ class ContentView:
             return  votes_needed_content + no_votes_needed_content
 
     @classmethod
-    def get_content_types(cls):
+    def get_parts(cls, content_part, page_num=None, per_page=None):
+        """
+        Args:
+            content_part: String, accepts 'content_type', 'keyword',
+                or 'citation'.
+            page_num: Integer. Defaults to None.
+            per_page: Integer. Defaults to None.
+        Returns:
+            List of content part strings.
+        """
         try:
-            content_types = Content.get_content_types()
+            content_parts = Content.get_parts(content_part, page_num, per_page)
         except:
             raise
         else:

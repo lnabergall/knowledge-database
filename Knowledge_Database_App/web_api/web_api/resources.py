@@ -86,6 +86,8 @@ def get_content_data(request):
                       request.json_body.get("citations")),
         "submit": (request.params.getone("submit") or
                    request.json_body.get("submit") or False),
+        "page_num": (request.params.getone("page_num") or
+                     request.json_body.get("page_num")),
     }
     return data
 

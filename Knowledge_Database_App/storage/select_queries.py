@@ -232,19 +232,28 @@ def get_keyword(keyword_string, session=None):
         return keyword
 
 
-def get_keywords(content_id, session=None):
+def get_keywords(content_id=None, page_num=None, per_page=None, session=None):
     """
     Args:
-        content_id: Integer.
+        content_id: Integer. Defaults to None.
+        page_num: Integer. Defaults to None.
+        per_page: Integer. Defaults to None.
         session: SQLAlchemy session. Defaults to None.
     Returns:
         list of Keywords.
     """
     if session is None:
         session = orm.start_session()
-    keywords = session.query(orm.Keyword).join(
-        orm.ContentPiece, orm.Keyword.pieces).filter(
-        orm.ContentPiece.content_id == content_id).all()
+    if content_id:
+        keywords = session.query(orm.Keyword).join(
+            orm.ContentPiece, orm.Keyword.pieces).filter(
+            orm.ContentPiece.content_id == content_id).all()
+    elif page_num and per_page:
+        keywords = session.query(orm.Keyword).all().offset(
+            (page_num-1)*per_page).limit(per_page)
+    else:
+        raise InputError("Invalid arguments!")
+
     return keywords
 
 
@@ -270,13 +279,15 @@ def get_citation(citation_string, session=None):
         return citation
 
 
-def get_citations(content_id, citation_id=None,
-                  edited_citation_id=None, session=None):
+def get_citations(content_id=None, citation_id=None, edited_citation_id=None,
+                  page_num=None, per_page=None, session=None):
     """
     Args:
         content_id: Integer. Defaults to None.
         citation_id: Integer. Defaults to None.
-        editing_citation_id: Integer. Defaults to None.
+        edited_citation_id: Integer. Defaults to None.
+        page_num: Integer. Defaults to None.
+        per_page: Integer. Defaults to None.
         session: SQLAlchemy session. Defaults to None.
     Returns:
         list of Citations.
@@ -297,8 +308,11 @@ def get_citations(content_id, citation_id=None,
         citations = session.query(orm.Citation).join(
             orm.ContentPieceCitation, orm.Citation.citation_content_pieces).filter(
             orm.ContentPieceCitation.content_id == content_id).all()
+    elif page_num and per_page:
+        citations = session.query(orm.Citation).all().offset(
+            (page_num-1)*per_page).limit(per_page)
     else:
-        raise InputError("Invalid argument!")
+        raise InputError("Invalid arguments!")
 
     return citations
 
