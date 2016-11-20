@@ -249,8 +249,8 @@ def get_keywords(content_id=None, page_num=None, per_page=None, session=None):
             orm.ContentPiece, orm.Keyword.pieces).filter(
             orm.ContentPiece.content_id == content_id).all()
     elif page_num and per_page:
-        keywords = session.query(orm.Keyword).all().offset(
-            (page_num-1)*per_page).limit(per_page)
+        keywords = session.query(orm.Keyword).all().order_by(
+            orm.Keyword.keyword).offset((page_num-1)*per_page).limit(per_page)
     else:
         raise InputError("Invalid arguments!")
 
