@@ -23,6 +23,9 @@ class ContentResourceView:
 
     def __init__(self, request):
         self.request = request
+        self.came_from = (self.request.params.get("came_from") or
+                          self.request.json_body.get("came_from"))
+        self.url = self.request.current_route_url
 
     def get(self):
         if self.request.exception:
@@ -34,7 +37,17 @@ class ContentResourceView:
         if self.request.exception:
             pass
         else:
-            pass
+            self.request.response.status_code = 201
+            return {
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                    "go_to": self.request.route_url("content_piece",
+                        content_id=self.request.context.content_id),   # Piece page
+                },
+                "message": ("Content submission successful. See the "
+                           "included link for the public webpage."),
+            }
 
     def get_names(self):
         if self.request.exception:
@@ -118,6 +131,9 @@ class ContentPieceResourceView:
 
     def __init__(self, request):
         self.request = request
+        self.came_from = (self.request.params.get("came_from") or
+                          self.request.json_body.get("came_from"))
+        self.url = self.request.current_route_url
 
     def get(self):
         if self.request.exception:
@@ -356,6 +372,9 @@ class ReportResourceView:
 
     def __init__(self, request):
         self.request = request
+        self.came_from = (self.request.params.get("came_from") or
+                          self.request.json_body.get("came_from"))
+        self.url = self.request.current_route_url
 
     def get(self):
         if self.request.exception:
