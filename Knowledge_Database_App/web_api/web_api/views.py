@@ -31,7 +31,38 @@ class ContentResourceView:
         if self.request.exception:
             pass
         else:
-            pass
+            content_part = (self.request.matchdict.get("keyword")
+                or self.request.matchdict.get("content_type")
+                or self.request.matchdict.get("name")
+                or self.request.matchdict.get("citation"))
+            if self.request.matchdict.get("sort"):
+                content_pieces = ContentView.bulk_retrieve(
+                    sort=self.request.matchdict.get("sort"),
+                    page_num=self.request.data["page_num"]
+                )
+            elif content_part:
+                content_pieces = ContentView.bulk_retrieve(
+                    sort=self.request.matchdict.get("sort"),
+                    content_part=content_part,
+                    page_num=self.request.data["page_num"]
+                )
+            elif self.request.matchdict.get("q"):
+                content_pieces = ContentView.search(
+                    query=self.request.matchdict["q"],
+                    page_num=self.request.data["page_num"],
+                )
+            else:
+                content_pieces = ContentView.bulk_retrieve(
+                    page_num=self.request.data["page_num"])
+
+            return {
+                "data": content_pieces,
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                },
+                "message": "Content pieces retrieved successfully."
+            }
 
     def post(self):
         if self.request.exception:
@@ -46,7 +77,7 @@ class ContentResourceView:
                         content_id=self.request.context.content_id),   # Piece page
                 },
                 "message": ("Content submission successful. See the "
-                           "included link for the public webpage."),
+                            "included link for the public webpage."),
             }
 
     def get_names(self):
