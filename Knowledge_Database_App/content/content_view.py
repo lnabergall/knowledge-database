@@ -69,6 +69,17 @@ class ContentView:
                 self.__dict__.update(self.content)
 
     @classmethod
+    def bulk_retrieve(cls, sort="created_at", content_part=None, page_num=0):
+        try:
+            content = Content.bulk_retrieve(
+                sort=sort, content_part=content_part, page_num=page_num)
+        except:
+            raise
+        else:
+            content = [piece.json_ready for piece in content]
+            return content
+
+    @classmethod
     def user_content(cls, user_id, page_num=0):
         """
         Args:

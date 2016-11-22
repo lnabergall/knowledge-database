@@ -411,10 +411,14 @@ class Content:
                           for citation in content_piece.citations]
 
     @classmethod
-    def bulk_retrieve(cls, user_id=None, page_num=0,
-                      return_count=False, ids_only=False):
+    def bulk_retrieve(cls, sort="created_at", content_part=None, user_id=None,
+                      page_num=0, return_count=False, ids_only=False):
         """
         Args:
+            sort: String, accepts 'created_at' or 'last_edited_at'.
+                Defaults to 'created_at'.
+            content_part: String, accepts 'keyword', 'content_type', 'name',
+                or 'citation'. Defaults to None.
             user_id: Integer. Defaults to None.
             page_num: Integer. Defaults to 0.
             return_count: Boolean. Defaults to False.
@@ -431,7 +435,7 @@ class Content:
             else:
                 content = [Content(content_piece=content_piece)
                            for content_piece in content_pieces]
-                content = sorted(content, 
+                content = sorted(content,
                     key=lambda piece: piece.last_edited_timestamp,
                     reverse=True)
                 content_count = len(content)
@@ -447,7 +451,19 @@ class Content:
                 else:
                     return content
         else:
-            return []
+            try:
+                if page_num < 1:
+                    raise select.InputError("Invalid argument!")
+                content_pieces = cls.storage_handler.call(
+                    select.get_content_pieces, sort=sort,
+                    content_part=content_part, page_num=page_num)
+                content = [Content(content_piece=content_piece)
+                           for content_piece in content_pieces]
+            except:
+                raise
+            else:
+                return content
+
 
     @classmethod
     def get_parts(cls, content_part, page_num=None, per_page=None):

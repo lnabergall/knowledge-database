@@ -109,19 +109,62 @@ def get_content_piece(content_id=None, accepted_edit_id=None,
         return content_piece
 
 
-def get_content_pieces(user_id, session=None):
+def get_content_pieces(sort="created_at", content_part=None, user_id=None,
+                       page_num=None, per_page=10, session=None):
     """
     Args:
-        user_id: Integer.
+        sort: String, accepts 'created_at' or 'last_edited_at'.
+            Defaults to 'created_at'.
+        content_part: String, accepts 'keyword', 'content_type', 'name',
+            or 'citation'. Defaults to None.
+        user_id: Integer. Defaults to None.
+        page_num: Integer. Defaults to None.
+        per_page: Integer. Defaults to 10.
         session: SQLAlchemy session. Defaults to None.
     Returns:
         list of ContentPieces that user_id has authored.
     """
     if session is None:
         session = orm.start_session()
-    content_pieces = session.query(orm.ContentPiece).options(
-        subqueryload("*")).join(orm.User, orm.ContentPiece.authors).filter(
-        orm.User.user_id == user_id).all()
+    if user_id:
+        content_pieces = session.query(orm.ContentPiece).options(
+            subqueryload("*")).join(orm.User, orm.ContentPiece.authors).filter(
+            orm.User.user_id == user_id).all()
+        return content_pieces
+    elif content_part:
+        if content_part == "keyword":
+            content_pieces = session.query(orm.ContentPiece).join(orm.Keyword,
+                orm.ContentPiece.keywords).options(subqueryload("*")).filter(
+                orm.Keyword.keyword == content_part).all()
+        elif content_part == "content_type":
+            content_pieces = session.query(orm.ContentPiece).join(orm.ContentType,
+                orm.ContentPiece.content_type).options(subqueryload("*")).filter(
+                orm.ContentType.content_type == content_part).all()
+        elif content_part == "name":
+            content_pieces = session.query(orm.ContentPiece).join(orm.Name,
+                orm.ContentPiece.name).options(subqueryload("*")).filter(
+                orm.Name.name == content_part).all()
+        elif content_part == "citation":
+            content_pieces = session.query(orm.ContentPiece).join(
+                orm.ContentPieceCitation).join(orm.Citation,
+                orm.ContentPieceCitation.citation).options(subqueryload("*")).filter(
+                orm.Citation.citation_text == content_part).all()
+        else:
+            raise InputError("Invalid argument!")
+    else:
+        content_pieces = session.query(orm.ContentPiece).options(
+            subqueryload("*")).all()
+
+    if sort == "created_at":
+        content_pieces = content_pieces.order_by(orm.ContentPiece.timestamp).offset(
+            (page_num-1)*per_page).limit(per_page)
+    elif sort == "last_edited_at":
+        content_pieces = content_pieces.order_by(
+            orm.ContentPiece.last_edited_timestamp).offset(
+            (page_num-1)*per_page).limit(per_page)
+    else:
+        raise InputError("Invalid argument!")
+
     return content_pieces
 
 
