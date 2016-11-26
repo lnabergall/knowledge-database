@@ -66,7 +66,8 @@ class ContentResource(ContentView):
 
 def get_content_data(request):
     data = {
-        "content_id": (request.params.getone("content_id") or
+        "content_id": (request.matchdict.get("id") or
+                       request.params.getone("content_id") or
                        request.json_body.get("content_id")),
         "accepted_edit_id": (request.params.getone("accepted_edit_id") or
                              request.json_body.get("accepted_edit_id")),
@@ -234,7 +235,7 @@ def get_user_data(request):
 def user_factory(request):
     data = get_user_data(request)
     user_id = request.authenticated_userid
-    if user_id is None:
+    if user_id is None or user_id != request.matchdict["id"]:
         return None
     else:
         data["user_id"] = user_id

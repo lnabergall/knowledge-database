@@ -99,7 +99,7 @@ class ContentResourceView:
         if self.request.exception:
             pass
         else:
-            content_types = ContentView.get_content_types()
+            content_types = ContentView.get_parts(content_part="content_type")
             return {
                 "data": content_types,
                 "links": {
@@ -170,7 +170,14 @@ class ContentPieceResourceView:
         if self.request.exception:
             pass
         else:
-            pass
+            return {
+                "data": self.request.context.content,
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                },
+                "message": "Content piece retrieved successfully."
+            }
 
     def get_authors(self):
         if self.request.exception:
