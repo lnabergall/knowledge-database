@@ -222,7 +222,6 @@ def get_names(content_id=None, content_ids=None, session=None):
                 orm.ContentPiece, orm.Name.piece_).filter(
                 orm.ContentPiece.content_id == content_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
-            sleep(5)
             raise SelectError(str(e))
         return name
     elif content_ids is not None:
