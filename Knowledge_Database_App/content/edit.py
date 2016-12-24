@@ -362,6 +362,7 @@ class Edit:
             keyword_id: Integer. Defaults to None.
             content_type_id: Integer. Defaults to None.
             page_num: Integer. Defaults to 0.
+            return_count: Boolean. Defaults to False.
             ids_only: Boolean. Defaults to False.
         Returns:
             If ids_only == True, returns list of Integers, otherwise returns
