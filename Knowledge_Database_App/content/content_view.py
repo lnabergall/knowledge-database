@@ -107,7 +107,7 @@ class ContentView:
                 else:
                     no_votes_needed_content.append(content[i])
 
-            return  votes_needed_content + no_votes_needed_content
+            return votes_needed_content + no_votes_needed_content
 
     @classmethod
     def get_parts(cls, content_part, page_num=None, per_page=None):
@@ -318,8 +318,8 @@ class ContentView:
                     "against_count": against_count,
                     "close_timestamp": votes[0].close_timestamp,
                 }
-            validating_edits = validating_edits[10*(validating_page_num-1)
-                                                : 10*validating_page_num]
+            validating_edits = validating_edits[10*(validating_page_num-1):
+                                                10*validating_page_num]
             for i in range(len(accepted_edits)):
                 del accepted_edits[i]["start_timestamp"]
                 del accepted_edits[i]["edit_text"]
