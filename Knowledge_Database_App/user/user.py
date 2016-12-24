@@ -10,8 +10,6 @@ Classes:
 
     RegisteredUser
 """
-from time import sleep
-import re
 from random import SystemRandom
 from datetime import datetime, timedelta
 from passlib.apps import custom_app_context as pass_handler
