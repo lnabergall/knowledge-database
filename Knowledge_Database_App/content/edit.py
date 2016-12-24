@@ -41,6 +41,12 @@ class DataMatchingError(Exception):
     data in storage.
     """
 
+class ContentError(Exception):
+    """
+    Exception raised upon submission of an illegally formatted
+    content part.
+    """
+
 
 EditMetrics = namedtuple("EditMetrics",
     ["original_chars", "applied_chars", "insertions", "deletions"])
@@ -84,7 +90,6 @@ class Edit:
     """
 
     storage_handler = orm.StorageHandler()
-    # content_type_choices = Content.get_content_types()
 
     edit_id = None              # Integer.
     content_id = None           # Integer.
@@ -123,7 +128,7 @@ class Edit:
                 Defaults to None.
             author_id: Integer. Defaults to None.
             start_timestamp: Datetime. Defaults to None.
-            edit: AcceptedEdit or RejectedEdit object.
+            edit_object: AcceptedEdit or RejectedEdit object.
         """
         if (self.validation_status is not None and
                 self.validation_status != "accepted" and
@@ -203,9 +208,9 @@ class Edit:
     def _check_legal(content_part, edit_text):
         if ((content_part == "name" or content_part == "alternate_name") and
                 (config.SMALL_PART_MAX_CHARS <
-                len(edit_text) - edit_text.count(" ") or
-                config.SMALL_PART_MIN_CHARS >
-                len(edit_text) - edit_text.count(" "))):
+                 len(edit_text) - edit_text.count(" ") or
+                 config.SMALL_PART_MIN_CHARS >
+                 len(edit_text) - edit_text.count(" "))):
             raise ContentError("Name out of allowed character count range!")
         elif (content_part == "text" and
                 (config.LARGE_PART_MAX_CHARS <
@@ -215,17 +220,17 @@ class Edit:
             raise ContentError("Text out of allowed character count range!")
         elif (content_part == "citation" and
                 (config.LARGE_PART_MAX_CHARS <
-                len(edit_text) - edit_text.count(" ") or
-                config.SMALL_PART_MIN_CHARS >
-                len(edit_text) - edit_text.count(" "))):
+                 len(edit_text) - edit_text.count(" ") or
+                 config.SMALL_PART_MIN_CHARS >
+                 len(edit_text) - edit_text.count(" "))):
             raise ContentError("Citation out of allowed character count range!")
         elif (content_part == "keyword" and
                 (config.SMALL_PART_MAX_CHARS <
-                len(edit_text) - edit_text.count(" ") or
-                config.SMALL_PART_MIN_CHARS >
-                len(edit_text) - edit_text.count(" "))):
+                 len(edit_text) - edit_text.count(" ") or
+                 config.SMALL_PART_MIN_CHARS >
+                 len(edit_text) - edit_text.count(" "))):
             raise ContentError("Keyword out of allowed character count range!")
-        elif content_part == "content_type" not in content_type_choices:
+        elif content_part == "content_type" not in Content.get_parts("content_type"):
             raise ContentError("Content type not recognized!")
 
     def _retrieve_from_storage(self, edit_id=None, redis_edit_id=None):
@@ -856,7 +861,7 @@ class Edit:
         """
         try:
             content_name = self.storage_handler.call(
-                select.get_name, content_id=self.content_id)
+                select.get_names, content_id=self.content_id)
         except:
             raise
         else:
