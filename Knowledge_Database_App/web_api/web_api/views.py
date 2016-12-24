@@ -183,25 +183,72 @@ class ContentPieceResourceView:
         if self.request.exception:
             pass
         else:
-            pass
+            return {
+                "data": self.request.context.content.authors,
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                },
+                "message": "Content piece authors retrieved successfully."
+            }
 
     def get_edits(self):
         if self.request.exception:
             pass
         else:
-            pass
+            edits = EditView.bulk_retrieve(
+                content_id=self.request.data["content_id"],
+                page_num=self.request.data["page_num"] or 1)
+            return {
+                "data": edits,
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                },
+                "message": "Content piece edits retrieved successfully."
+            }
 
     def get_edit(self):
         if self.request.exception:
             pass
         else:
-            pass
+            return {
+                "data": self.request.context.edit,
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                },
+                "message": "Content piece edit retrieved successfully."
+            }
 
     def post_edit(self):
         if self.request.exception:
             pass
         else:
-            pass
+            if self.request.data["submit"]:
+                response = {
+                    "links": {
+                        "came_from": self.came_from,
+                        "url": self.url,
+                        "go_to": self.request.route_url("piece_edit",
+                            edit_id=self.request.context.edit_id),   # Edit page
+                    },
+                    "message": ("Edit submission successful. See the "
+                                "included link for the public webpage."),
+                }
+            else:
+                if self.request.matchdict["check_conflict"]:
+                    self.request.context.conflict = EditView.conflict
+                response = {
+                    "data": self.request.context.edit,
+                    "links": {
+                        "came_from": self.came_from,
+                        "url": self.url,
+                    },
+                    "message": "Edit successfully assembled and validated."
+                }
+            return response
+
 
     def get_edit_vote(self):
         if self.request.exception:
@@ -351,7 +398,6 @@ class UserResourceView:
                         },
                         "message": message,
                     }
-
 
     def delete(self):
         if self.request.exception:

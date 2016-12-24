@@ -95,6 +95,7 @@ def get_content_data(request):
 
 def content_factory(request):
     data = get_content_data(request)
+    request.set_property(get_content_data, "data", reify=True)
     user_id = request.authenticated_userid
     if user_id is None:
         return None
@@ -103,13 +104,11 @@ def content_factory(request):
             data["first_author_id"] = user_id
         if (not request.matched_route.name.startswith("content_")
                 or request.matched_route.name == "content_piece"
-                or not (request.matched_route.name == "content"
-                        and request.method == "GET")):
+                and (request.matched_route.name == "content"
+                     and request.method != "GET")):
             return ContentResource(**data)
         else:
-            request.set_property(get_content_data, "data", reify=True)
             return None
-
 
 
 class EditResource(EditView):
@@ -142,20 +141,28 @@ def get_edit_data(request):
                             request.json_body.get("start_timestamp")),
         "submit": (request.params.getone("submit") or
                    request.json_body.get("submit") or False),
+        "page_num": (request.params.getone("page_num") or
+                     request.json_body.get("page_num")),
     }
     return data
 
 
 def edit_factory(request):
     data = get_edit_data(request)
+    request.set_property(get_edit_data, "data", reify=True)
     user_id = request.unauthenticated_userid
     auth_user_id = request.authenticated_userid
     if user_id is None:
         return None
     else:
-        data["author_id"] = auth_user_id
-        data["author_type"] = "U" if auth_user_id else user_id
-        return EditResource(**data)
+        if (request.matched_route.name == "piece_edits"
+                and request.method == "GET"):
+            return None
+        else:
+            if request.method == "POST":
+                data["author_id"] = auth_user_id
+                data["author_type"] = "U" if auth_user_id else user_id
+            return EditResource(**data)
 
 
 class VoteResource(VoteView):
@@ -234,6 +241,7 @@ def get_user_data(request):
 
 def user_factory(request):
     data = get_user_data(request)
+    request.set_property(get_user_data, "data", reify=True)
     user_id = request.authenticated_userid
     if user_id is None or user_id != request.matchdict["id"]:
         return None
@@ -245,7 +253,6 @@ def user_factory(request):
                 and request.matched_route.name != "user_edits"):
             return UserResource(**data)
         else:
-            request.set_property(get_user_data, "data", reify=True)
             return UserResource(user_id=data["user_id"])
 
 
