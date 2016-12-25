@@ -227,6 +227,7 @@ class ContentPieceResourceView:
             pass
         else:
             if self.request.data["submit"]:
+                self.request.response.status_code = 201
                 response = {
                     "links": {
                         "came_from": self.came_from,
@@ -293,6 +294,7 @@ class ContentPieceResourceView:
                     "edit before voting on later edits. See the included " +
                     "link for the public webpage to the earliest edit.")
             else:
+                self.request.response.status_code = 201
                 response["message"] = "Vote successfully submitted."
 
             return response
