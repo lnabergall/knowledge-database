@@ -146,6 +146,7 @@ class AuthorVote:
             vote_status: String, expects 'in-progress' or 'ended'.
             edit_id: Integer. Defaults to None.
             vote_id: Integer. Defaults to None.
+            content_id: Integer. Defaults to None.
             validation_status: String, expects 'validating', 'accepted',
                 or 'rejected'. Defaults to None.
         Returns:
