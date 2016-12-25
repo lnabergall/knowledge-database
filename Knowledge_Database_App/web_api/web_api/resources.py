@@ -121,7 +121,8 @@ class EditResource(EditView):
 
 def get_edit_data(request):
     data = {
-        "edit_id": (request.params.getone("edit_id") or
+        "edit_id": (request.matchdict.get("edit_id") or
+                    request.params.getone("edit_id") or
                     request.json_body.get("edit_id")),
         "validation_status": (request.params.getone("validation_status") or
                               request.json_body.get("validation_status")),
@@ -184,8 +185,11 @@ def get_vote_data(request):
     data = {
         "vote_status": (request.params.getone("vote_status") or
                         request.json_body.get("vote_status")),
-        "edit_id": (request.params.getone("edit_id") or
+        "edit_id": (request.matchdict.get("edit_id") or
+                    request.params.getone("edit_id") or
                     request.json_body.get("edit_id")),
+        "validation_status": (request.params.getone("validation_status") or
+                              request.json_body.get("validation_status")),
         "vote": (request.params.getone("vote") or
                  request.json_body.get("vote")),
         "timestamp": (request.params.getone("timestamp") or
@@ -202,8 +206,12 @@ def vote_factory(request):
     if voter_id is None:
         return None
     else:
-        data["voter_id"] = voter_id
-        return VoteResource(**data)
+        if request.method == "GET":
+            request.set_property(get_vote_data, "data", reify=True)
+            return None
+        else:
+            data["voter_id"] = voter_id
+            return VoteResource(**data)
 
 
 class UserResource(UserView):

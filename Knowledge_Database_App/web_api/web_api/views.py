@@ -10,6 +10,7 @@ from Knowledge_Database_App.web_api.web_api.authentication import (
     remember_authenticated)
 from Knowledge_Database_App.content.content_view import ContentView
 from Knowledge_Database_App.content.edit_view import EditView
+from Knowledge_Database_App.content.vote_view import VoteView
 
 
 _ = TranslationStringFactory('web_api')
@@ -254,13 +255,47 @@ class ContentPieceResourceView:
         if self.request.exception:
             pass
         else:
-            pass
+            edit_id = self.request.data["edit_id"]
+            vote_status = self.request.data["vote_status"]
+            validation_status = self.request.data["validation_status"]
+            try:
+                vote_summary = VoteView.get_vote_results(
+                    vote_status, edit_id, validation_status)
+            except:
+                pass
+            else:
+                return {
+                    "data": vote_summary,
+                    "links": {
+                        "came_from": self.came_from,
+                        "url": self.url,
+                    },
+                    "message": "Vote summary successfully retrieved."
+                }
 
     def post_edit_vote(self):
         if self.request.exception:
             pass
         else:
-            pass
+            error_data = self.request.context.error_response
+            response = {
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                }
+            }
+            if error_data:
+                response["data"] = {"earliest_edit_id": error_data}
+                response["links"]["go_to"] = self.request.route_url(
+                    "piece_edit", edit_id=error_data)
+                response["message"] = ("To minimize the potential for " +
+                    "edit conflicts, please vote on the earliest submitted " +
+                    "edit before voting on later edits. See the included " +
+                    "link for the public webpage to the earliest edit.")
+            else:
+                response["message"] = "Vote successfully submitted."
+
+            return response
 
     def get_edit_activity(self):
         if self.request.exception:
