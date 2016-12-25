@@ -303,7 +303,24 @@ class ContentPieceResourceView:
         if self.request.exception:
             pass
         else:
-            pass
+            try:
+                edit_activity = ContentView.validation_data(
+                    self.request.authenticated_userid,
+                    self.request.data["content_id"],
+                    self.request.data["validating_page_num"],
+                    self.request.data["closed_page_num"],
+                )
+            except:
+                pass
+            else:
+                return {
+                    "data": edit_activity,
+                    "links": {
+                        "came_from": self.came_from,
+                        "url": self.url,
+                    },
+                    "message": "Edit activity successfully retrieved."
+                }
 
 
 class UserResourceView:
