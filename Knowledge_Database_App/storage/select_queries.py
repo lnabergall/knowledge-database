@@ -129,31 +129,30 @@ def get_content_pieces(sort="created_at", content_part=None, user_id=None,
     if user_id:
         content_pieces = session.query(orm.ContentPiece).options(
             subqueryload("*")).join(orm.User, orm.ContentPiece.authors).filter(
-            orm.User.user_id == user_id).all()
-        return content_pieces
+            orm.User.user_id == user_id)
     elif content_part:
         if content_part == "keyword":
             content_pieces = session.query(orm.ContentPiece).join(orm.Keyword,
                 orm.ContentPiece.keywords).options(subqueryload("*")).filter(
-                orm.Keyword.keyword == content_part).all()
+                orm.Keyword.keyword == content_part)
         elif content_part == "content_type":
             content_pieces = session.query(orm.ContentPiece).join(orm.ContentType,
                 orm.ContentPiece.content_type).options(subqueryload("*")).filter(
-                orm.ContentType.content_type == content_part).all()
+                orm.ContentType.content_type == content_part)
         elif content_part == "name":
             content_pieces = session.query(orm.ContentPiece).join(orm.Name,
                 orm.ContentPiece.name).options(subqueryload("*")).filter(
-                orm.Name.name == content_part).all()
+                orm.Name.name == content_part)
         elif content_part == "citation":
             content_pieces = session.query(orm.ContentPiece).join(
                 orm.ContentPieceCitation).join(orm.Citation,
                 orm.ContentPieceCitation.citation).options(subqueryload("*")).filter(
-                orm.Citation.citation_text == content_part).all()
+                orm.Citation.citation_text == content_part)
         else:
             raise InputError("Invalid argument!")
     else:
         content_pieces = session.query(orm.ContentPiece).options(
-            subqueryload("*")).all()
+            subqueryload("*"))
 
     if sort == "created_at":
         content_pieces = content_pieces.order_by(orm.ContentPiece.timestamp).offset(
@@ -165,7 +164,7 @@ def get_content_pieces(sort="created_at", content_part=None, user_id=None,
     else:
         raise InputError("Invalid argument!")
 
-    return content_pieces
+    return content_pieces.all()
 
 
 def get_part_string(part_id, content_part, session=None):
@@ -248,8 +247,8 @@ def get_alternate_names(content_id, session=None):
         session = orm.start_session()
     alternate_names = session.query(orm.Name).join(
         orm.ContentPiece, orm.Name.piece).filter(
-        orm.ContentPiece.content_id == content_id).all()
-    return alternate_names
+        orm.ContentPiece.content_id == content_id)
+    return alternate_names.all()
 
 
 def get_keyword(keyword_string, session=None):
@@ -289,14 +288,14 @@ def get_keywords(content_id=None, page_num=None, per_page=None, session=None):
     if content_id:
         keywords = session.query(orm.Keyword).join(
             orm.ContentPiece, orm.Keyword.pieces).filter(
-            orm.ContentPiece.content_id == content_id).all()
+            orm.ContentPiece.content_id == content_id)
     elif page_num and per_page:
-        keywords = session.query(orm.Keyword).all().order_by(
+        keywords = session.query(orm.Keyword).order_by(
             orm.Keyword.keyword).offset((page_num-1)*per_page).limit(per_page)
     else:
         raise InputError("Invalid arguments!")
 
-    return keywords
+    return keywords.all()
 
 
 def get_citation(citation_string, session=None):
@@ -340,23 +339,23 @@ def get_citations(content_id=None, citation_id=None, edited_citation_id=None,
         citations = session.query(orm.Citation).join(
             orm.ContentPieceCitation, orm.Citation.edited_citation).filter(
             orm.ContentPieceCitation.citation_id == citation_id).filter(
-            orm.ContentPieceCitation.content_id == content_id).all()
+            orm.ContentPieceCitation.content_id == content_id)
     elif edited_citation_id is not None and content_id is not None:
         citations = session.query(orm.Citation).join(
             orm.ContentPieceCitation, orm.Citation.editing_citations).filter(
             orm.ContentPieceCitation.edited_citation_id == edited_citation_id).filter(
-            orm.ContentPieceCitation.content_id == content_id).all()
+            orm.ContentPieceCitation.content_id == content_id)
     elif content_id is not None:
         citations = session.query(orm.Citation).join(
             orm.ContentPieceCitation, orm.Citation.citation_content_pieces).filter(
-            orm.ContentPieceCitation.content_id == content_id).all()
+            orm.ContentPieceCitation.content_id == content_id)
     elif page_num and per_page:
-        citations = session.query(orm.Citation).all().offset(
+        citations = session.query(orm.Citation).offset(
             (page_num-1)*per_page).limit(per_page)
     else:
         raise InputError("Invalid arguments!")
 
-    return citations
+    return citations.all()
 
 
 def get_content_type(content_type_string, session=None):
@@ -423,50 +422,50 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
         session = orm.start_session()
     if user_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
-            orm.User).filter(orm.User.user_id == user_id).all()
+            orm.User).filter(orm.User.user_id == user_id)
     elif ip_address is not None:
         accepted_edits = session.query(orm.AcceptedEdit).filter(
-            orm.AcceptedEdit.author_type == ip_address).all()
+            orm.AcceptedEdit.author_type == ip_address)
     elif text_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
-            orm.Text).filter(orm.Text.text_id == text_id).all()
+            orm.Text).filter(orm.Text.text_id == text_id)
     elif name_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
-            orm.Name).filter(orm.Name.name_id == name_id).all()
+            orm.Name).filter(orm.Name.name_id == name_id)
     elif citation_id is not None and content_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
             orm.Citation).join(orm.ContentPiece).filter(
             orm.Citation.citation_id == citation_id).filter(
-            orm.ContentPiece.content_id == content_id).all()
+            orm.ContentPiece.content_id == content_id)
     elif citation_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
-            orm.Citation).filter(orm.Citation.citation_id == citation_id).all()
+            orm.Citation).filter(orm.Citation.citation_id == citation_id)
     elif keyword_id is not None and content_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
             orm.Keyword).join(orm.ContentPiece).filter(
             orm.Keyword.keyword_id == keyword_id).filter(
-            orm.ContentPiece.content_id == content_id).all()
+            orm.ContentPiece.content_id == content_id)
     elif keyword_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
-            orm.Keyword).filter(orm.Keyword.keyword_id == keyword_id).all()
+            orm.Keyword).filter(orm.Keyword.keyword_id == keyword_id)
     elif content_type_id is not None and content_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
             orm.ContentType).join(orm.ContentPiece).filter(
             orm.ContentType.content_type_id == content_type_id).filter(
-            orm.ContentPiece.content_id == content_id).all()
+            orm.ContentPiece.content_id == content_id)
     elif content_type_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
             orm.ContentType).filter(orm.ContentType.content_type_id
-            == content_type_id).all()
+            == content_type_id)
     elif content_id is not None:
         accepted_edits = session.query(orm.AcceptedEdit).join(
             orm.ContentPiece).filter(
-            orm.ContentPiece.content_id == content_id).all()
+            orm.ContentPiece.content_id == content_id)
     elif content_ids is not None:
         if content_ids:
             accepted_edits = session.query(orm.AcceptedEdit).join(
                 orm.ContentPiece).filter(
-                orm.ContentPiece.content_id.in_(content_ids)).all()
+                orm.ContentPiece.content_id.in_(content_ids))
         else:
             accepted_edits = []
     elif edit_id is not None:
@@ -490,7 +489,10 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
     else:
         raise InputError("No arguments!")
 
-    return accepted_edits
+    try:
+        return accepted_edits.all()
+    except:
+        return []
 
 
 def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
@@ -522,51 +524,51 @@ def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
         session = orm.start_session()
     if user_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
-            orm.User).filter(orm.User.user_id == user_id).all()
+            orm.User).filter(orm.User.user_id == user_id)
     elif ip_address is not None:
         rejected_edits = session.query(orm.RejectedEdit).filter(
-            orm.RejectedEdit.author_type == ip_address).all()
+            orm.RejectedEdit.author_type == ip_address)
     elif text_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
-            orm.Text).filter(orm.Text.text_id == text_id).all()
+            orm.Text).filter(orm.Text.text_id == text_id)
     elif name_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
-            orm.Name).filter(orm.Name.name_id == name_id).all()
+            orm.Name).filter(orm.Name.name_id == name_id)
     elif citation_id is not None and content_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
             orm.Citation).join(orm.ContentPiece).filter(
             orm.Citation.citation_id == citation_id).filter(
-            orm.ContentPiece.content_id == content_id).all()
+            orm.ContentPiece.content_id == content_id)
     elif citation_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
-            orm.Citation).filter(orm.Citation.citation_id == citation_id).all()
+            orm.Citation).filter(orm.Citation.citation_id == citation_id)
     elif keyword_id is not None and content_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
             orm.Keyword).join(orm.ContentPiece).filter(
             orm.Keyword.keyword_id == keyword_id).filter(
-            orm.ContentPiece.content_id == content_id).all()
+            orm.ContentPiece.content_id == content_id)
     elif keyword_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
-            orm.Keyword).filter(orm.Keyword.keyword_id == keyword_id).all()
+            orm.Keyword).filter(orm.Keyword.keyword_id == keyword_id)
     elif content_type_id is not None and content_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
             orm.ContentType).join(orm.ContentPiece).filter(
             orm.ContentType.content_type_id == content_type_id).filter(
-            orm.ContentPiece.content_id == content_id).all()
+            orm.ContentPiece.content_id == content_id)
     elif content_type_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
             orm.ContentType).filter(orm.ContentType.content_type_id
             == content_type_id).order_by(desc(
-            orm.RejectedEdit.rej_timestamp)).all()
+            orm.RejectedEdit.rej_timestamp))
     elif content_id is not None:
         rejected_edits = session.query(orm.RejectedEdit).join(
             orm.ContentPiece).filter(
-            orm.ContentPiece.content_id == content_id).all()
+            orm.ContentPiece.content_id == content_id)
     elif content_ids is not None:
         if content_ids:
             rejected_edits = session.query(orm.RejectedEdit).join(
                 orm.ContentPiece).filter(
-                orm.ContentPiece.content_id.in_(content_ids)).all()
+                orm.ContentPiece.content_id.in_(content_ids))
         else:
             rejected_edits = []
     elif edit_id is not None:
@@ -590,7 +592,10 @@ def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
     else:
         raise InputError("No arguments!")
 
-    return rejected_edits
+    try:
+        return rejected_edits.all()
+    except:
+        return []
 
 
 def get_user_votes(user_id, session=None):
@@ -604,8 +609,8 @@ def get_user_votes(user_id, session=None):
     if session is None:
         session = orm.start_session()
     votes = session.query(orm.Vote).join(orm.User, orm.Vote.voters).filter(
-        orm.User.user_id == user_id).all()
-    return votes
+        orm.User.user_id == user_id)
+    return votes.all()
 
 
 def get_accepted_votes(content_id=None, edit_id=None, vote_id=None,
@@ -631,13 +636,13 @@ def get_accepted_votes(content_id=None, edit_id=None, vote_id=None,
     if content_id is not None:
         votes = session.query(orm.Vote).join(orm.AcceptedEdit).join(
             orm.ContentPiece).filter(orm.ContentPiece.content_id
-                                     == content_id).all()
+                                     == content_id)
     elif user_id is not None:
         votes = session.query(orm.Vote).join(orm.AcceptedEdit).join(
-            orm.User).filter(orm.User.user_id == user_id).all()
+            orm.User).filter(orm.User.user_id == user_id)
     elif ip_address is not None:
         votes = session.query(orm.Vote).join(orm.AcceptedEdit).filter(
-            orm.AcceptedEdit.author_type == ip_address).all()
+            orm.AcceptedEdit.author_type == ip_address)
     elif edit_id is not None:
         try:
             vote = session.query(orm.Vote).join(orm.AcceptedEdit).filter(
@@ -657,7 +662,7 @@ def get_accepted_votes(content_id=None, edit_id=None, vote_id=None,
     else:
         raise InputError("No arguments!")
 
-    return votes
+    return votes.all()
 
 
 def get_rejected_votes(content_id=None, edit_id=None, vote_id=None,
@@ -683,13 +688,13 @@ def get_rejected_votes(content_id=None, edit_id=None, vote_id=None,
     if content_id is not None:
         votes = session.query(orm.Vote).join(orm.RejectedEdit).join(
             orm.ContentPiece).filter(orm.ContentPiece.content_id
-                                     == content_id).all()
+                                     == content_id)
     elif user_id is not None:
         votes = session.query(orm.Vote).join(orm.RejectedEdit).join(
-            orm.User).filter(orm.User.user_id == user_id).all()
+            orm.User).filter(orm.User.user_id == user_id)
     elif ip_address is not None:
         votes = session.query(orm.Vote).join(orm.RejectedEdit).filter(
-            orm.RejectedEdit.author_type == ip_address).all()
+            orm.RejectedEdit.author_type == ip_address)
     elif edit_id is not None:
         try:
             vote = session.query(orm.Vote).join(orm.RejectedEdit).filter(
@@ -709,7 +714,7 @@ def get_rejected_votes(content_id=None, edit_id=None, vote_id=None,
     else:
         raise InputError("No arguments!")
 
-    return votes
+    return votes.all()
 
 
 def get_user_encrypt_info(email=None, remember_id=None, session=None):
@@ -924,16 +929,16 @@ def get_user_reports(content_id=None, report_id=None, user_id=None,
         session = orm.start_session()
     if content_id is not None:
         reports = session.query(orm.UserReport).join(orm.ContentPiece).filter(
-            orm.ContentPiece.content_id == content_id).all()
+            orm.ContentPiece.content_id == content_id)
     elif user_id is not None:
         reports = session.query(orm.UserReport).join(orm.User,
-            orm.UserReport.author).filter(orm.User.user_id == user_id).all()
+            orm.UserReport.author).filter(orm.User.user_id == user_id)
     elif admin_id is not None:
         reports = session.query(orm.UserReport).join(orm.User,
-            orm.UserReport.admin).filter(orm.User.user_id == admin_id).all()
+            orm.UserReport.admin).filter(orm.User.user_id == admin_id)
     elif ip_address is not None:
         reports = session.query(orm.UserReport).filter(
-            orm.UserReport.author_type == ip_address).all()
+            orm.UserReport.author_type == ip_address)
     elif report_id is not None:
         try:
             report = session.query(orm.UserReport).filter(
@@ -945,4 +950,4 @@ def get_user_reports(content_id=None, report_id=None, user_id=None,
     else:
         raise InputError("No arguments!")
 
-    return reports
+    return reports.all()
