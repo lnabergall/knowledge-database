@@ -846,8 +846,8 @@ Approximate RESTful web API reference:
 \end{enumerate}
 \item[] \url{/reports}
 \begin{enumerate}
-\item[] GET -- Get a list of the most 10 recent reports.
-\item[] GET \url{?{id_type}={id}&report_status={status}} -- Retrieve a list of all user \par reports with \{id\_type\} (user\_id, admin\_id, content\_id, or ip\_address) \par matching \{id\} and report status matching \{status\} (open or resolved), \par paginated with 10 items per page and sorted in descending chronological \par order by creation timestamp or, if present, resolution timestamp.
+%\item[] GET -- Get a list of all reports, sorted in descending chronological order by \par creation timestamp and paginated with 10 results per page.
+\item[] GET \url{?{id_type}={id}&report_status={status}} -- Retrieve a list of all user \par reports with \{id\_type\} (user\_id, admin\_id, content\_id, or ip\_address) \par matching \{id\} and report status matching \{status\} (open or resolved), \par paginated with 10 items per page and sorted in ascending chronological \par order by creation timestamp or, if present, resolution timestamp.
 \item[] POST -- Submit a new report.
 \item[] \url{/{id}}
 \begin{enumerate}
