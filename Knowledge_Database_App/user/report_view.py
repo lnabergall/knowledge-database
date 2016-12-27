@@ -24,7 +24,8 @@ class ReportView:
         except:
             raise
         else:
-            report.submit()
+            if report_id is None:
+                report.submit()
             self.report = report.json_ready
             self.__dict__.update(self.report)
 
