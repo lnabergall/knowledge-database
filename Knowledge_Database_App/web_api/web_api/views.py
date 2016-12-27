@@ -11,6 +11,7 @@ from Knowledge_Database_App.web_api.web_api.authentication import (
 from Knowledge_Database_App.content.content_view import ContentView
 from Knowledge_Database_App.content.edit_view import EditView
 from Knowledge_Database_App.content.vote_view import VoteView
+from Knowledge_Database_App.user.report_view import ReportView
 
 
 _ = TranslationStringFactory('web_api')
@@ -262,7 +263,7 @@ class ContentPieceResourceView:
             try:
                 vote_summary = VoteView.get_vote_results(
                     vote_status, edit_id, validation_status)
-            except:
+            except Exception as e:
                 pass
             else:
                 return {
@@ -288,7 +289,7 @@ class ContentPieceResourceView:
             if error_data:
                 response["data"] = {"earliest_edit_id": error_data}
                 response["links"]["go_to"] = self.request.route_url(
-                    "piece_edit", edit_id=error_data)
+                    "piece_edit", edit_id=error_data)   # Page of oldest edit
                 response["message"] = ("To minimize the potential for " +
                     "edit conflicts, please vote on the earliest submitted " +
                     "edit before voting on later edits. See the included " +
@@ -310,7 +311,7 @@ class ContentPieceResourceView:
                     self.request.data["validating_page_num"],
                     self.request.data["closed_page_num"],
                 )
-            except:
+            except Exception as e:
                 pass
             else:
                 return {
@@ -518,22 +519,83 @@ class ReportResourceView:
         if self.request.exception:
             pass
         else:
-            pass
+            report_status = self.request.matchdict["report_status"]
+            id = (self.request.matchdict.get("admin_id")
+                  or self.request.matchdict.get("user_id")
+                  or self.request.matchdict.get("content_id")
+                  or self.request.matchdict.get("ip_address"))
+            id_type = ({"admin_id", "user_id", "content_id", "ip_address"}
+                       & set(self.request.matchdict.keys()))
+            if len(id_type) != 1:
+                pass    # ERROR
+            else:
+                kargs = {
+                    id_type.pop(): id,
+                    "report_status": report_status,
+                    "page_num": self.request.data["page_num"]
+                }
+                try:
+                    reports = ReportView.bulk_retrieve(**kargs)
+                except Exception as e:
+                    pass
+                else:
+                    return {
+                        "data": reports,
+                        "links": {
+                            "came_from": self.came_from,
+                            "url": self.url,
+                        },
+                        "message": "User reports retrieved successfully."
+                    }
 
     def post(self):
         if self.request.exception:
             pass
         else:
-            pass
+            self.request.response.status_code = 201
+            return {
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                    "go_to": self.request.route_url("report",
+                        report_id=self.request.context["report_id"])  # Report page
+                },
+                "message": "User report successfully submitted."
+            }
 
     def get_report(self):
         if self.request.exception:
             pass
         else:
-            pass
+            return {
+                "data": self.request.context.report,
+                "links": {
+                    "came_from": self.came_from,
+                    "url": self.url,
+                },
+                "message": "User report retrieved successfully."
+            }
 
     def post_admin_report(self):
         if self.request.exception:
             pass
         else:
-            pass
+            try:
+                ReportView.resolve(
+                    report_id=self.request.data["report_id"],
+                    report_status=self.request.data["report_status"],
+                    admin_report=self.request.data["admin_report"]
+                )
+            except Exception as e:
+                pass
+            else:
+                self.request.response.status_code = 201
+                return {
+                    "links": {
+                        "came_from": self.came_from,
+                        "url": self.url,
+                        "go_to": self.request.route_url("report",
+                            report_id=self.request.data["report_id"])  # Report page
+                    },
+                    "message": "Admin resolution report submitted successfully."
+                }
