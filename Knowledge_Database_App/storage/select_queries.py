@@ -950,4 +950,4 @@ def get_user_reports(content_id=None, report_id=None, user_id=None,
     else:
         raise InputError("No arguments!")
 
-    return reports.all()
+    return reports.order_by(orm.UserReport.timestamp).all()
