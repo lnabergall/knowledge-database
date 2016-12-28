@@ -38,25 +38,36 @@ class ContentResourceView:
                 or self.request.matchdict.get("name")
                 or self.request.matchdict.get("citation"))
             if self.request.matchdict.get("sort"):
-                content_pieces = ContentView.bulk_retrieve(
-                    sort=self.request.matchdict.get("sort"),
-                    page_num=self.request.data["page_num"]
-                )
+                try:
+                    content_pieces = ContentView.bulk_retrieve(
+                        sort=self.request.matchdict.get("sort"),
+                        page_num=self.request.data["page_num"]
+                    )
+                except Exception as e:
+                    pass
             elif content_part:
-                content_pieces = ContentView.bulk_retrieve(
-                    sort=self.request.matchdict.get("sort"),
-                    content_part=content_part,
-                    page_num=self.request.data["page_num"]
-                )
+                try:
+                    content_pieces = ContentView.bulk_retrieve(
+                        sort=self.request.matchdict.get("sort"),
+                        content_part=content_part,
+                        page_num=self.request.data["page_num"]
+                    )
+                except Exception as e:
+                    pass
             elif self.request.matchdict.get("q"):
-                content_pieces = ContentView.search(
-                    query=self.request.matchdict["q"],
-                    page_num=self.request.data["page_num"],
-                )
+                try:
+                    content_pieces = ContentView.search(
+                        query=self.request.matchdict["q"],
+                        page_num=self.request.data["page_num"],
+                    )
+                except Exception as e:
+                    pass
             else:
-                content_pieces = ContentView.bulk_retrieve(
-                    page_num=self.request.data["page_num"])
-
+                try:
+                    content_pieces = ContentView.bulk_retrieve(
+                        page_num=self.request.data["page_num"])
+                except Exception as e:
+                    pass
             return {
                 "data": content_pieces,
                 "links": {
@@ -86,46 +97,61 @@ class ContentResourceView:
         if self.request.exception:
             pass
         else:
-            names = ContentView.autocomplete(
-                "name", self.request.matchdict["complete"])
-            return {
-                "data": names,
-                "links": {
-                    "came_from": self.came_from,
-                    "url": self.url,
-                },
-                "message": "Name completions retrieved successfully."
-            }
+            try:
+                names = ContentView.autocomplete(
+                    "name", self.request.matchdict["complete"])
+            except Exception as e:
+                pass
+            else:
+                return {
+                    "data": names,
+                    "links": {
+                        "came_from": self.came_from,
+                        "url": self.url,
+                    },
+                    "message": "Name completions retrieved successfully."
+                }
 
     def get_content_types(self):
         if self.request.exception:
             pass
         else:
-            content_types = ContentView.get_parts(content_part="content_type")
-            return {
-                "data": content_types,
-                "links": {
-                    "came_from": self.came_from,
-                    "url": self.url,
-                },
-                "message": "Content types retrieved successfully."
-            }
+            try:
+                content_types = ContentView.get_parts(content_part="content_type")
+            except Exception as e:
+                pass
+            else:
+                return {
+                    "data": content_types,
+                    "links": {
+                        "came_from": self.came_from,
+                        "url": self.url,
+                    },
+                    "message": "Content types retrieved successfully."
+                }
 
     def get_keywords(self):
         if self.request.exception:
             pass
         else:
             if self.request.matchdict.get("complete"):
-                keywords = ContentView.autocomplete(
-                    "keyword", self.request.matchdict["complete"])
-                response = {
-                    "message": "Keyword completions retrieved successfully."
-                }
+                try:
+                    keywords = ContentView.autocomplete(
+                        "keyword", self.request.matchdict["complete"])
+                except Exception as e:
+                    pass
+                else:
+                    response = {
+                        "message": "Keyword completions retrieved successfully."
+                    }
             else:
-                keywords = ContentView.get_parts(content_part="keyword",
-                                                 page_num=self.request.data["page_num"])
-                response = {"message": "Keywords retrieved successfully."}
-
+                try:
+                    keywords = ContentView.get_parts(content_part="keyword",
+                                                    page_num=self.request.data["page_num"])
+                except Exception as e:
+                    pass
+                else:
+                    response = {"message": "Keywords retrieved successfully."}
             response.update({
                 "data": keywords,
                 "links": {
@@ -140,16 +166,24 @@ class ContentResourceView:
             pass
         else:
             if self.request.matchdict.get("complete"):
-                citations = ContentView.autocomplete(
-                    "citation", self.request.matchdict["complete"])
-                response = {
-                    "message": "Citation completions retrieved successfully."
-                }
+                try:
+                    citations = ContentView.autocomplete(
+                        "citation", self.request.matchdict["complete"])
+                except Exception as e:
+                    pass
+                else:
+                    response = {
+                        "message": "Citation completions retrieved successfully."
+                    }
             else:
-                citations = ContentView.get_parts(content_part="citation",
-                                                  page_num=self.request.data["page_num"])
-                response = {"message": "Citations retrieved successfully."}
-
+                try:
+                    citations = ContentView.get_parts(
+                        content_part="citation",
+                        page_num=self.request.data["page_num"])
+                except Exception as e:
+                    pass
+                else:
+                    response = {"message": "Citations retrieved successfully."}
             response.update({
                 "data": citations,
                 "links": {
@@ -198,17 +232,21 @@ class ContentPieceResourceView:
         if self.request.exception:
             pass
         else:
-            edits = EditView.bulk_retrieve(
-                content_id=self.request.data["content_id"],
-                page_num=self.request.data["page_num"] or 1)
-            return {
-                "data": edits,
-                "links": {
-                    "came_from": self.came_from,
-                    "url": self.url,
-                },
-                "message": "Content piece edits retrieved successfully."
-            }
+            try:
+                edits = EditView.bulk_retrieve(
+                    content_id=self.request.data["content_id"],
+                    page_num=self.request.data["page_num"] or 1)
+            except Exception as e:
+                pass
+            else:
+                return {
+                    "data": edits,
+                    "links": {
+                        "came_from": self.came_from,
+                        "url": self.url,
+                    },
+                    "message": "Content piece edits retrieved successfully."
+                }
 
     def get_edit(self):
         if self.request.exception:
@@ -344,48 +382,60 @@ class UserResourceView:
             pass
         else:
             page_num = self.request.data["page_num"] or 1
-            activity_data = ContentView.recent_activity(
-                user_id=self.user.user_id, page_num=page_num)
-            return {
-                "data": activity_data,
-                "links": {
-                    "came_from": self.came_from,
-                    "url": self.url,
-                },
-                "message": "Recent activity metadata retrieved successfully."
-            }
+            try:
+                activity_data = ContentView.recent_activity(
+                    user_id=self.user.user_id, page_num=page_num)
+            except Exception as e:
+                pass
+            else:
+                return {
+                    "data": activity_data,
+                    "links": {
+                        "came_from": self.came_from,
+                        "url": self.url,
+                    },
+                    "message": "Recent activity metadata retrieved successfully."
+                }
 
     def get_content(self):
         if self.request.exception:
             pass
         else:
             page_num = self.request.data["page_num"] or 0
-            user_content = ContentView.user_content(
-                user_id=self.user.user_id, page_num=page_num)
-            return {
-                "data": user_content,
-                "links": {
-                    "came_from": self.came_from,
-                    "url": self.url,
-                },
-                "message": "Authored content metadata retrieved successfully."
-            }
+            try:
+                user_content = ContentView.user_content(
+                    user_id=self.user.user_id, page_num=page_num)
+            except Exception as e:
+                pass
+            else:
+                return {
+                    "data": user_content,
+                    "links": {
+                        "came_from": self.came_from,
+                        "url": self.url,
+                    },
+                    "message": "Authored content metadata retrieved successfully."
+                }
 
     def get_edits(self):
         if self.request.exception:
             pass
         else:
             page_num = self.request.data["page_num"] or 1
-            user_edits = EditView.bulk_retrieve(user_id=self.user.user_id,
-                                                page_num=page_num)
-            return {
-                "data": user_edits,
-                "links": {
-                    "came_from": self.came_from,
-                    "url": self.url,
-                },
-                "message": "User edit metadata retrieved successfully."
-            }
+            try:
+                user_edits = EditView.bulk_retrieve(user_id=self.user.user_id,
+                                                    page_num=page_num)
+            except Exception as e:
+                pass
+            else:
+                return {
+                    "data": user_edits,
+                    "links": {
+                        "came_from": self.came_from,
+                        "url": self.url,
+                    },
+                    "message": "User edit metadata retrieved successfully."
+                }
 
     def post(self):
         if self.request.exception:
