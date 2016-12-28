@@ -11,7 +11,7 @@ Functions:
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import MultiMatch, Match, Term, Q
 
-from Knowledge_Database_App.storage.select_queries import InputError
+from Knowledge_Database_App.storage.exceptions import InputError
 from .index import SearchableContentPiece
 
 

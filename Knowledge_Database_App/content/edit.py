@@ -5,10 +5,6 @@ Classes:
 
     Edit
 
-Exceptions:
-
-    DuplicateError, SubmissionError
-
 Functions:
 
     is_ip_address
@@ -23,29 +19,14 @@ from Knowledge_Database_App import _email as mail
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select,
                                             action_queries as action)
+from Knowledge_Database_App.storage.exceptions import InputError
 from . import redis_api
 from . import edit_diff as diff
 from . import vote as author_vote
 from . import content_config as config
 from .celery_app import celery_app
 from .content import Content, Name, UserData
-
-
-class DuplicateError(Exception):
-    """Exception raised when a content part is a duplicate of another."""
-
-
-class DataMatchingError(Exception):
-    """
-    Exception raised when the submission data does not match the
-    data in storage.
-    """
-
-class ContentError(Exception):
-    """
-    Exception raised upon submission of an illegally formatted
-    content part.
-    """
+from .exceptions import DuplicateError, DataMatchingError, ContentError
 
 
 EditMetrics = namedtuple("EditMetrics",
@@ -137,7 +118,7 @@ class Edit:
                 author_type is not None and
                 not is_ip_address(author_type) and author_type != "U") or (
                 author_type == "U" and author_id is None):
-            raise select.InputError("Invalid argument!")
+            raise InputError("Invalid argument!")
 
         self.validation_status = validation_status
         if edit_id is not None and self.validation_status is not None:
@@ -160,7 +141,7 @@ class Edit:
             if (not content_id or edit_text is None or not content_part or
                     original_part_text is None or not author_type or
                     not start_timestamp):
-                raise select.InputError("Required arguments not provided!")
+                raise InputError("Required arguments not provided!")
             if ((content_part == "name" or content_part == "alternate_name" or 
                     content_part == "keyword" or content_part == "citation") and 
                     not Content.check_uniqueness(content_id, edit_text, content_part)):
@@ -268,7 +249,7 @@ class Edit:
             else:
                 self.validation_status = "accepted"
         else:
-            raise select.InputError("Invalid argument!")
+            raise InputError("Invalid argument!")
 
         return edit
 
@@ -387,7 +368,7 @@ class Edit:
                 except:
                     raise
             else:
-                raise select.InputError("Invalid arguments!")
+                raise InputError("Invalid arguments!")
         elif content_ids is not None:
             if validation_status == "validating":
                 try:
@@ -407,7 +388,7 @@ class Edit:
                 except:
                     raise
             else:
-                raise select.InputError("Invalid arguments!")
+                raise InputError("Invalid arguments!")
         elif citation_id is not None:
             if validation_status == "validating":
                 try:
@@ -437,7 +418,7 @@ class Edit:
                 except:
                     raise
             else:
-                raise select.InputError("Invalid arguments!")
+                raise InputError("Invalid arguments!")
         elif keyword_id is not None:
             if validation_status == "validating":
                 try:
@@ -467,7 +448,7 @@ class Edit:
                 except:
                     raise
             else:
-                raise select.InputError("Invalid arguments!")
+                raise InputError("Invalid arguments!")
         elif content_type_id is not None:
             if validation_status == "validating":
                 try:
@@ -497,7 +478,7 @@ class Edit:
                 except:
                     raise
             else:
-                raise select.InputError("Invalid arguments!")
+                raise InputError("Invalid arguments!")
         elif content_id is not None:
             if validation_status == "validating":
                 try:
@@ -517,7 +498,7 @@ class Edit:
                 except:
                     raise
             else:
-                raise select.InputError("Invalid arguments!")
+                raise InputError("Invalid arguments!")
         elif text_id is not None:
             if validation_status == "validating":
                 try:
@@ -537,7 +518,7 @@ class Edit:
                 except:
                     raise
             else:
-                raise select.InputError("Invalid arguments!")
+                raise InputError("Invalid arguments!")
         elif name_id is not None:
             if validation_status == "validating":
                 try:
@@ -557,7 +538,7 @@ class Edit:
                 except:
                     raise
             else:
-                raise select.InputError("Invalid arguments!")
+                raise InputError("Invalid arguments!")
         else:
             return []
 
@@ -869,7 +850,7 @@ class Edit:
             content_name = content_name.name
         if email_type == "edit_submitted":
             if author_info is None:
-                raise select.InputError("Invalid argument!")
+                raise InputError("Invalid argument!")
             else:
                 emails = [mail.Email(info_tuple[2], info_tuple[1],
                                        content_name,
@@ -884,7 +865,7 @@ class Edit:
                         raise
         elif email_type == "vote_reminder":
             if author_info is None or days_remaining is None:
-                raise select.InputError("Invalid argument!")
+                raise InputError("Invalid argument!")
             else:
                 emails = [mail.Email(info_tuple[2], info_tuple[1],
                                      content_name,
@@ -910,7 +891,7 @@ class Edit:
         elif (email_type == "author_acceptance" or
                 email_type == "author_rejection"):
             if author_info is None:
-                raise select.InputError("Invalid argument!")
+                raise InputError("Invalid argument!")
             else:
                 vote_result = (True if self.validation_status == "accepted"
                                else False)
@@ -927,7 +908,7 @@ class Edit:
                     except:
                         raise
         else:
-            raise select.InputError("Invalid argument!")
+            raise InputError("Invalid argument!")
 
     @property
     def conflict(self):

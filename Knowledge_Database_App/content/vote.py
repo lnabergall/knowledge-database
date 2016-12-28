@@ -1,10 +1,6 @@
 """
 Content Vote API
 
-Exceptions:
-
-    VoteStatusError
-
 Classes:
 
     AuthorVote
@@ -16,15 +12,10 @@ import dateutil.parser as dateparse
 
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select)
+from Knowledge_Database_App.storage.exceptions import InputError
 from . import redis_api
 from .content import Content, ApplicationError, UserData
-
-
-class VoteStatusError(Exception):
-    """
-    Exception raised when an operation is called that requires an
-    in-progress vote but the vote is already closed.
-    """
+from .exceptions import VoteStatusError, DuplicateVoteError, MissingKeyError
 
 
 class AuthorVote:
@@ -63,7 +54,7 @@ class AuthorVote:
         if (not edit_id or (vote != "Y" and vote != "N") or not voter_id or
                 (vote_status is not None and vote_status != "in-progress"
                 and vote_status != "ended")):
-            raise select.InputError("Invalid arguments!")
+            raise InputError("Invalid arguments!")
         else:
             self.edit_id = edit_id
             self.vote_status = vote_status
@@ -111,7 +102,7 @@ class AuthorVote:
                     vote_object = cls.storage_handler.call(
                         select.get_rejected_votes, edit_id=edit_id)
                 else:
-                    raise select.InputError("Invalid argument!")
+                    raise InputError("Invalid argument!")
             except:
                 raise
         elif vote_id is not None:
@@ -123,7 +114,7 @@ class AuthorVote:
                     vote_object = cls.storage_handler.call(
                         select.get_rejected_votes, vote_id=vote_id)
                 else:
-                    raise select.InputError("Invalid argument!")
+                    raise InputError("Invalid argument!")
             except:
                 raise
 
@@ -172,7 +163,7 @@ class AuthorVote:
                               for key, value in vote_dict.items()]
                              for edit_id, vote_dict in vote_dicts.items()}
             else:
-                raise select.InputError("Invalid arguments!")
+                raise InputError("Invalid arguments!")
         elif vote_status == "ended":
             if edit_id is not None:
                 vote_object = cls._retrieve_from_storage(
@@ -206,10 +197,10 @@ class AuthorVote:
                                      for key, value in vote_dict.items()]
                         votes[edit_id] = vote_list
                 else:
-                    raise select.InputError("Invalid arguments!")
+                    raise InputError("Invalid arguments!")
                 return votes
             else:
-                raise select.InputError("Invalid arguments!")
+                raise InputError("Invalid arguments!")
             vote_dict = cls.unpack_vote_summary(vote_object.vote)
             if edit_id is None:
                 if validation_status == "accepted":
@@ -217,13 +208,13 @@ class AuthorVote:
                 elif validation_status == "rejected":
                     edit_id = vote_object.rejected_edit_id
                 else:
-                    raise select.InputError("Invalid argument!")
+                    raise InputError("Invalid argument!")
             votes = [AuthorVote(vote_status, edit_id, value[0],
                                 key, timestamp=dateparse.parse(value[3:]),
                                 close_timestamp=vote_object.close_timestamp)
                      for key, value in vote_dict.items()]
         else:
-            raise select.InputError("Invalid argument!")
+            raise InputError("Invalid argument!")
 
         return votes
 
@@ -277,11 +268,11 @@ class AuthorVote:
             try:
                 redis_api.store_vote(self.edit_id, self.author.user_id,
                                      self.vote + "; " + str(self.timestamp))
-            except redis_api.DuplicateVoteError:
-                raise redis_api.DuplicateVoteError(
+            except DuplicateVoteError:
+                raise DuplicateVoteError(
                     "Vote already submitted by user " +
                     str(self.author.user_id) + "!")
-            except redis_api.MissingKeyError as e:
+            except MissingKeyError as e:
                 raise VoteStatusError(str(e))
             except:
                 raise

@@ -4,10 +4,6 @@ Storage Action Query API
 Contains functions and exceptions for making actions (adds, updates, deletes)
 on the Postgres database. Uses SQLAlchemy.
 
-Exceptions:
-
-    ActionError
-
 Functions:
 
     store_content_piece, delete_content_piece, update_content_type, 
@@ -23,19 +19,11 @@ from sqlalchemy.orm.exc import (NoResultFound, ObjectDeletedError,
 from sqlalchemy.exc import IntegrityError
 
 from . import orm_core as orm
-from .orm_core import ActionError
-from .select_queries import InputError, get_user, get_content_piece
-
+from .select_queries import get_user, get_content_piece
+from .exceptions import (ActionError, InputError,
+                         MissingDataError, UniquenessViolationError)
 
 UNIQUE_CONSTRAINT_VIOLATION = "23505"
-
-
-class MissingDataError(Exception):
-    """Exception raised when a query unexpectedly returns no results."""
-
-
-class UniquenessViolationError(Exception):
-    """Exception raised when a query violates a unique constraint."""
 
 
 def store_content_piece(user_id, name, text, content_type, keywords, timestamp,
@@ -397,6 +385,7 @@ def store_new_user(user_type, user_name, email, pass_hash,
         pass_hash: String.
         pass_hash_type: String.
         pass_salt: String.
+        remember_id: Int.
         timestamp: Datetime.
         session: SQLAlchemy session. Defaults to None.
     Raises:

@@ -4,10 +4,6 @@ Content Piece API
 Classes:
 
     Name, Text, UserData, Content
-
-Exceptions:
-
-    ApplicationError, ContentError
 """
 
 from datetime import datetime
@@ -15,23 +11,12 @@ from datetime import datetime
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select,
                                             action_queries as action)
+from Knowledge_Database_App.storage.exceptions import (
+    InputError, SelectError, MissingDataError)
 from Knowledge_Database_App import search as search_api
 from Knowledge_Database_App.search import index
 from . import content_config as config
-
-
-class ApplicationError(Exception):
-    """
-    General exception raised when an unrecoverable error
-    in application logic occurs.
-    """
-
-
-class ContentError(Exception):
-    """
-    General exception raised when a content piece or part
-    violates content standards.
-    """
+from .exceptions import ApplicationError, ContentError
 
 
 class Name:
@@ -219,7 +204,7 @@ class UserData:
             except:
                 raise
         else:
-            raise select.InputError("Invalid arguments!")
+            raise InputError("Invalid arguments!")
 
         return [UserData(user_id=tup[0], user_name=tup[1], email=tup[2])
                 for tup in info_tuples]
@@ -310,7 +295,7 @@ class Content:
         else:
             if (not first_author_id or not content_type or not name or
                     not text or not keywords):
-                raise action.InputError("Required arguments not provided!")
+                raise InputError("Required arguments not provided!")
             self.timestamp = datetime.utcnow()
             self.last_edited_timestamp = self.timestamp
             self.first_author = UserData(user_id=first_author_id)
@@ -453,7 +438,7 @@ class Content:
         else:
             try:
                 if page_num < 1:
-                    raise select.InputError("Invalid argument!")
+                    raise InputError("Invalid argument!")
                 content_pieces = cls.storage_handler.call(
                     select.get_content_pieces, sort=sort,
                     content_part=content_part, page_num=page_num)
@@ -463,7 +448,6 @@ class Content:
                 raise
             else:
                 return content
-
 
     @classmethod
     def get_parts(cls, content_part, page_num=None, per_page=None):
@@ -493,7 +477,7 @@ class Content:
                 citations = [citation.citation_text for citation in citations]
                 return citations
             else:
-                raise action.InputError("Invalid argument!")
+                raise InputError("Invalid argument!")
         except:
             raise
 
@@ -541,7 +525,7 @@ class Content:
                 return part_string not in [citation.citation_text
                                            for citation in citations]
         else:
-            raise action.InputError("Invalid argument!")
+            raise InputError("Invalid argument!")
 
     @classmethod
     def filter_by(cls, content_part, part_string, page_num=1):
@@ -610,7 +594,7 @@ class Content:
                 try:
                     keyword = self.storage_handler.call(select.get_keyword,
                                                         keyword_string)
-                except select.SelectError:
+                except SelectError:
                     keyword = orm.Keyword(keyword=keyword_string,
                                           timestamp=self.timestamp)
                     keywords_for_storage.append(keyword)
@@ -623,7 +607,7 @@ class Content:
                 try:
                     citation = self.storage_handler.call(select.get_citation,
                                                          citation_string)
-                except select.SelectError:
+                except SelectError:
                     citation = orm.Citation(citation_text=citation_string,
                                             timestamp=self.timestamp)
                     citations_for_storage.append(citation)
@@ -669,6 +653,7 @@ class Content:
             content_part: String, expects 'name', 'alternate_name',
                 'text', 'content_type', 'keyword', or 'citation'.
             update_type: String, accepts 'modify', 'add', or 'remove'.
+            timestamp: Datetime.
             part_text: String or orm.Name. Defaults to None.
             part_id: Integer. Defaults to None.
             edited_citations: List of orm.Citation objects.
@@ -694,7 +679,7 @@ class Content:
                     try:
                         keyword = cls.storage_handler.call(
                             select.get_keyword, part_text)
-                    except select.SelectError:
+                    except SelectError:
                         keyword = orm.Keyword(keyword=part_text,
                                               timestamp=timestamp)
                     cls.storage_handler.call(action.store_content_part,
@@ -705,7 +690,7 @@ class Content:
                     try:
                         citation = cls.storage_handler.call(
                             select.get_citation, part_text)
-                    except select.SelectError:
+                    except SelectError:
                         citation = orm.Citation(citation_text=part_text,
                                                 timestamp=timestamp)
                     cls.storage_handler.call(
@@ -714,7 +699,7 @@ class Content:
                     index.add_to_content_piece(content_id, content_part,
                                                citation.citation_text)
                 else:
-                    raise action.InputError("Invalid argument!")
+                    raise InputError("Invalid argument!")
             except:
                 raise
         elif part_id is not None and update_type == "remove":
@@ -741,7 +726,7 @@ class Content:
                     index.update_content_piece(content_id, content_part,
                                                part_strings=citations)
                 else:
-                    raise action.InputError("Invalid argument!")
+                    raise InputError("Invalid argument!")
             except:
                 raise
         elif part_id is not None and update_type == "modify":
@@ -765,7 +750,7 @@ class Content:
                     try:
                         cls.update(content_id, content_part,
                                        "remove", part_id)
-                    except action.MissingDataError:
+                    except MissingDataError:
                         pass
                     cls.update(content_id, content_part,
                                    "add", timestamp, part_text=part_text)
@@ -778,7 +763,7 @@ class Content:
                     try:
                         cls.update(content_id, content_part,
                                        "remove", part_id)
-                    except action.MissingDataError:
+                    except MissingDataError:
                         other_edits = cls.storage_handler.call(
                             select.get_citations, content_id,
                             edited_citation_id=part_id)
@@ -800,11 +785,11 @@ class Content:
                     index.update_content_piece(content_id, content_part,
                                                part_strings=citations)
                 else:
-                    raise action.InputError("Invalid argument!")
+                    raise InputError("Invalid argument!")
             except:
                 raise
         else:
-            raise action.InputError("Invalid arguments!")
+            raise InputError("Invalid arguments!")
 
     def _delete(self):
         if not self.stored:

@@ -1,11 +1,6 @@
 """
 User API
 
-Exceptions:
-
-    PasswordError, UserNameError, EmailAddressError,
-    RememberUserError, ConfirmationError
-
 Classes:
 
     RegisteredUser
@@ -23,27 +18,10 @@ from Knowledge_Database_App.content.celery_app import celery_app
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select,
                                             action_queries as action)
+from Knowledge_Database_App.storage.exceptions import InputError
 from .user_config import PASS_REGEX, USER_NAME_REGEX
-
-
-class PasswordError(Exception):
-    """Exception raised upon input of an invalid password."""
-
-
-class UserNameError(Exception):
-    """Exception raised upon input of an invalid username."""
-
-
-class EmailAddressError(Exception):
-    """Exception raised upon input of an invalid email address."""
-
-
-class RememberUserError(Exception):
-    """Exception raised upon input of invalid Remember Me info."""
-
-
-class ConfirmationError(Exception):
-    """Exception raised upon input of an invalid confirmation ID."""
+from .exceptions import (PasswordError, UserNameError, EmailAddressError,
+                         RememberUserError, ConfirmationError)
 
 
 class RegisteredUser:
@@ -123,7 +101,7 @@ class RegisteredUser:
                         raise RememberUserError("Invalid Remember Me token!")
         else:
             if not email or not password or not user_name:
-                raise select.InputError("Invalid arguments!")
+                raise InputError("Invalid arguments!")
             else:
                 email = email.strip()
                 password = password.strip()
@@ -301,7 +279,7 @@ class RegisteredUser:
             except:
                 raise
         else:
-            raise select.InputError("Invalid arguments!")
+            raise InputError("Invalid arguments!")
 
     @classmethod
     def delete(cls, user_id):

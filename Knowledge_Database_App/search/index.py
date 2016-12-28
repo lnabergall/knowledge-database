@@ -22,7 +22,7 @@ from elasticsearch_dsl import (DocType, String, Completion,
                                Index, analyzer, tokenizer, token_filter)
 from elasticsearch_dsl.connections import connections
 
-from Knowledge_Database_App.storage.select_queries import InputError
+from Knowledge_Database_App.storage.exceptions import InputError
 from Knowledge_Database_App.content.redis_api import decode_response
 
 

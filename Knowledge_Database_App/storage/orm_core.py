@@ -27,9 +27,10 @@ from sqlalchemy.schema import (MetaData, Table, DropTable,
                                ForeignKeyConstraint, DropConstraint)
 from sqlalchemy.orm import sessionmaker, scoped_session, relationship, backref
 from sqlalchemy.orm.query import Query as _Query
-from sqlalchemy.orm.exc import MultipleResultsFound
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.associationproxy import association_proxy as _association_proxy
+
+from .exceptions import MultipleValuesFound
 
 
 class Query(_Query):
@@ -61,13 +62,6 @@ class Query(_Query):
                 return result[0]
         except:
             return result
-
-
-class MultipleValuesFound(ValueError, MultipleResultsFound):
-    """
-    Exception raised by `Query.values` when multiple values
-    were found in a single result row.
-    """
 
 
 KDB_url = "postgresql+psycopg2://postgres:Cetera4247@localhost/kdb_develop"
@@ -112,10 +106,6 @@ def association_proxy(src, target):
         return target_cls(**{target: value})
     prox = _association_proxy(src, target, creator=create)
     return prox
-
-
-class ActionError(Exception):
-    """General exception raised when a database action query fails."""
 
 
 class StorageHandler:

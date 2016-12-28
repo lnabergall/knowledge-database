@@ -4,10 +4,6 @@ Storage Selection Query API
 Contains functions and classes for making selections from the Postgres 
 database. Uses SQLAlchemy.
 
-Exceptions:
-
-    SelectError, InputError, MultipleValuesFound
-
 Functions:
 
     get_content_piece, get_content_pieces, get_part_string, get_names,
@@ -26,28 +22,7 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.sql.expression import desc
 
 from . import orm_core as orm
-from .orm_core import Query
-
-
-class MultipleValuesFound(ValueError, MultipleResultsFound):
-    """
-    Exception raised by :meth:'Query.values' when multiple value were
-    found in a single result row.
-    """
-
-
-class SelectError(Exception):
-    """
-    General exception raised when a database select query returns an
-    invalid result.
-    """
-
-
-class InputError(Exception):
-    """
-    General exception raised when a function is called with invalid
-    argument values.
-    """
+from .exceptions import InputError, SelectError, MultipleValuesFound
 
 
 def get_content_piece(content_id=None, accepted_edit_id=None,

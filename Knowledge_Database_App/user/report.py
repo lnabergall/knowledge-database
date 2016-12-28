@@ -14,6 +14,7 @@ from Knowledge_Database_App.content.edit import is_ip_address
 from Knowledge_Database_App.storage import (orm_core as orm,
                                             select_queries as select,
                                             action_queries as action)
+from Knowledge_Database_App.storage.exceptions import InputError
 
 
 class Report:
@@ -58,7 +59,7 @@ class Report:
                     report_object = self.storage_handler.call(
                         select.get_user_reports, report_id=report_id)
                 else:
-                    raise select.InputError("Invalid arguments!")
+                    raise InputError("Invalid arguments!")
             except:
                 raise
             else:
@@ -71,7 +72,7 @@ class Report:
                     not is_ip_address(author_type) and author_type != "U") or (
                     author_type == "U" and author_id is None) or (
                     report_type != "content" and report_type != "authors"):
-                raise select.InputError("Invalid arguments!")
+                raise InputError("Invalid arguments!")
             else:
                 self.report_status = "pending"
                 self.report_text = report_text.strip()
@@ -172,7 +173,7 @@ class Report:
             except:
                 raise
         else:
-            raise select.InputError("Missing argument!")
+            raise InputError("Missing argument!")
         if page_num != 0:
             reports = [Report(report_status=report_status,
                               report_object=report_object)

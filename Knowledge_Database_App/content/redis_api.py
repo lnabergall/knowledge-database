@@ -6,10 +6,6 @@ Classes:
 
     CustomStrictRedis
 
-Exceptions:
-
-    DuplicateVoteError, MissingKeyError
-
 Functions:
 
     store_edit, store_vote, store_confirm, get_confirm_info,
@@ -22,15 +18,8 @@ import dateutil.parser as dateparse
 from redis import StrictRedis, WatchError
 from redis.client import BasePipeline
 
-from Knowledge_Database_App.storage.action_queries import InputError
-
-
-class DuplicateVoteError(Exception):
-    """Exception to raise when a vote already exists."""
-
-
-class MissingKeyError(Exception):
-    """Exception to raise when a key is missing."""
+from Knowledge_Database_App.storage.exceptions import InputError
+from .exceptions import DuplicateVoteError, MissingKeyError
 
 
 def decode_response(response):
