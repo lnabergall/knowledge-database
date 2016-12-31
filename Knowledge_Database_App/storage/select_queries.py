@@ -18,6 +18,7 @@ Functions:
 """
 
 from sqlalchemy.orm import subqueryload
+from sqlalchemy.exc import InterfaceError
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.sql.expression import desc
 
@@ -41,6 +42,8 @@ def get_content_piece(content_id=None, accepted_edit_id=None,
             Content_Piece table or accepted_edit_id or rejected_edit_id
             are not associated with any content piece.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     try:
@@ -77,9 +80,16 @@ def get_content_piece(content_id=None, accepted_edit_id=None,
                 subqueryload(orm.ContentPiece.keywords)).filter(
                 orm.RejectedEdit.edit_id == rejected_edit_id).one()
         else:
-            raise InputError("Missing argument!")
+            raise InputError("No arguments provided.",
+                             message="No data provided.",
+                             inputs=args)
     except (NoResultFound, MultipleResultsFound) as e:
-        raise SelectError(str(e))
+        raise SelectError(str(e), exception=e)
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     else:
         return content_piece
 
@@ -99,6 +109,8 @@ def get_content_pieces(sort="created_at", content_part=None, user_id=None,
     Returns:
         list of ContentPieces that user_id has authored.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     if user_id:
@@ -124,7 +136,9 @@ def get_content_pieces(sort="created_at", content_part=None, user_id=None,
                 orm.ContentPieceCitation.citation).options(subqueryload("*")).filter(
                 orm.Citation.citation_text == content_part)
         else:
-            raise InputError("Invalid argument!")
+            raise InputError("Invalid argument(s) provided.",
+                             message="Invalid data provided.",
+                             inputs={"content_part": content_part})
     else:
         content_pieces = session.query(orm.ContentPiece).options(
             subqueryload("*"))
@@ -137,9 +151,16 @@ def get_content_pieces(sort="created_at", content_part=None, user_id=None,
             orm.ContentPiece.last_edited_timestamp).offset(
             (page_num-1)*per_page).limit(per_page)
     else:
-        raise InputError("Invalid argument!")
-
-    return content_pieces.all()
+        raise InputError("Invalid argument(s) provided.",
+                         message="Invalid data provided.",
+                         inputs={"sort": sort})
+    try:
+        return content_pieces.all()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
 
 
 def get_part_string(part_id, content_part, session=None):
@@ -153,6 +174,8 @@ def get_part_string(part_id, content_part, session=None):
         String of the content part of type content_part with
         primary key part_id.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     try:
@@ -172,9 +195,16 @@ def get_part_string(part_id, content_part, session=None):
             part_string = session.query(orm.Keyword.keyword).filter(
                 orm.Keyword.keyword_id == part_id).one()
         else:
-            raise InputError("Invalid argument!")
+            raise InputError("Invalid argument(s) provided.",
+                             message="Invalid data provided.",
+                             inputs=args)
     except (NoResultFound, MultipleResultsFound) as e:
-        raise SelectError(str(e))
+        raise SelectError(str(e), exception=e)
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     else:
         return part_string
 
@@ -188,26 +218,36 @@ def get_names(content_id=None, content_ids=None, session=None):
     Returns:
         Name or list of tuples of the form (content_id, Name).
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
-    if content_id is not None:
-        try:
-            name = session.query(orm.Name).join(
-                orm.ContentPiece, orm.Name.piece_).filter(
-                orm.ContentPiece.content_id == content_id).one()
-        except (NoResultFound, MultipleResultsFound) as e:
-            raise SelectError(str(e))
-        return name
-    elif content_ids is not None:
-        if content_ids:
-            names = session.query(orm.Name).join(
-                orm.ContentPiece, orm.Name.piece_).filter(
-                orm.ContentPiece.content_id.in_(content_ids)).all()
+    try:
+        if content_id is not None:
+            try:
+                name = session.query(orm.Name).join(
+                    orm.ContentPiece, orm.Name.piece_).filter(
+                    orm.ContentPiece.content_id == content_id).one()
+            except (NoResultFound, MultipleResultsFound) as e:
+                raise SelectError(str(e))
+            return name
+        elif content_ids is not None:
+            if content_ids:
+                names = session.query(orm.Name).join(
+                    orm.ContentPiece, orm.Name.piece_).filter(
+                    orm.ContentPiece.content_id.in_(content_ids)).all()
+            else:
+                names = []
+            return names
         else:
-            names = []
-        return names
-    else:
-        raise InputError("Missing argument!")
+            raise InputError("No arguments provided.",
+                             message="No data provided.",
+                             inputs=args)
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
 
 
 def get_alternate_names(content_id, session=None):
@@ -218,12 +258,20 @@ def get_alternate_names(content_id, session=None):
     Returns:
         list of Names.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     alternate_names = session.query(orm.Name).join(
         orm.ContentPiece, orm.Name.piece).filter(
         orm.ContentPiece.content_id == content_id)
-    return alternate_names.all()
+    try:
+        return alternate_names.all()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
 
 
 def get_keyword(keyword_string, session=None):
@@ -237,13 +285,20 @@ def get_keyword(keyword_string, session=None):
         SelectError: if keyword_string does not match any row in the
             Keyword table.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     try:
         keyword = session.query(orm.Keyword).filter(
             orm.Keyword.keyword == keyword_string).one()
     except (NoResultFound, MultipleResultsFound) as e:
-        raise SelectError(str(e))
+        raise SelectError(str(e), exception=e)
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     else:
         return keyword
 
@@ -258,6 +313,8 @@ def get_keywords(content_id=None, page_num=None, per_page=None, session=None):
     Returns:
         list of Keywords.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     if content_id:
@@ -268,9 +325,16 @@ def get_keywords(content_id=None, page_num=None, per_page=None, session=None):
         keywords = session.query(orm.Keyword).order_by(
             orm.Keyword.keyword).offset((page_num-1)*per_page).limit(per_page)
     else:
-        raise InputError("Invalid arguments!")
-
-    return keywords.all()
+        raise InputError("Invalid argument(s) provided.",
+                         message="Invalid data provided.",
+                         inputs=args)
+    try:
+        return keywords.all()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
 
 
 def get_citation(citation_string, session=None):
@@ -284,13 +348,20 @@ def get_citation(citation_string, session=None):
         SelectError: if citation_string does not match any row in the
             Citation table.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     try:
         citation = session.query(orm.Citation).filter(
             orm.Citation.citation_text == citation_string).one()
     except (NoResultFound, MultipleResultsFound) as e:
-        raise SelectError(str(e))
+        raise SelectError(str(e), exception=e)
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     else:
         return citation
 
@@ -308,6 +379,8 @@ def get_citations(content_id=None, citation_id=None, edited_citation_id=None,
     Returns:
         list of Citations.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     if citation_id is not None and content_id is not None:
@@ -328,9 +401,17 @@ def get_citations(content_id=None, citation_id=None, edited_citation_id=None,
         citations = session.query(orm.Citation).offset(
             (page_num-1)*per_page).limit(per_page)
     else:
-        raise InputError("Invalid arguments!")
+        raise InputError("Invalid argument(s) provided.",
+                         message="Invalid data provided.",
+                         inputs=args)
 
-    return citations.all()
+    try:
+        return citations.all()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
 
 
 def get_content_type(content_type_string, session=None):
@@ -344,13 +425,20 @@ def get_content_type(content_type_string, session=None):
         SelectError: if content_type_string does not match any row in the
             Content_Type table.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     try:
         content_type = session.query(orm.ContentType).filter(
             orm.ContentType.content_type == content_type_string).one()
     except (NoResultFound, MultipleResultsFound) as e:
-        raise SelectError(str(e))
+        raise SelectError(str(e), exception=e)
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     else:
         return content_type
 
@@ -364,8 +452,8 @@ def get_content_types(session=None):
     """
     if session is None:
         session = orm.start_session()
-    content_types = session.query(orm.ContentType).all()
-    return content_types
+    content_types = session.query(orm.ContentType)
+    return content_types.all()
 
 
 def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
@@ -393,6 +481,8 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
             Accepted_Edit table.
         InputError: if all arguments are None.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     if user_id is not None:
@@ -449,7 +539,12 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
                 subqueryload(orm.AcceptedEdit.author)).filter(
                 orm.AcceptedEdit.edit_id == edit_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
-            raise SelectError(str(e))
+            raise SelectError(str(e), exception=e)
+        except InterfaceError as e:
+            raise InputError("Invalid argument(s) provided.",
+                             exception=e,
+                             message="Invalid data provided.",
+                             inputs=args)
         else:
             return accepted_edit
     elif redis_edit_id is not None:
@@ -458,14 +553,25 @@ def get_accepted_edits(content_id=None, edit_id=None, redis_edit_id=None,
                 subqueryload(orm.AcceptedEdit.author)).filter(
                 orm.AcceptedEdit.redis_edit_id == redis_edit_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
-            raise SelectError(str(e))
+            raise SelectError(str(e), exception=e)
+        except InterfaceError as e:
+            raise InputError("Invalid argument(s) provided.",
+                             exception=e,
+                             message="Invalid data provided.",
+                             inputs=args)
         else:
             return accepted_edit
     else:
-        raise InputError("No arguments!")
-
+        raise InputError("No arguments provided.",
+                         message="No data provided.",
+                         inputs=args)
     try:
         return accepted_edits.all()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except:
         return []
 
@@ -495,6 +601,8 @@ def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
             Rejected_Edit table.
         InputError: if all arguments are None.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     if user_id is not None:
@@ -552,7 +660,12 @@ def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
                 subqueryload(orm.RejectedEdit.author)).filter(
                 orm.RejectedEdit.edit_id == edit_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
-            raise SelectError(str(e))
+            raise SelectError(str(e), exception=e)
+        except InterfaceError as e:
+            raise InputError("Invalid argument(s) provided.",
+                             exception=e,
+                             message="Invalid data provided.",
+                             inputs=args)
         else:
             return rejected_edit
     elif redis_edit_id is not None:
@@ -561,14 +674,25 @@ def get_rejected_edits(content_id=None, edit_id=None, redis_edit_id=None,
                 subqueryload(orm.RejectedEdit.author)).filter(
                 orm.RejectedEdit.redis_edit_id == redis_edit_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
-            raise SelectError(str(e))
+            raise SelectError(str(e), exception=e)
+        except InterfaceError as e:
+            raise InputError("Invalid argument(s) provided.",
+                             exception=e,
+                             message="Invalid data provided.",
+                             inputs=args)
         else:
             return rejected_edit
     else:
-        raise InputError("No arguments!")
-
+        raise InputError("No arguments provided.",
+                         message="No data provided.",
+                         inputs=args)
     try:
         return rejected_edits.all()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except:
         return []
 
@@ -581,11 +705,19 @@ def get_user_votes(user_id, session=None):
     Returns:
         list of Votes.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     votes = session.query(orm.Vote).join(orm.User, orm.Vote.voters).filter(
         orm.User.user_id == user_id)
-    return votes.all()
+    try:
+        return votes.all()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
 
 
 def get_accepted_votes(content_id=None, edit_id=None, vote_id=None,
@@ -606,6 +738,8 @@ def get_accepted_votes(content_id=None, edit_id=None, vote_id=None,
             in the Vote table.
         InputError: if all arguments are None.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     if content_id is not None:
@@ -623,7 +757,12 @@ def get_accepted_votes(content_id=None, edit_id=None, vote_id=None,
             vote = session.query(orm.Vote).join(orm.AcceptedEdit).filter(
                 orm.AcceptedEdit.edit_id == edit_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
-            raise SelectError(str(e))
+            raise SelectError(str(e), exception=e)
+        except InterfaceError as e:
+            raise InputError("Invalid argument(s) provided.",
+                             exception=e,
+                             message="Invalid data provided.",
+                             inputs=args)
         else:
             return vote
     elif vote_id is not None:
@@ -631,13 +770,25 @@ def get_accepted_votes(content_id=None, edit_id=None, vote_id=None,
             vote = session.query(orm.Vote).filter(
                 orm.Vote.vote_id == vote_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
-            raise SelectError(str(e))
+            raise SelectError(str(e), exception=e)
+        except InterfaceError as e:
+            raise InputError("Invalid argument(s) provided.",
+                             exception=e,
+                             message="Invalid data provided.",
+                             inputs=args)
         else:
             return vote
     else:
-        raise InputError("No arguments!")
-
-    return votes.all()
+        raise InputError("No arguments provided.",
+                         message="No data provided.",
+                         inputs=args)
+    try:
+        return votes.all()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
 
 
 def get_rejected_votes(content_id=None, edit_id=None, vote_id=None,
@@ -658,6 +809,8 @@ def get_rejected_votes(content_id=None, edit_id=None, vote_id=None,
             in the Vote table.
         InputError: if all arguments are None.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     if content_id is not None:
@@ -675,7 +828,12 @@ def get_rejected_votes(content_id=None, edit_id=None, vote_id=None,
             vote = session.query(orm.Vote).join(orm.RejectedEdit).filter(
                 orm.RejectedEdit.edit_id == edit_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
-            raise SelectError(str(e))
+            raise SelectError(str(e), exception=e)
+        except InterfaceError as e:
+            raise InputError("Invalid argument(s) provided.",
+                             exception=e,
+                             message="Invalid data provided.",
+                             inputs=args)
         else:
             return vote
     elif vote_id is not None:
@@ -683,13 +841,25 @@ def get_rejected_votes(content_id=None, edit_id=None, vote_id=None,
             vote = session.query(orm.Vote).filter(
                 orm.Vote.vote_id == vote_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
-            raise SelectError(str(e))
+            raise SelectError(str(e), exception=e)
+        except InterfaceError as e:
+            raise InputError("Invalid argument(s) provided.",
+                             exception=e,
+                             message="Invalid data provided.",
+                             inputs=args)
         else:
             return vote
     else:
-        raise InputError("No arguments!")
-
-    return votes.all()
+        raise InputError("No arguments provided.",
+                         message="No data provided.",
+                         inputs=args)
+    try:
+        return votes.all()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
 
 
 def get_user_encrypt_info(email=None, remember_id=None, session=None):
@@ -705,6 +875,8 @@ def get_user_encrypt_info(email=None, remember_id=None, session=None):
         SelectError: if email or remember_id does not match any row in
             the User table.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     try:
@@ -717,9 +889,16 @@ def get_user_encrypt_info(email=None, remember_id=None, session=None):
                 orm.User.pass_salt, orm.User.remember_hash_type).filter(
                 orm.User.remember_id == remember_id).one()
         else:
-            raise InputError("No arguments!")
+            raise InputError("No arguments provided.",
+                             message="No data provided.",
+                             inputs=args)
     except (NoResultFound, MultipleResultsFound) as e:
-        raise SelectError(str(e))
+        raise SelectError(str(e), exception=e)
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     else:
         return encrypt_info
 
@@ -732,13 +911,20 @@ def get_author_count(content_id, session=None):
     Returns:
         The number of authors of the content piece matching content_id.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     try:
         author_count = session.query(orm.ContentPiece.authors).filter(
             orm.ContentPiece.content_id == content_id).count()
     except Exception as e:
-        raise SelectError(str(e))
+        raise SelectError(str(e), exception=e)
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     else:
         return author_count
 
@@ -748,9 +934,7 @@ def get_user(user_id=None, email=None, remember_id=None, session=None):
     Args:
         user_id: Integer. Defaults to None.
         email: String. Defaults to None.
-        pass_hash: String. Defaults to None.
         remember_id: Integer. Defaults to None.
-        remember_token_hash: String. Defaults to None.
         session: SQLAlchemy session. Defaults to None.
     Returns:
         User.
@@ -763,32 +947,42 @@ def get_user(user_id=None, email=None, remember_id=None, session=None):
             remember_token_hash is None, and user_id is None. Indicates
             insufficient information was provided to identify a user.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
-    if email is not None:
-        try:
-            user = session.query(orm.User).filter(
-                orm.User.email == email).one()
-        except MultipleResultsFound as e:
-            raise SelectError(str(e))
-        except NoResultFound:
-            return None
-    elif remember_id is not None:
-        try:
-            user = session.query(orm.User).filter(
-                orm.User.remember_id == remember_id).one()
-        except MultipleResultsFound as e:
-            raise SelectError(str(e))
-        except NoResultFound:
-            return None
-    elif user_id is not None:
-        try:
-            user = session.query(orm.User).filter(
-                orm.User.user_id == user_id).one()
-        except (NoResultFound, MultipleResultsFound) as e:
-            raise SelectError(str(e))
-    else:
-        raise InputError("Invalid arguments!")
+    try:
+        if email is not None:
+            try:
+                user = session.query(orm.User).filter(
+                    orm.User.email == email).one()
+            except MultipleResultsFound as e:
+                raise SelectError(str(e), exception=e)
+            except NoResultFound:
+                return None
+        elif remember_id is not None:
+            try:
+                user = session.query(orm.User).filter(
+                    orm.User.remember_id == remember_id).one()
+            except MultipleResultsFound as e:
+                raise SelectError(str(e), exception=e)
+            except NoResultFound:
+                return None
+        elif user_id is not None:
+            try:
+                user = session.query(orm.User).filter(
+                    orm.User.user_id == user_id).one()
+            except (NoResultFound, MultipleResultsFound) as e:
+                raise SelectError(str(e), exception=e)
+        else:
+            raise InputError("No arguments provided.",
+                             message="No data provided.",
+                             inputs=args)
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
 
     return user
 
@@ -797,7 +991,7 @@ def get_user_info(content_id=None, user_id=None, accepted_edit_id=None,
                   rejected_edit_id=None, user_ids=None, session=None):
     """
     Args:
-        contend_id: Integer. Defaults to None.
+        content_id: Integer. Defaults to None.
         user_id: Integer. Defaults to None.
         accepted_edit_id: Integer. Defaults to None.
         rejected_edit_id: Integer. Defaults to None.
@@ -812,61 +1006,63 @@ def get_user_info(content_id=None, user_id=None, accepted_edit_id=None,
             any row in the Rejected_Edit table.
         InputError: if all arguments are None.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
-    if content_id is not None:
-        try:
+    try:
+        if content_id is not None:
             info_tuples = session.query(orm.User.user_id,
                 orm.User.user_name, orm.User.email).join(
                 orm.ContentPiece, orm.User.pieces).filter(
                 orm.ContentPiece.content_id == content_id).all()
-        except MultipleValuesFound as e:
-            raise SelectError(str(e))
-        else:
             return info_tuples
-    elif user_ids is not None:
-        try:
+        elif user_ids is not None:
             if user_ids:
                 info_tuples = session.query(orm.User.user_id,
                     orm.User.user_name, orm.User.email).filter(
                     orm.User.user_id.in_(user_ids)).all()
             else:
                 info_tuples = []
-        except MultipleValuesFound as e:
-            raise SelectError(str(e))
-        else:
             return info_tuples
-    elif user_id is not None:
-        try:
-            info = session.query(orm.User.user_id,
-                orm.User.user_name, orm.User.email).filter(
-                orm.User.user_id == user_id).one()
-        except (NoResultFound, MultipleResultsFound) as e:
-            raise SelectError(str(e))
+        elif user_id is not None:
+            try:
+                info = session.query(orm.User.user_id,
+                    orm.User.user_name, orm.User.email).filter(
+                    orm.User.user_id == user_id).one()
+            except (NoResultFound, MultipleResultsFound) as e:
+                raise SelectError(str(e), exception=e)
+            else:
+                return info
+        elif accepted_edit_id is not None:
+            try:
+                info = session.query(orm.User.user_id,
+                    orm.User.user_name, orm.User.email).join(
+                    orm.AcceptedEdit).filter(orm.AcceptedEdit.edit_id
+                                             == accepted_edit_id).one()
+            except (NoResultFound, MultipleResultsFound) as e:
+                raise SelectError(str(e), exception=e)
+            else:
+                return info
+        elif rejected_edit_id is not None:
+            try:
+                info = session.query(orm.User.user_id,
+                    orm.User.user_name, orm.User.email).join(
+                    orm.RejectedEdit).filter(orm.RejectedEdit.edit_id
+                                             == rejected_edit_id).one()
+            except (NoResultFound, MultipleResultsFound) as e:
+                raise SelectError(str(e), exception=e)
+            else:
+                return info
         else:
-            return info
-    elif accepted_edit_id is not None:
-        try:
-            info = session.query(orm.User.user_id,
-                orm.User.user_name, orm.User.email).join(
-                orm.AcceptedEdit).filter(orm.AcceptedEdit.edit_id
-                                         == accepted_edit_id).one()
-        except (NoResultFound, MultipleResultsFound) as e:
-            raise SelectError(str(e))
-        else:
-            return info
-    elif rejected_edit_id is not None:
-        try:
-            info = session.query(orm.User.user_id,
-                orm.User.user_name, orm.User.email).join(
-                orm.RejectedEdit).filter(orm.RejectedEdit.edit_id
-                                         == rejected_edit_id).one()
-        except (NoResultFound, MultipleResultsFound) as e:
-            raise SelectError(str(e))
-        else:
-            return info
-    else:
-        raise InputError("No arguments!")
+            raise InputError("No arguments provided.",
+                             message="No data provided.",
+                             inputs=args)
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
 
 
 def get_admin_ids(session=None):
@@ -876,11 +1072,22 @@ def get_admin_ids(session=None):
     Returns:
         List of integers.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
-    admin_ids = session.query(orm.User.user_id).filter(
-        orm.User.user_type == "admin").values()
-    return admin_ids
+    try:
+        admin_ids = session.query(orm.User.user_id).filter(
+            orm.User.user_type == "admin").values()
+    except MultipleValuesFound as e:
+        raise SelectError(str(e), exception=e)
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
+    else:
+        return admin_ids
 
 
 def get_user_reports(content_id=None, report_id=None, user_id=None,
@@ -900,6 +1107,8 @@ def get_user_reports(content_id=None, report_id=None, user_id=None,
             User_Report table.
         InputError: if all arguments are None.
     """
+    args = locals()
+    del args["session"]
     if session is None:
         session = orm.start_session()
     if content_id is not None:
@@ -919,10 +1128,22 @@ def get_user_reports(content_id=None, report_id=None, user_id=None,
             report = session.query(orm.UserReport).filter(
                 orm.UserReport.report_id == report_id).one()
         except (NoResultFound, MultipleResultsFound) as e:
-            raise SelectError(str(e))
+            raise SelectError(str(e), exception=e)
+        except InterfaceError as e:
+            raise InputError("Invalid argument(s) provided.",
+                             exception=e,
+                             message="Invalid data provided.",
+                             inputs=args)
         else:
             return report
     else:
-        raise InputError("No arguments!")
-
-    return reports.order_by(orm.UserReport.timestamp).all()
+        raise InputError("No arguments provided.",
+                         message="No data provided.",
+                         inputs=args)
+    try:
+        return reports.order_by(orm.UserReport.timestamp).all()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)

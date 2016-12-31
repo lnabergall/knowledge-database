@@ -16,7 +16,7 @@ Functions:
 """
 from sqlalchemy.orm.exc import (NoResultFound, ObjectDeletedError,
                                 StaleDataError)
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, InterfaceError
 
 from . import orm_core as orm
 from .select_queries import get_user, get_content_piece
@@ -42,6 +42,8 @@ def store_content_piece(user_id, name, text, content_type, keywords, timestamp,
     Raises:
         ActionError: if session is provided and committing changes fails.
     """
+    args = locals()
+    del args["session"]
     try:
         if session is None:
             session = orm.start_session()
@@ -64,8 +66,13 @@ def store_content_piece(user_id, name, text, content_type, keywords, timestamp,
 
         session.add(content_piece)
         session.flush()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except Exception as e:
-        raise ActionError(str(e))
+        raise ActionError(str(e), exception=e)
     else:
         return content_piece.content_id
 
@@ -79,6 +86,8 @@ def delete_content_piece(content_id, deleted_timestamp, session=None):
     Raises:
         ActionError: if session is provided and committing changes fails.
     """
+    args = locals()
+    del args["session"]
     try:
         if session is None:
             session = orm.start_session()
@@ -87,8 +96,13 @@ def delete_content_piece(content_id, deleted_timestamp, session=None):
             {orm.ContentPiece.deleted_timestamp: deleted_timestamp},
             synchronize_session=False)
         session.flush()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except Exception as e:
-        raise ActionError(str(e))
+        raise ActionError(str(e), exception=e)
 
 
 def update_content_type(content_id, content_type, session=None):
@@ -100,14 +114,21 @@ def update_content_type(content_id, content_type, session=None):
     Raises:
         ActionError: if session is provided and committing changes fails.
     """
+    args = locals()
+    del args["session"]
     try:
         if session is None:
             session = orm.start_session()
         content_piece = get_content_piece(content_id, session=session)
         content_piece.content_type = content_type
         session.flush()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except Exception as e:
-        raise ActionError(str(e))
+        raise ActionError(str(e), exception=e)
 
 
 def store_content_part(content_part, content_id,
@@ -122,6 +143,8 @@ def store_content_part(content_part, content_id,
         InputError: if content_part is not a Name, Keyword, or Citation.
         ActionError: if session is provided and committing changes fails.
     """
+    args = locals()
+    del args["session"]
     try:
         if session is None:
             session = orm.start_session()
@@ -137,8 +160,13 @@ def store_content_part(content_part, content_id,
         else:
             raise InputError("Invalid argument!")
         session.flush()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except Exception as e:
-        raise ActionError(str(e))
+        raise ActionError(str(e), exception=e)
 
 
 def remove_content_part(content_id, part_id, content_part, session=None):
@@ -155,6 +183,8 @@ def remove_content_part(content_id, part_id, content_part, session=None):
         InputError: if content_part != 'keyword', 'citation', or 'name'.
         ActionError: if session is provided and committing changes fails.
     """
+    args = locals()
+    del args["session"]
     try:
         if session is None:
             session = orm.start_session()
@@ -172,10 +202,16 @@ def remove_content_part(content_id, part_id, content_part, session=None):
         else:
             raise InputError("Invalid argument!")
         session.flush()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except (NoResultFound, StaleDataError, ObjectDeletedError) as e:
-        raise MissingDataError(str(e))
+        raise MissingDataError(str(e), exception=e,
+            message="It appears that the object has already been removed.")
     except Exception as e:
-        raise ActionError(str(e))
+        raise ActionError(str(e), exception=e)
 
 
 def update_content_part(part_id, content_part, part_text, session=None):
@@ -189,6 +225,8 @@ def update_content_part(part_id, content_part, part_text, session=None):
         InputError: if content_part != 'name' or 'text'.
         ActionError: if session is provided and committing changes fails.
     """
+    args = locals()
+    del args["session"]
     try:
         if session is None:
             session = orm.start_session()
@@ -201,8 +239,13 @@ def update_content_part(part_id, content_part, part_text, session=None):
         else:
             raise InputError("Invalid argument!")
         session.flush()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except Exception as e:
-        raise ActionError(str(e))
+        raise ActionError(str(e), exception=e)
 
 
 def store_accepted_edit(redis_edit_id, edit_text, applied_edit_text,
@@ -232,6 +275,8 @@ def store_accepted_edit(redis_edit_id, edit_text, applied_edit_text,
             or 'citation'.
         ActionError: if session is provided and committing changes fails.
     """
+    args = locals()
+    del args["session"]
     try:
         if session is None:
             session = orm.start_session()
@@ -296,8 +341,13 @@ def store_accepted_edit(redis_edit_id, edit_text, applied_edit_text,
             synchronize_session=False)
         session.add(edit)
         session.flush()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except Exception as e:
-        raise ActionError(str(e))
+        raise ActionError(str(e), exception=e)
     else:
         return edit.edit_id
 
@@ -326,6 +376,8 @@ def store_rejected_edit(redis_edit_id, edit_text, edit_rationale, content_part,
             or 'citation'.
         ActionError: if session is provided and committing changes fails.
     """
+    args = locals()
+    del args["session"]
     try:
         if session is None:
             session = orm.start_session()
@@ -368,8 +420,13 @@ def store_rejected_edit(redis_edit_id, edit_text, edit_rationale, content_part,
 
         session.add(edit)
         session.flush()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except Exception as e:
-        raise ActionError(str(e))
+        raise ActionError(str(e), exception=e)
     else:
         return edit.edit_id
 
@@ -391,6 +448,8 @@ def store_new_user(user_type, user_name, email, pass_hash,
     Raises:
         ActionError: if session is provided and committing changes fails.
     """
+    args = locals()
+    del args["session"]
     try:
         if session is None:
             session = orm.start_session()
@@ -400,13 +459,22 @@ def store_new_user(user_type, user_name, email, pass_hash,
                         timestamp=timestamp)
         session.add(user)
         session.flush()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except IntegrityError as e:
         if e.orig.pgcode == UNIQUE_CONSTRAINT_VIOLATION:
-            raise UniquenessViolationError(str(e))
+            error = UniquenessViolationError(str(e), exception=e)
+            if error.parameter == "email":
+                error.message = "The provided email address is already in use."
+            elif error.parameter == "remember_id":
+                error.message = "The provided remember ID is already in use."
         else:
             raise
     except Exception as e:
-        raise ActionError(str(e))
+        raise ActionError(str(e), exception=e)
     else:
         return user.user_id
 
@@ -435,6 +503,8 @@ def update_user(user_id, new_user_name=None, new_email=None,
             new_remember_hash_type is None.
         ActionError: if session is provided and committing changes fails.
     """
+    args = locals()
+    del args["session"]
     try:
         if session is None:
             session = orm.start_session()
@@ -463,8 +533,13 @@ def update_user(user_id, new_user_name=None, new_email=None,
         else:
             raise InputError("Invalid arguments!")
         session.flush()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except Exception as e:
-        raise ActionError(str(e))
+        raise ActionError(str(e), exception=e)
 
 
 def change_user_type(user_id, user_type, session=None):
@@ -476,14 +551,21 @@ def change_user_type(user_id, user_type, session=None):
     Raises:
         ActionError: if session is provided and committing changes fails.
     """
+    args = locals()
+    del args["session"]
     try:
         if session is None:
             session = orm.start_session()
         session.query(orm.User).filter(orm.User.user_id == user_id).update(
             {orm.User.user_type: user_type}, synchronize_session=False)
         session.flush()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except Exception as e:
-        raise ActionError(str(e))
+        raise ActionError(str(e), exception=e)
 
 
 def delete_user(user_id, deleted_timestamp=None, permanently=False, session=None):
@@ -497,6 +579,8 @@ def delete_user(user_id, deleted_timestamp=None, permanently=False, session=None
     Raises:
         ActionError: if session is provided and committing changes fails.
     """
+    args = locals()
+    del args["session"]
     try:
         if session is None:
             session = orm.start_session()
@@ -507,8 +591,13 @@ def delete_user(user_id, deleted_timestamp=None, permanently=False, session=None
                 {orm.User.deleted_timestamp: deleted_timestamp},
                 synchronize_session=False)
         session.flush()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except Exception as e:
-        raise ActionError(str(e))
+        raise ActionError(str(e), exception=e)
 
 
 def store_user_report(content_id, report_text, report_type, admin_report,
@@ -529,6 +618,8 @@ def store_user_report(content_id, report_text, report_type, admin_report,
     Raises:
         ActionError: if session is provided and committing changes fails.
     """
+    args = locals()
+    del args["session"]
     try:
         if session is None:
             session = orm.start_session()
@@ -540,7 +631,12 @@ def store_user_report(content_id, report_text, report_type, admin_report,
             user_report.author_id = user_id
         session.add(user_report)
         session.flush()
+    except InterfaceError as e:
+        raise InputError("Invalid argument(s) provided.",
+                         exception=e,
+                         message="Invalid data provided.",
+                         inputs=args)
     except Exception as e:
-        raise ActionError(str(e))
+        raise ActionError(str(e), exception=e)
     else:
         return user_report.report_id
