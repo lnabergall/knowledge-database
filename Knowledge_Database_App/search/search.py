@@ -9,7 +9,7 @@ Functions:
     search, filter_by, autocomplete
 """
 from elasticsearch_dsl import Search
-from elasticsearch_dsl.query import MultiMatch, Match, Term, Q
+from elasticsearch_dsl.query import MultiMatch, Q
 
 from Knowledge_Database_App.storage.exceptions import InputError
 from .index import SearchableContentPiece
@@ -53,13 +53,13 @@ def search(query_string, page_num=1):
     )
     bigram_query = Q({
         "match": {
-            "text.bigrams" : {
+            "text.bigrams": {
                 "query": query_string, "boost": 0.4}
             }
         }
     )
     content_search = SearchableContentPiece.search()
-    content_search = content_search[10*(page_num-1) : 10*page_num]
+    content_search = content_search[10*(page_num-1): 10*page_num]
     content_search = content_search.query(query).query(bigram_query)
 
     # Then rescore the top results with a fuzzy phrase match.
@@ -157,7 +157,9 @@ def filter_by(content_part, part_string, page_num=1):
         query = (Q("bool", filter=[Q("term", name=part_string)]) |
                  Q("bool", filter=[Q("term", alternate_names=part_string)]))
     else:
-        raise InputError("Missing arguments!")
+        raise InputError("Invalid argument(s) provided.",
+                         message="Invalid data provided.",
+                         inputs={"content_part": content_part})
     search = search.query(query)
     response = search.execute()
     results = {"count": response.hits.total, "results": []}
@@ -212,7 +214,9 @@ def autocomplete(content_part, query_string):
             completion={"field": "citations_suggest", "fuzzy": True, "size": 10}
         )
     else:
-        raise InputError("Invalid argument!")
+        raise InputError("Invalid argument(s) provided.",
+                         message="Invalid data provided.",
+                         inputs={"content_part": content_part})
 
     # Execute the search and reformat the result.
     response = autocomplete_search.execute()

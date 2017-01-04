@@ -19,7 +19,7 @@ Functions:
 
 from elasticsearch import NotFoundError
 from elasticsearch_dsl import (DocType, String, Completion,
-                               Index, analyzer, tokenizer, token_filter)
+                               Index, analyzer, token_filter)
 from elasticsearch_dsl.connections import connections
 
 from Knowledge_Database_App.storage.exceptions import InputError
@@ -161,8 +161,11 @@ def add_to_content_piece(content_id, content_part, part_string):
             content_piece.citations.append(part_string)
             content_piece.citations_suggest["input"].append(part_string)
         else:
-            raise InputError("Invalid arguments!")
+            raise InputError("Invalid argument(s) provided.",
+                             message="Invalid data provided.",
+                             inputs={"content_part": content_part})
         content_piece.save()
+
 
 def update_content_piece(content_id, content_part, part_string=None,
                          part_strings=None):
@@ -202,7 +205,9 @@ def update_content_piece(content_id, content_part, part_string=None,
             content_piece.citations = part_strings
             content_piece.citations_suggest = {"input": part_strings}
         else:
-            raise InputError("Invalid arguments!")
+            raise InputError("Invalid argument(s) provided.",
+                             message="Invalid data provided.",
+                             inputs={"content_part": content_part})
         content_piece.save()
 
 
