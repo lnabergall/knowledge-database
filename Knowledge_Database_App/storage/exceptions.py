@@ -23,7 +23,10 @@ class ActionError(Exception):
     """General exception raised when a database action query fails."""
 
     def __init__(self, *args, exception=None, message=None, **kwargs):
-        super().__init__(*args, **kwargs)
+        if not args:
+            super().__init__(message, *args, **kwargs)
+        else:
+            super().__init__(*args, **kwargs)
         self.exception = exception
         if message is None:
             self.message = "There was a problem submitting the provided data."
@@ -38,7 +41,10 @@ class SelectError(Exception):
     """
 
     def __init__(self, *args, exception=None, message=None, **kwargs):
-        super().__init__(*args, **kwargs)
+        if not args:
+            super().__init__(message, *args, **kwargs)
+        else:
+            super().__init__(*args, **kwargs)
         self.exception = exception
         if message is not None:
             self.message = message
@@ -55,7 +61,10 @@ class InputError(Exception):
     """
 
     def __init__(self, *args, inputs=None, exception=None, message=None, **kwargs):
-        super().__init__(*args, **kwargs)
+        if not args:
+            super().__init__(message, *args, **kwargs)
+        else:
+            super().__init__(*args, **kwargs)
         self.exception = exception
         self.inputs = inputs    # Dictionary of invalid argument value set
         self.message = message
@@ -65,7 +74,10 @@ class MissingDataError(Exception):
     """Exception raised when a query unexpectedly returns no results."""
 
     def __init__(self, *args, exception=None, message=None, **kwargs):
-        super().__init__(*args, **kwargs)
+        if not args:
+            super().__init__(message, *args, **kwargs)
+        else:
+            super().__init__(*args, **kwargs)
         self.exception = exception
         self.message = message
 
@@ -74,7 +86,10 @@ class UniquenessViolationError(Exception):
     """Exception raised when a query violates a unique constraint."""
 
     def __init__(self, *args, exception=None, message=None, **kwargs):
-        super().__init__(*args, **kwargs)
+        if not args:
+            super().__init__(message, *args, **kwargs)
+        else:
+            super().__init__(*args, **kwargs)
         self.exception = exception
         if type(exception) == IntegrityError:
             self.parameter = str(exception.orig)[
