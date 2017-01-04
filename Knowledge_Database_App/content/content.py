@@ -47,7 +47,9 @@ class Name:
             char_count = len(name) - name.count(" ")
             if (char_count < config.SMALL_PART_MIN_CHARS or
                     char_count > config.SMALL_PART_MAX_CHARS):
-                raise ContentError("Name out of allowed character count range!")
+                raise ContentError(message="Please provide name(s) containing between "
+                    + str(config.SMALL_PART_MIN_CHARS) + " and "
+                    + str(config.SMALL_PART_MAX_CHARS) + " characters.")
             self.name_id = name_id
             self.name = name
             self.name_type = name_type
@@ -121,7 +123,9 @@ class Text:
             char_count = len(text) - text.count(" ")
             if (char_count < config.LARGE_PART_MIN_CHARS or
                     char_count > config.LARGE_PART_MAX_CHARS):
-                raise ContentError("Text out of allowed character count range!")
+                raise ContentError(message="Please provide a text body containing "
+                    " between " + str(config.LARGE_PART_MIN_CHARS) + " and "
+                    + str(config.LARGE_PART_MAX_CHARS) + " characters.")
             self.text_id = text_id
             self.text = text
             self.timestamp = timestamp
@@ -337,22 +341,30 @@ class Content:
                 config.SMALL_PART_MIN_CHARS >
                 len(alt_name) - alt_name.count(" ")
                 for alt_name in names]):
-            raise ContentError("Name out of allowed character count range!")
+            raise ContentError(message="Please provide name(s) containing "
+                "between " + str(config.SMALL_PART_MIN_CHARS) + " and "
+                + str(config.SMALL_PART_MAX_CHARS) + " characters.")
         if (config.LARGE_PART_MAX_CHARS < len(text) - text.count(" ") or
                 config.LARGE_PART_MIN_CHARS > len(text) - text.count(" ")):
-            raise ContentError("Text out of allowed character count range!")
+            raise ContentError(message="Please provide a text body containing "
+                "between " + str(config.LARGE_PART_MIN_CHARS) + " and "
+                + str(config.LARGE_PART_MAX_CHARS) + " characters.")
         if any([config.LARGE_PART_MAX_CHARS <
                 len(citation) - citation.count(" ") or
                 config.SMALL_PART_MIN_CHARS >
                 len(citation) - citation.count(" ")
                 for citation in citations]):
-            raise ContentError("Citation out of allowed character count range!")
+            raise ContentError(message="Please provide citation(s) containing "
+                "between " + str(config.SMALL_PART_MIN_CHARS) + " and "
+                + str(config.SMALL_PART_MAX_CHARS) + " characters.")
         if any([config.SMALL_PART_MAX_CHARS <
                 len(keyword) - keyword.count(" ") or
                 config.SMALL_PART_MIN_CHARS >
                 len(keyword) - keyword.count(" ")
                 for keyword in keywords]):
-            raise ContentError("Keyword out of allowed character count range!")
+            raise ContentError(message="Please provide keyword(s) containing "
+                "between " + str(config.SMALL_PART_MIN_CHARS) + " and "
+                + str(config.SMALL_PART_MAX_CHARS) + " characters.")
 
     def _transfer(self, content_piece):
         """
@@ -672,7 +684,7 @@ class Content:
             try:
                 if isinstance(part_text, orm.Name):
                     cls.storage_handler.call(action.store_content_part,
-                                              part_text, content_id)
+                                             part_text, content_id)
                     index.add_to_content_piece(content_id, "alternate_name",
                                                content_part.name)
                 elif content_part == "keyword" and part_text is not None:
@@ -683,7 +695,7 @@ class Content:
                         keyword = orm.Keyword(keyword=part_text,
                                               timestamp=timestamp)
                     cls.storage_handler.call(action.store_content_part,
-                                              keyword, content_id)
+                                             keyword, content_id)
                     index.add_to_content_piece(content_id, content_part,
                                                keyword.keyword)
                 elif content_part == "citation" and part_text is not None:
@@ -705,7 +717,7 @@ class Content:
         elif part_id is not None and update_type == "remove":
             try:
                 cls.storage_handler.call(action.remove_content_part,
-                                          content_id, part_id, content_part)
+                                         content_id, part_id, content_part)
                 if content_part == "alternate_name":
                     alternate_names = cls.storage_handler.call(
                         select.get_alternate_names, content_id)
@@ -733,10 +745,10 @@ class Content:
             try:
                 if content_part == "name" or content_part == "alternate_name":
                     cls.storage_handler.call(action.update_content_part,
-                                              part_id, "name", part_text)
+                                             part_id, "name", part_text)
                 elif content_part == "text":
                     cls.storage_handler.call(action.update_content_part,
-                                              part_id, content_part, part_text)
+                                             part_id, content_part, part_text)
                 if content_part == "name" or content_part == "text":
                     index.update_content_piece(content_id, content_part,
                                                part_string=part_text)
@@ -748,12 +760,11 @@ class Content:
                                                part_strings=alternate_names)
                 elif content_part == "keyword":
                     try:
-                        cls.update(content_id, content_part,
-                                       "remove", part_id)
+                        cls.update(content_id, content_part, "remove", part_id)
                     except MissingDataError:
                         pass
                     cls.update(content_id, content_part,
-                                   "add", timestamp, part_text=part_text)
+                               "add", timestamp, part_text=part_text)
                     keywords = cls.storage_handler.call(
                         select.get_keywords, content_id)
                     keywords = [keyword.keyword for keyword in keywords]
@@ -761,21 +772,21 @@ class Content:
                                                part_strings=keywords)
                 elif content_part == "citation":
                     try:
-                        cls.update(content_id, content_part,
-                                       "remove", part_id)
+                        cls.update(content_id, content_part, "remove", part_id)
                     except MissingDataError:
                         other_edits = cls.storage_handler.call(
                             select.get_citations, content_id,
                             edited_citation_id=part_id)
                         if len(other_edits) != 1:
-                            raise ApplicationError(
-                                "Cannot resolve citation ambiguity!")
+                            raise ApplicationError(error_data=other_edits,
+                                message="Multiple citations found. "
+                                "Cannot resolve citation ambiguity.")
                         else:
                             previous_citation = other_edits[0]
                             edited_citations = ([previous_citation] +
                                 previous_citation.edited_citations)
                             cls.update(content_id, content_part, "remove",
-                                           previous_citation.citation_id)
+                                       previous_citation.citation_id)
                     cls.update(content_id, content_part, "add", timestamp,
                         part_text=part_text, edited_citations=edited_citations)
                     citations = cls.storage_handler.call(

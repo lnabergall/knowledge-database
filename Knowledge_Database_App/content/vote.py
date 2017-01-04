@@ -222,7 +222,7 @@ class AuthorVote:
         """
         Returns:
             Tuple of the form (bool, integer), where bool is True if
-            and only if this vote is on the earliest (chronologically)
+            and only if this vote is the earliest (chronologically)
             submitted validating edit and integer is the edit id of the
             earliest submitted validating edit.
 
@@ -254,7 +254,8 @@ class AuthorVote:
                 validation_status="validating", content_id=edit.content_id,
                 citation_id=edit.part_id, page_num=0, ids_only=True)
         else:
-            raise ApplicationError("Unexpected edit argument!")
+            raise ApplicationError(error_data=edit.json_ready,
+                message="Invalid content part detected.")
 
         return edit_ids[-1] == self.edit_id, edit_ids[-1]
 
@@ -273,7 +274,7 @@ class AuthorVote:
                     "Vote already submitted by user " +
                     str(self.author.user_id) + "!")
             except MissingKeyError as e:
-                raise VoteStatusError(str(e))
+                raise VoteStatusError(exception=e, message=e.message)
             except:
                 raise
 

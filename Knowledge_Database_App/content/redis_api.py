@@ -188,9 +188,12 @@ def store_vote(edit_id, voter_id, vote_and_time):
         pipe.lrange("voter:" + str(), 0, -1)
         exists, user_votes = pipe.execute()
     if not exists:
-        raise MissingKeyError("Key '" + str(edit_id) + "' not found!")
+        raise MissingKeyError(key=edit_id, message="Edit " + str(edit_id)
+                              + " not found. Either this edit does not exist "
+                              "or it has already been accepted.")
     if edit_id in user_votes:
-        raise DuplicateVoteError
+        raise DuplicateVoteError(message="You have already voted on this edit. "
+                                 "You may only vote once.")
     else:
         with redis.pipeline() as pipe:
             pipe.hsetnx("votes:" + str(edit_id),
@@ -198,7 +201,8 @@ def store_vote(edit_id, voter_id, vote_and_time):
             pipe.lpush("voter:" + str(voter_id), edit_id)
             response_list = pipe.execute()
         if response_list[0] == 0:
-            raise DuplicateVoteError
+            raise DuplicateVoteError(message="You have already voted on "
+                                     "this edit. You may only vote once.")
 
 
 def store_confirm(email, confirmation_id_hash, expire_timestamp):

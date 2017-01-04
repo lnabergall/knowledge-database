@@ -145,7 +145,7 @@ class Edit:
             if ((content_part == "name" or content_part == "alternate_name" or 
                     content_part == "keyword" or content_part == "citation") and 
                     not Content.check_uniqueness(content_id, edit_text, content_part)):
-                raise DuplicateError("Edit duplicates another content part!")
+                raise DuplicateError(message="Edit duplicates another content part.")
             self.validation_status = "pending"
             self.timestamp = datetime.utcnow()
             self.start_timestamp = start_timestamp
@@ -180,10 +180,11 @@ class Edit:
 
     def _validate(self, original_part_text):
         part_text = self.storage_handler.call(select.get_part_string,
-                                         self.part_id, self.content_part)
+                                              self.part_id, self.content_part)
         if original_part_text != part_text:
-            raise DataMatchingError("The input original part text does not "
-                                    "match the currently stored part text!")
+            raise DataMatchingError(message="The input original part text "
+                "does not match the current part text; you may be editing "
+                "a outdated version of the content part.")
 
     @staticmethod
     def _check_legal(content_part, edit_text):
@@ -192,27 +193,35 @@ class Edit:
                  len(edit_text) - edit_text.count(" ") or
                  config.SMALL_PART_MIN_CHARS >
                  len(edit_text) - edit_text.count(" "))):
-            raise ContentError("Name out of allowed character count range!")
+            raise ContentError(message="Please provide name(s) containing "
+                "between " + str(config.SMALL_PART_MIN_CHARS) + " and "
+                + str(config.SMALL_PART_MAX_CHARS) + " characters.")
         elif (content_part == "text" and
                 (config.LARGE_PART_MAX_CHARS <
                  len(edit_text) - edit_text.count(" ") or
                  config.LARGE_PART_MIN_CHARS >
                  len(edit_text) - edit_text.count(" "))):
-            raise ContentError("Text out of allowed character count range!")
+            raise ContentError(message="Please provide a text body containing "
+                "between " + str(config.SMALL_PART_MIN_CHARS) + " and "
+                + str(config.SMALL_PART_MAX_CHARS) + " characters.")
         elif (content_part == "citation" and
                 (config.LARGE_PART_MAX_CHARS <
                  len(edit_text) - edit_text.count(" ") or
                  config.SMALL_PART_MIN_CHARS >
                  len(edit_text) - edit_text.count(" "))):
-            raise ContentError("Citation out of allowed character count range!")
+            raise ContentError(message="Please provide citation(s) containing "
+                "between " + str(config.SMALL_PART_MIN_CHARS) + " and "
+                + str(config.SMALL_PART_MAX_CHARS) + " characters.")
         elif (content_part == "keyword" and
                 (config.SMALL_PART_MAX_CHARS <
                  len(edit_text) - edit_text.count(" ") or
                  config.SMALL_PART_MIN_CHARS >
                  len(edit_text) - edit_text.count(" "))):
-            raise ContentError("Keyword out of allowed character count range!")
+            raise ContentError(message="Please provide keyword(s) containing "
+                "between " + str(config.SMALL_PART_MIN_CHARS) + " and "
+                + str(config.SMALL_PART_MAX_CHARS) + " characters.")
         elif content_part == "content_type" not in Content.get_parts("content_type"):
-            raise ContentError("Content type not recognized!")
+            raise ContentError(message="Invalid content type provided.")
 
     def _retrieve_from_storage(self, edit_id=None, redis_edit_id=None):
         """
