@@ -55,6 +55,7 @@ class RegisteredUser:
             remember_token: String. Defaults to None.
             remember_user: Boolean. Defaults to False.
         """
+        args = locals()
         if user_id is not None:
             try:
                 user_object = self.storage_handler.call(
@@ -72,7 +73,7 @@ class RegisteredUser:
             else:
                 if user_object is None:
                     raise EmailAddressError(
-                        "Email address does not match any user!")
+                        message="Incorrect email address or password.")
                 else:
                     authenticated = pass_handler.verify(
                         password, user_object.pass_hash)
@@ -82,7 +83,7 @@ class RegisteredUser:
                             self.remember_user()
                     else:
                         raise PasswordError(
-                            "Password does not match that email address!")
+                            message="Incorrect email address or password.")
         elif remember_id is not None and remember_token is not None:
             try:
                 user_object = self.storage_handler.call(
@@ -91,17 +92,21 @@ class RegisteredUser:
                 raise
             else:
                 if user_object is None:
-                    raise RememberUserError("Invalid Remember Me ID!")
+                    raise RememberUserError(
+                        message="Incorrect Remember Me ID!")
                 else:
                     authenticated = pass_handler.verify(
                         remember_token, user_object.remember_token_hash)
                     if authenticated:
                         self._transfer(user_object)
                     else:
-                        raise RememberUserError("Invalid Remember Me token!")
+                        raise RememberUserError(
+                            message="Incorrect Remember Me token!")
         else:
             if not email or not password or not user_name:
-                raise InputError("Invalid arguments!")
+                raise InputError("Invalid argument(s) provided.",
+                                 message="Invalid data provided.",
+                                 inputs=args)
             else:
                 email = email.strip()
                 password = password.strip()
@@ -123,11 +128,14 @@ class RegisteredUser:
     @staticmethod
     def _check_legal(email, password, user_name):
         if PASS_REGEX.fullmatch(password) is None:
-            raise PasswordError("Invalid password!")
+            raise PasswordError(message="Please provide a password of "
+                "between 8 and 160 characters with at least one letter "
+                "and one number or special character.")
         if not validate_email(email):
-            raise EmailAddressError("Invalid email address!")
+            raise EmailAddressError(
+                message="Please provide a valid email address.")
         if USER_NAME_REGEX.fullmatch(user_name) is None:
-            raise UserNameError("Invalid user name!")
+            raise UserNameError(message="Please provide a valid full name.")
 
     def _transfer(self, stored_user_object):
         self.user_id = stored_user_object.user_id
@@ -221,7 +229,7 @@ class RegisteredUser:
                     cls.update(user_id, confirmed_timestamp=confirmed_timestamp)
                     break
             else:
-                raise ConfirmationError("Invalid confirmation ID!")
+                raise ConfirmationError(message="Incorrect confirmation ID.")
 
     def remember_user(self):
         remember_token = generate_password(size=40)
@@ -246,6 +254,7 @@ class RegisteredUser:
             new_password: String. Defaults to None.
             confirmed_timestamp: Datetime. Defaults to None.
         """
+        args = locals()
         if new_user_name is not None:
             new_user_name = new_user_name.strip()
             try:
@@ -279,7 +288,9 @@ class RegisteredUser:
             except:
                 raise
         else:
-            raise InputError("Invalid arguments!")
+            raise InputError("No arguments provided.",
+                             message="No data provided.",
+                             inputs=args)
 
     @classmethod
     def delete(cls, user_id):

@@ -7,7 +7,7 @@ Classes:
 """
 
 from random import choice
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from Knowledge_Database_App.content import redis_api
 from Knowledge_Database_App.content.edit import is_ip_address
@@ -50,6 +50,7 @@ class Report:
             author_id: Integer. Defaults to None.
             report_object: orm.UserReport object.  Defaults to None.
         """
+        args = locals()
         self.report_status = report_status
         if report_id is not None:
             try:
@@ -59,7 +60,9 @@ class Report:
                     report_object = self.storage_handler.call(
                         select.get_user_reports, report_id=report_id)
                 else:
-                    raise InputError("Invalid arguments!")
+                    raise InputError("Invalid argument(s) provided.",
+                                     message="Invalid data provided.",
+                                     inputs={"report_status": report_status})
             except:
                 raise
             else:
@@ -72,7 +75,9 @@ class Report:
                     not is_ip_address(author_type) and author_type != "U") or (
                     author_type == "U" and author_id is None) or (
                     report_type != "content" and report_type != "authors"):
-                raise InputError("Invalid arguments!")
+                raise InputError("Invalid argument(s) provided.",
+                                 message="Invalid data provided.",
+                                 inputs=args)
             else:
                 self.report_status = "pending"
                 self.report_text = report_text.strip()
@@ -133,9 +138,11 @@ class Report:
             ip_address: String. Defaults to None.
             report_status: String, accepts 'open' or 'resolved'. 
                 Defaults to 'open'.
+            page_num: Integer. Defaults to 1.
         Returns:
             List of Report objects.
         """
+        args = locals()
         if user_id is not None:
             try:
                 if report_status == "open":
@@ -173,7 +180,9 @@ class Report:
             except:
                 raise
         else:
-            raise InputError("Missing argument!")
+            raise InputError("Invalid argument(s) provided.",
+                             message="Insufficient data provided.",
+                             inputs=args)
         if page_num != 0:
             reports = [Report(report_status=report_status,
                               report_object=report_object)
