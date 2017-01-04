@@ -156,7 +156,9 @@ def store_edit(content_id, edit_text, edit_rationale, content_part, part_id,
         elif content_part == "content_type":
             pipe.lpush("content_type:" + str(part_id), edit_id)
         else:
-            raise InputError("Invalid argument!")
+            raise InputError("Invalid argument(s) provided.",
+                             message="Invalid data provided.",
+                             inputs={"content_part": content_part})
         pipe.lpush("content:" + str(content_id), edit_id)
         pipe.hmset("edit:" + str(edit_id), {
             "edit_id": edit_id,
@@ -289,6 +291,7 @@ def get_reports(report_id=None, content_id=None, user_id=None, admin_id=None):
             "author_id": int
         }
     """
+    args = locals()
     if report_id is not None:
         report_dict = redis.hgetall("report:" + str(report_id))
         return report_dict
@@ -299,7 +302,9 @@ def get_reports(report_id=None, content_id=None, user_id=None, admin_id=None):
     elif admin_id is not None:
         report_ids = redis.lrange("admin_reports:" + str(admin_id), 0, -1)
     else:
-        raise InputError("Missing arguments!")
+        raise InputError("No arguments provided.",
+                         message="No data provided.",
+                         inputs=args)
     with redis.pipeline() as pipe:
             for report_id in report_ids:
                 pipe.hgetall("report:" + str(report_id))
@@ -360,6 +365,7 @@ def get_edits(content_id=None, content_ids=None, user_id=None, voter_id=None,
             {content_id1: List of edit IDs,
              content_id2: List of edit IDS, ...}
     """
+    args = locals()
     if content_id is not None:
         edit_ids = redis.lrange("content:" + str(content_id), 0, -1)
     elif content_ids is not None:
@@ -371,7 +377,9 @@ def get_edits(content_id=None, content_ids=None, user_id=None, voter_id=None,
                 return {content_id: edit_ids for content_id, edit_ids
                         in zip(content_ids, edit_id_lists)}
             else:
-                raise InputError("Invalid arguments!")
+                raise InputError("Invalid argument(s) provided.",
+                                 message="Invalid data provided.",
+                                 inputs=args)
     elif user_id is not None:
         edit_ids = redis.lrange("user:" + str(user_id), 0, -1)
     elif voter_id is not None:
@@ -387,7 +395,9 @@ def get_edits(content_id=None, content_ids=None, user_id=None, voter_id=None,
     elif content_type_id is not None:
         edit_ids = redis.lrange("content_type:" + str(content_type_id), 0, -1)
     else:
-        raise InputError("Missing arguments!")
+        raise InputError("No arguments provided.",
+                         message="No data provided.",
+                         inputs=args)
     if only_ids:
         return edit_ids
     else:
@@ -457,7 +467,9 @@ def delete_validation_data(content_id, edit_id, user_id,
         elif content_part == "content_type":
             pipe.lrem("content_type:" + str(part_id), 0, edit_id)
         else:
-            raise InputError("Invalid argument!")
+            raise InputError("Invalid argument(s) provided.",
+                             message="Invalid data provided.",
+                             inputs={"content_part": content_part})
         pipe.lrem("content:" + str(content_id), 0, edit_id)
         pipe.delete("edit:" + str(edit_id))
         pipe.delete("votes:" + str(edit_id))

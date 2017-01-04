@@ -193,6 +193,7 @@ class UserData:
 
     @classmethod
     def bulk_retrieve(cls, user_data_objects=None, content_id=None):
+        args = locals()
         storage_handler = orm.StorageHandler()
         if user_data_objects is not None:
             user_ids = [user.user_id for user in user_data_objects]
@@ -208,7 +209,9 @@ class UserData:
             except:
                 raise
         else:
-            raise InputError("Invalid arguments!")
+            raise InputError("No arguments provided.",
+                             message="No data provided.",
+                             inputs=args)
 
         return [UserData(user_id=tup[0], user_name=tup[1], email=tup[2])
                 for tup in info_tuples]
@@ -281,6 +284,7 @@ class Content:
             citations: List of Strings.
             content_piece: ContentPiece object.
         """
+        args = locals()
         if (content_id is not None or accepted_edit_id is not None or
                 rejected_edit_id is not None):
             try:
@@ -299,7 +303,9 @@ class Content:
         else:
             if (not first_author_id or not content_type or not name or
                     not text or not keywords):
-                raise InputError("Required arguments not provided!")
+                raise InputError("Invalid argument(s) provided.",
+                                 message="Insufficient data provided.",
+                                 inputs=args)
             self.timestamp = datetime.utcnow()
             self.last_edited_timestamp = self.timestamp
             self.first_author = UserData(user_id=first_author_id)
@@ -450,7 +456,9 @@ class Content:
         else:
             try:
                 if page_num < 1:
-                    raise InputError("Invalid argument!")
+                    raise InputError("Invalid argument(s) provided.",
+                                     message="Invalid data provided.",
+                                     inputs={"page_num": page_num})
                 content_pieces = cls.storage_handler.call(
                     select.get_content_pieces, sort=sort,
                     content_part=content_part, page_num=page_num)
@@ -489,7 +497,9 @@ class Content:
                 citations = [citation.citation_text for citation in citations]
                 return citations
             else:
-                raise InputError("Invalid argument!")
+                raise InputError("Invalid argument(s) provided.",
+                                 message="Invalid data provided.",
+                                 inputs={"content_part": content_part})
         except:
             raise
 
@@ -537,7 +547,9 @@ class Content:
                 return part_string not in [citation.citation_text
                                            for citation in citations]
         else:
-            raise InputError("Invalid argument!")
+            raise InputError("Invalid argument(s) provided.",
+                             message="Invalid data provided.",
+                             inputs={"content_part": content_part})
 
     @classmethod
     def filter_by(cls, content_part, part_string, page_num=1):
@@ -671,6 +683,7 @@ class Content:
             edited_citations: List of orm.Citation objects.
                 Defaults to None.
         """
+        args = locals()
         if content_part == "content_type" and update_type == "modify":
             try:
                 content_type = select.get_content_type(part_text)
@@ -711,7 +724,9 @@ class Content:
                     index.add_to_content_piece(content_id, content_part,
                                                citation.citation_text)
                 else:
-                    raise InputError("Invalid argument!")
+                    raise InputError("Invalid argument(s) provided.",
+                                     message="Invalid data provided.",
+                                     inputs=args)
             except:
                 raise
         elif part_id is not None and update_type == "remove":
@@ -738,7 +753,9 @@ class Content:
                     index.update_content_piece(content_id, content_part,
                                                part_strings=citations)
                 else:
-                    raise InputError("Invalid argument!")
+                    raise InputError("Invalid argument(s) provided.",
+                                     message="Invalid data provided.",
+                                     inputs=args)
             except:
                 raise
         elif part_id is not None and update_type == "modify":
@@ -796,11 +813,15 @@ class Content:
                     index.update_content_piece(content_id, content_part,
                                                part_strings=citations)
                 else:
-                    raise InputError("Invalid argument!")
+                    raise InputError("Invalid argument(s) provided.",
+                                     message="Invalid data provided.",
+                                     inputs={"content_part": content_part})
             except:
                 raise
         else:
-            raise InputError("Invalid arguments!")
+            raise InputError("Invalid argument(s) provided.",
+                             message="Invalid data provided.",
+                             inputs=args)
 
     def _delete(self):
         if not self.stored:

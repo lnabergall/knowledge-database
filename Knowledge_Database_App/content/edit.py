@@ -111,6 +111,7 @@ class Edit:
             start_timestamp: Datetime. Defaults to None.
             edit_object: AcceptedEdit or RejectedEdit object.
         """
+        args = locals()
         if (self.validation_status is not None and
                 self.validation_status != "accepted" and
                 self.validation_status != "rejected" and
@@ -118,7 +119,9 @@ class Edit:
                 author_type is not None and
                 not is_ip_address(author_type) and author_type != "U") or (
                 author_type == "U" and author_id is None):
-            raise InputError("Invalid argument!")
+            raise InputError("Invalid argument(s) provided.",
+                             message="Invalid data provided.",
+                             inputs=args)
 
         self.validation_status = validation_status
         if edit_id is not None and self.validation_status is not None:
@@ -141,7 +144,9 @@ class Edit:
             if (not content_id or edit_text is None or not content_part or
                     original_part_text is None or not author_type or
                     not start_timestamp):
-                raise InputError("Required arguments not provided!")
+                raise InputError("Invalid argument(s) provided.",
+                                 message="Invalid data provided.",
+                                 inputs=args)
             if ((content_part == "name" or content_part == "alternate_name" or 
                     content_part == "keyword" or content_part == "citation") and 
                     not Content.check_uniqueness(content_id, edit_text, content_part)):
@@ -230,6 +235,7 @@ class Edit:
         Returns:
             AcceptedEdit or RejectedEdit object.
         """
+        args = locals()
         if edit_id is not None:
             if self.validation_status == "accepted":
                     try:
@@ -258,7 +264,9 @@ class Edit:
             else:
                 self.validation_status = "accepted"
         else:
-            raise InputError("Invalid argument!")
+            raise InputError("No arguments provided.",
+                             message="No data provided.",
+                             inputs=args)
 
         return edit
 
@@ -358,6 +366,12 @@ class Edit:
             If ids_only == True, returns list of Integers, otherwise returns
             list of Edits.
         """
+        if (validation_status != "validating"
+                and validation_status != "accepted"
+                and validation_status != "rejected"):
+            raise InputError("Invalid argument(s) provided.",
+                             message="Invalid data provided.",
+                             inputs={"validation_status": validation_status})
         if user_id is not None:
             if validation_status == "validating":
                 try:
@@ -376,8 +390,6 @@ class Edit:
                                                      user_id=user_id)
                 except:
                     raise
-            else:
-                raise InputError("Invalid arguments!")
         elif content_ids is not None:
             if validation_status == "validating":
                 try:
@@ -396,8 +408,6 @@ class Edit:
                                                       content_ids=content_ids)
                 except:
                     raise
-            else:
-                raise InputError("Invalid arguments!")
         elif citation_id is not None:
             if validation_status == "validating":
                 try:
@@ -426,8 +436,6 @@ class Edit:
                         citation_id=citation_id)
                 except:
                     raise
-            else:
-                raise InputError("Invalid arguments!")
         elif keyword_id is not None:
             if validation_status == "validating":
                 try:
@@ -456,8 +464,6 @@ class Edit:
                         keyword_id=keyword_id)
                 except:
                     raise
-            else:
-                raise InputError("Invalid arguments!")
         elif content_type_id is not None:
             if validation_status == "validating":
                 try:
@@ -486,8 +492,6 @@ class Edit:
                         content_type_id=content_type_id)
                 except:
                     raise
-            else:
-                raise InputError("Invalid arguments!")
         elif content_id is not None:
             if validation_status == "validating":
                 try:
@@ -506,8 +510,6 @@ class Edit:
                                                      content_id=content_id)
                 except:
                     raise
-            else:
-                raise InputError("Invalid arguments!")
         elif text_id is not None:
             if validation_status == "validating":
                 try:
@@ -526,8 +528,6 @@ class Edit:
                                                      text_id=text_id)
                 except:
                     raise
-            else:
-                raise InputError("Invalid arguments!")
         elif name_id is not None:
             if validation_status == "validating":
                 try:
@@ -546,8 +546,6 @@ class Edit:
                                                      name_id=name_id)
                 except:
                     raise
-            else:
-                raise InputError("Invalid arguments!")
         else:
             return []
 
@@ -850,6 +848,7 @@ class Edit:
             author_info: List of Tuples of the form
                 (user_id, user_name, email).
         """
+        args = locals()
         try:
             content_name = self.storage_handler.call(
                 select.get_names, content_id=self.content_id)
@@ -859,7 +858,9 @@ class Edit:
             content_name = content_name.name
         if email_type == "edit_submitted":
             if author_info is None:
-                raise InputError("Invalid argument!")
+                raise InputError("Invalid argument(s) provided.",
+                                 message="Invalid data provided.",
+                                 inputs=args)
             else:
                 emails = [mail.Email(info_tuple[2], info_tuple[1],
                                        content_name,
@@ -874,7 +875,9 @@ class Edit:
                         raise
         elif email_type == "vote_reminder":
             if author_info is None or days_remaining is None:
-                raise InputError("Invalid argument!")
+                raise InputError("Invalid argument(s) provided.",
+                                 message="Invalid data provided.",
+                                 inputs=args)
             else:
                 emails = [mail.Email(info_tuple[2], info_tuple[1],
                                      content_name,
@@ -900,7 +903,9 @@ class Edit:
         elif (email_type == "author_acceptance" or
                 email_type == "author_rejection"):
             if author_info is None:
-                raise InputError("Invalid argument!")
+                raise InputError("Invalid argument(s) provided.",
+                                 message="Invalid data provided.",
+                                 inputs=args)
             else:
                 vote_result = (True if self.validation_status == "accepted"
                                else False)
@@ -917,7 +922,9 @@ class Edit:
                     except:
                         raise
         else:
-            raise InputError("Invalid argument!")
+            raise InputError("Invalid argument(s) provided.",
+                             message="Invalid data provided.",
+                             inputs=args)
 
     @property
     def conflict(self):

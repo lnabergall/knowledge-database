@@ -13,7 +13,7 @@ Functions:
 
 from difflib import SequenceMatcher
 
-from Knowledge_Database_App.storage.select_queries import InputError
+from Knowledge_Database_App.storage.exceptions import InputError
 
 
 class DiffComputationError(Exception):
@@ -120,7 +120,9 @@ def restore(diff, version="original"):
             if line.startswith("+") or line.startswith(" "):
                 part_text += line[6:]
     else:
-        raise InputError("Invalid arguments!")
+        raise InputError("Invalid argument(s) provided.",
+                         message="Invalid data provided.",
+                         inputs={"version": version})
 
     return part_text
 
@@ -300,7 +302,9 @@ def _compute_combined_diff(first_diff, later_diff, base="common"):
                     merged_diff_lines.insert(match_index+2+index_offset, part2)
                     index_offset += 2
                 else:
-                    raise action.InputError("Invalid argument!")
+                    raise InputError("Invalid argument(s) provided.",
+                                     message="Invalid data provided.",
+                                     inputs={"base": base})
             elif first_diff_lines[match_index].startswith("-"):
                 if base == "first_diff":
                     raise DiffComputationError(

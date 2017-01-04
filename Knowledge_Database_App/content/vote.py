@@ -51,10 +51,13 @@ class AuthorVote:
 
     def __init__(self, vote_status, edit_id, vote, voter_id,
                  timestamp=None, close_timestamp=None):
+        args = locals()
         if (not edit_id or (vote != "Y" and vote != "N") or not voter_id or
                 (vote_status is not None and vote_status != "in-progress"
                 and vote_status != "ended")):
-            raise InputError("Invalid arguments!")
+            raise InputError("Invalid argument(s) provided.",
+                             message="Invalid data provided.",
+                             inputs=args)
         else:
             self.edit_id = edit_id
             self.vote_status = vote_status
@@ -102,7 +105,9 @@ class AuthorVote:
                     vote_object = cls.storage_handler.call(
                         select.get_rejected_votes, edit_id=edit_id)
                 else:
-                    raise InputError("Invalid argument!")
+                    raise InputError("Invalid argument(s) provided.",
+                        message="Invalid data provided.",
+                        inputs={"validation_status": validation_status})
             except:
                 raise
         elif vote_id is not None:
@@ -114,7 +119,9 @@ class AuthorVote:
                     vote_object = cls.storage_handler.call(
                         select.get_rejected_votes, vote_id=vote_id)
                 else:
-                    raise InputError("Invalid argument!")
+                    raise InputError("Invalid argument(s) provided.",
+                        message="Invalid data provided.",
+                        inputs={"validation_status": validation_status})
             except:
                 raise
 
@@ -146,6 +153,7 @@ class AuthorVote:
              edit_id2: list2 of AuthorVotes,
              ...}
         """
+        args = locals()
         if vote_status == "in-progress":
             if edit_id is not None:
                 vote_dict = cls._retrieve_from_redis(edit_id)
@@ -163,7 +171,9 @@ class AuthorVote:
                               for key, value in vote_dict.items()]
                              for edit_id, vote_dict in vote_dicts.items()}
             else:
-                raise InputError("Invalid arguments!")
+                raise InputError("Invalid argument(s) provided.",
+                                 message="Invalid data provided.",
+                                 inputs=args)
         elif vote_status == "ended":
             if edit_id is not None:
                 vote_object = cls._retrieve_from_storage(
@@ -197,10 +207,14 @@ class AuthorVote:
                                      for key, value in vote_dict.items()]
                         votes[edit_id] = vote_list
                 else:
-                    raise InputError("Invalid arguments!")
+                    raise InputError("Invalid argument(s) provided.",
+                        message="Invalid data provided.",
+                        inputs={"validation_status": validation_status})
                 return votes
             else:
-                raise InputError("Invalid arguments!")
+                raise InputError("Invalid argument(s) provided.",
+                                 message="Invalid data provided.",
+                                 inputs=args)
             vote_dict = cls.unpack_vote_summary(vote_object.vote)
             if edit_id is None:
                 if validation_status == "accepted":
@@ -208,13 +222,17 @@ class AuthorVote:
                 elif validation_status == "rejected":
                     edit_id = vote_object.rejected_edit_id
                 else:
-                    raise InputError("Invalid argument!")
+                    raise InputError("Invalid argument(s) provided.",
+                        message="Invalid data provided.",
+                        inputs={"validation_status": validation_status})
             votes = [AuthorVote(vote_status, edit_id, value[0],
                                 key, timestamp=dateparse.parse(value[3:]),
                                 close_timestamp=vote_object.close_timestamp)
                      for key, value in vote_dict.items()]
         else:
-            raise InputError("Invalid argument!")
+            raise InputError("Invalid argument(s) provided.",
+                             message="Invalid data provided.",
+                             inputs={"vote_status": vote_status})
 
         return votes
 
@@ -270,9 +288,7 @@ class AuthorVote:
                 redis_api.store_vote(self.edit_id, self.author.user_id,
                                      self.vote + "; " + str(self.timestamp))
             except DuplicateVoteError:
-                raise DuplicateVoteError(
-                    "Vote already submitted by user " +
-                    str(self.author.user_id) + "!")
+                raise
             except MissingKeyError as e:
                 raise VoteStatusError(exception=e, message=e.message)
             except:
