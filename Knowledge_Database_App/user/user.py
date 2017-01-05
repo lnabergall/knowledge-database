@@ -21,7 +21,8 @@ from Knowledge_Database_App.storage import (orm_core as orm,
 from Knowledge_Database_App.storage.exceptions import InputError
 from .user_config import PASS_REGEX, USER_NAME_REGEX
 from .exceptions import (PasswordError, UserNameError, EmailAddressError,
-                         RememberUserError, ConfirmationError)
+                         RememberUserError, ConfirmationError,
+                         AuthenticationError)
 
 
 class RegisteredUser:
@@ -72,7 +73,7 @@ class RegisteredUser:
                 raise
             else:
                 if user_object is None:
-                    raise EmailAddressError(
+                    raise AuthenticationError(
                         message="Incorrect email address or password.")
                 else:
                     authenticated = pass_handler.verify(
@@ -82,7 +83,7 @@ class RegisteredUser:
                         if remember_user:
                             self.remember_user()
                     else:
-                        raise PasswordError(
+                        raise AuthenticationError(
                             message="Incorrect email address or password.")
         elif remember_id is not None and remember_token is not None:
             try:
@@ -93,7 +94,7 @@ class RegisteredUser:
             else:
                 if user_object is None:
                     raise RememberUserError(
-                        message="Incorrect Remember Me ID!")
+                        message="Incorrect 'Remember Me' ID or token.")
                 else:
                     authenticated = pass_handler.verify(
                         remember_token, user_object.remember_token_hash)
@@ -101,7 +102,7 @@ class RegisteredUser:
                         self._transfer(user_object)
                     else:
                         raise RememberUserError(
-                            message="Incorrect Remember Me token!")
+                            message="Incorrect 'Remember Me' ID or token.")
         else:
             if not email or not password or not user_name:
                 raise InputError("Invalid argument(s) provided.",
@@ -135,7 +136,8 @@ class RegisteredUser:
             raise EmailAddressError(
                 message="Please provide a valid email address.")
         if USER_NAME_REGEX.fullmatch(user_name) is None:
-            raise UserNameError(message="Please provide a valid full name.")
+            raise UserNameError(message="Please provide a valid first "
+                                "and last name, separated by a space.")
 
     def _transfer(self, stored_user_object):
         self.user_id = stored_user_object.user_id
@@ -229,7 +231,7 @@ class RegisteredUser:
                     cls.update(user_id, confirmed_timestamp=confirmed_timestamp)
                     break
             else:
-                raise ConfirmationError(message="Incorrect confirmation ID.")
+                raise ConfirmationError(message="Incorrect confirmation code.")
 
     def remember_user(self):
         remember_token = generate_password(size=40)
