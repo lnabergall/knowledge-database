@@ -9,6 +9,9 @@ Functions:
 from pyramid.config import Configurator
 from pyramid.authorization import ACLAuthorizationPolicy
 
+from Knowledge_Database_App.storage import exceptions as storage_except
+from Knowledge_Database_App.content import exceptions as content_except
+from Knowledge_Database_App.user import exceptions as user_except
 from Knowledge_Database_App.web_api.web_api import resources
 from Knowledge_Database_App.web_api.web_api.permissions import (
     VIEW, CREATE, MODIFY, DELETE, AUTHOR)
@@ -42,6 +45,52 @@ def main(global_config, **settings):
                     context="web_api.resources.MyResource",
                     renderer="templates/mytemplate.jinja2",
                     route_name="home")
+
+    config.add_view("web_api.views.ExceptionView",
+                    attr="failed_db_storage",
+                    context=storage_except.ActionError)
+    config.add_view("web_api.views.ExceptionView",
+                    attr="failed_db_retrieval",
+                    context=storage_except.SelectError)
+    config.add_view("web_api.views.ExceptionView",
+                    attr="invalid_data",
+                    context=storage_except.InputError)
+    config.add_view("web_api.views.ExceptionView",
+                    attr="failed_uniqueness",
+                    context=storage_except.UniquenessViolationError)
+    config.add_view("web_api.views.ExceptionView",
+                    attr="duplicate_vote",
+                    context=content_except.DuplicateVoteError)
+    config.add_view("web_api.views.ExceptionView",
+                    attr="invalid_content",
+                    context=content_except.ContentError)
+    config.add_view("web_api.views.ExceptionView",
+                    attr="duplicate_content",
+                    context=content_except.DuplicateError)
+    config.add_view("web_api.views.ExceptionView",
+                    attr="expired_edit",
+                    context=content_except.DataMatchingError)
+    config.add_view("web_api.views.ExceptionView",
+                    attr="closed_vote",
+                    context=content_except.VoteStatusError)
+    config.add_view("web_api.views.ExceptionView",
+                    attr="invalid_password",
+                    context=user_except.PasswordError)
+    config.add_view("web_api.views.ExceptionView",
+                    attr="invalid_username",
+                    context=user_except.UserNameError)
+    config.add_view("web_api.views.ExceptionView",
+                    attr="invalid_email",
+                    context=user_except.EmailAddressError)
+    config.add_view("web_api.views.ExceptionView",
+                    attr="rejected_authentication",
+                    context=user_except.AuthenticationError)
+    config.add_view("web_api.views.ExceptionView",
+                    attr="rejected_rememberme",
+                    context=user_except.RememberUserError)
+    config.add_view("web_api.views.ExceptionView",
+                    attr="rejected_confirmation",
+                    context=user_except.ConfirmationError)
 
     config.add_route("content", "/content", factory=resources.content_factory)
     config.add_view("web_api.views.ContentResourceView",
