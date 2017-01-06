@@ -46,49 +46,57 @@ def main(global_config, **settings):
                     renderer="templates/mytemplate.jinja2",
                     route_name="home")
 
-    config.add_view("web_api.views.ExceptionView",
+    config.add_notfound_view("web_api.views.ExceptionView",
+                             attr="not_found")
+    config.add_forbidden_view("web_api.views.ExceptionView",
+                             attr="forbidden")
+
+    config.add_view("web_api.views.CustomExceptionView",
+                    attr="unknown_failure",
+                    context=Exception)
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="failed_db_storage",
                     context=storage_except.ActionError)
-    config.add_view("web_api.views.ExceptionView",
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="failed_db_retrieval",
                     context=storage_except.SelectError)
-    config.add_view("web_api.views.ExceptionView",
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="invalid_data",
                     context=storage_except.InputError)
-    config.add_view("web_api.views.ExceptionView",
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="failed_uniqueness",
                     context=storage_except.UniquenessViolationError)
-    config.add_view("web_api.views.ExceptionView",
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="duplicate_vote",
                     context=content_except.DuplicateVoteError)
-    config.add_view("web_api.views.ExceptionView",
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="invalid_content",
                     context=content_except.ContentError)
-    config.add_view("web_api.views.ExceptionView",
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="duplicate_content",
                     context=content_except.DuplicateError)
-    config.add_view("web_api.views.ExceptionView",
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="expired_edit",
                     context=content_except.DataMatchingError)
-    config.add_view("web_api.views.ExceptionView",
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="closed_vote",
                     context=content_except.VoteStatusError)
-    config.add_view("web_api.views.ExceptionView",
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="invalid_password",
                     context=user_except.PasswordError)
-    config.add_view("web_api.views.ExceptionView",
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="invalid_username",
                     context=user_except.UserNameError)
-    config.add_view("web_api.views.ExceptionView",
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="invalid_email",
                     context=user_except.EmailAddressError)
-    config.add_view("web_api.views.ExceptionView",
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="rejected_authentication",
                     context=user_except.AuthenticationError)
-    config.add_view("web_api.views.ExceptionView",
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="rejected_rememberme",
                     context=user_except.RememberUserError)
-    config.add_view("web_api.views.ExceptionView",
+    config.add_view("web_api.views.CustomExceptionView",
                     attr="rejected_confirmation",
                     context=user_except.ConfirmationError)
 

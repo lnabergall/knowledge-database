@@ -23,11 +23,64 @@ def test_view(request):
 
 class ExceptionView:
 
+    def __init__(self, request):
+        self.request = request
+        self.came_from = self.request.params.get("came_from")
+        self.url = self.request.current_route_url
+
+    def not_found(self):
+        status_code = 404
+        self.request.response.status_code = status_code
+        return {
+            "errors": [{
+                "status": str(status_code),
+                "title": "Not Found",
+                "message": "The requested resource does not exist."
+            }],
+            "links": {
+                "came_from": self.came_from,
+                "url": self.url,
+            },
+        }
+
+    def forbidden(self):
+        status_code = 403
+        self.request.response.status_code = status_code
+        return {
+            "errors": [{
+                "status": str(status_code),
+                "title": "Forbidden",
+                "message": "The action you are trying to perform is forbidden."
+            }],
+            "links": {
+                "came_from": self.came_from,
+                "url": self.url,
+            },
+        }
+
+
+class CustomExceptionView:
+
     def __init__(self, exception, request):
         self.exception = exception
         self.request = request
         self.came_from = self.request.params.get("came_from")
         self.url = self.request.current_route_url
+
+    def unknown_failure(self):
+        status_code = 500
+        self.request.response.status_code = status_code
+        return {
+            "errors": [{
+                "status": str(status_code),
+                "title": "Unknown Error",
+                "message": "There was a problem processing your request."
+            }],
+            "links": {
+                "came_from": self.came_from,
+                "url": self.url,
+            },
+        }
 
     def failed_db_storage(self):
         status_code = 500
